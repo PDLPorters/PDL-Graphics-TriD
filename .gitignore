@@ -1,0 +1,70 @@
+# Generic build files
+
+*.o
+*.obj
+*.so
+*.dylib
+*.bundle
+
+# MinGW build files
+
+dll.base
+dll.exp
+*.def
+
+# Debian package build files
+build-stamp
+configure-stamp
+patch-stamp
+test-stamp
+debian/
+
+# Junk
+
+*.dif
+*.diff
+*.gz
+*.old
+*.ori
+*.orig
+*.rej
+*.tmp
+*.patch
+tmp*
+tmp_*
+
+# Perl build files
+
+_eumm
+pm_to_blib
+blib
+*.bs
+Makefile
+Makefile.aperl
+MYMETA.yml
+MYMETA.json
+MANIFEST.bak
+
+# Editor temp files
+*~
+#   VIM
+.*.swp
+
+# Strange mac files
+._*
+
+# Devel::Cover files
+*.gcda
+*.gcno
+*.gcov
+cover_db/
+
+nytprof*
+
+# Directory specific build files
+# These can either be in the specific directories or specified
+# with full patch in the top level directory (as here).
+
+t/*.dll*
+pp-*.c
+*-pp-*.c

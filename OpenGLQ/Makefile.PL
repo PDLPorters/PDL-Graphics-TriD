@@ -4,7 +4,7 @@ use ExtUtils::MakeMaker;
 use OpenGL::Config;
 
 my @pack = (["openglq.pd", qw(OpenGLQ PDL::Graphics::OpenGLQ)]);
-my %hash = pdlpp_stdargs_int(@pack);
+my %hash = pdlpp_stdargs(@pack);
 
 $hash{LIBS}[0] = $OpenGL::Config->{LIBS} if $OpenGL::Config->{LIBS};
 $hash{DEFINE} .= ' '.$OpenGL::Config->{DEFINE} if $OpenGL::Config->{DEFINE};
@@ -19,7 +19,7 @@ ${$hash{LIBS}}[0] .= ' -lm';
 
 undef &MY::postamble; # suppress warning
 *MY::postamble = sub {
-	pdlpp_postamble_int(@pack);
+	pdlpp_postamble(@pack);
 };
 
 WriteMakefile(%hash);
