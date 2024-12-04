@@ -14,8 +14,6 @@ foreach my $path ( @INC ) {
     my $file = File::Spec->catfile( $path, @f );
     if ( -f $file ) { $owlfile = $file; last; }
 }
-confess "Unable to find owl.stl within the perl libraries.\n"
-  unless defined $owlfile;
 
 sub info {('3d', '3d demo (requires TriD with OpenGL or Mesa)')}
 sub init {'
@@ -62,13 +60,13 @@ my @demo = (
 	# [press 'q' in the graphics window when done]
 |],
 
-[actnw => q|
+(!defined $owlfile ? () : [actnw => q|
 	# Show an owl loaded from an STL file
 	use PDL::IO::STL;
 	($vertices, $faceidx) = rstl $|.__PACKAGE__.q|::owlfile;
 	trigrid3d($vertices,$faceidx);
 	# [press 'q' in the graphics window when done]
-|],
+|]),
 
 [actnw => q|
 	# Number of subdivisions for lines / surfaces.
