@@ -45,3 +45,8 @@ WriteMakefile (
     },
   },
 );
+
+sub MY::postamble {
+  my $oneliner = PDL::Core::Dev::_oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(shift); }});
+  qq|\ninstall :: pure_install\n\t$oneliner \$(NAME)\n|;
+}
