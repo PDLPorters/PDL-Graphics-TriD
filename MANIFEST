@@ -18,9 +18,9 @@ POGL/ignore.txt
 POGL/Makefile.PL
 POGL/OpenGL.pm
 POGL/README
-POGL/t/opengl.t
 Rout/Makefile.PL
 Rout/rout.pd
+t/opengl.t
 TriD.pm
 TriD/ArcBall.pm
 TriD/ButtonControl.pm
