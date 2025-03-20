@@ -21,8 +21,7 @@ WriteMakefile (
   CONFIGURE_REQUIRES => {
     'ExtUtils::MakeMaker' => 0,
     'PDL' => '2.096',
-    'OpenGL' => '0.70',
-    'OpenGL::GLUT' => '0.72',
+    'OpenGL' => '0.7004',
   },
   PREREQ_PM => {
     'PDL' => '2.096',
