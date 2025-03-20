@@ -10,8 +10,6 @@ $hash{LIBS}[0] = $OpenGL::Config->{LIBS} if $OpenGL::Config->{LIBS};
 $hash{DEFINE} .= ' '.$OpenGL::Config->{DEFINE} if $OpenGL::Config->{DEFINE};
 $hash{INC} .= ' '.$OpenGL::Config->{INC} if $OpenGL::Config->{INC};
 if($^O eq 'MSWin32') {
-  $hash{LDFROM} .= ' '. $OpenGL::Config->{LDFROM};
-  $hash{LDFROM} =~ s/\-lfreeglut//g;
   $hash{DEFINE} .= ' -DGLUT_DISABLE_ATEXIT_HACK'; # else get errors about PerlProc_exit on at least Strawberry Perl 5.32
 }
 
