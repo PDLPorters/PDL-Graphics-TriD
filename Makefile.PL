@@ -10,14 +10,7 @@ WriteMakefile (
   NAME         => $package_name,
   AUTHOR => 'PerlDL Developers <pdl-general@lists.sourceforge.net>',
   LICENSE=> "perl",
-  VERSION_FROM => 'TriD.pm',
-  PM => {
-    'TriD.pm' => '$(INST_LIBDIR)/TriD.pm',
-    (map +($_ => '$(INST_LIBDIR)/'.$_), glob 'TriD/*.pm'),
-    'DemoTriD1.pm' => '$(INST_LIB)/PDL/Demos/TriD1.pm',
-    'DemoTriD2.pm' => '$(INST_LIB)/PDL/Demos/TriD2.pm',
-    'DemoTriDGallery.pm' => '$(INST_LIB)/PDL/Demos/TriDGallery.pm',
-  },
+  VERSION_FROM => 'lib/PDL/Graphics/TriD.pm',
   CONFIGURE_REQUIRES => {
     'ExtUtils::MakeMaker' => 0,
     'PDL' => '2.096',
