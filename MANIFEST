@@ -9,6 +9,7 @@ DemoTkTriD.pm
 lib/PDL/Demos/TriD1.pm
 lib/PDL/Demos/TriD2.pm
 lib/PDL/Demos/TriDGallery.pm
+lib/PDL/Graphics/OpenGL/Perl/OpenGL.pm
 lib/PDL/Graphics/TriD.pm
 lib/PDL/Graphics/TriD/ArcBall.pm
 lib/PDL/Graphics/TriD/ButtonControl.pm
@@ -42,10 +43,6 @@ MANIFEST			This list of files
 MANIFEST.SKIP
 OpenGLQ/Makefile.PL
 OpenGLQ/openglq.pd
-POGL/ignore.txt
-POGL/Makefile.PL
-POGL/OpenGL.pm
-POGL/README
 Rout/Makefile.PL
 Rout/rout.pd
 t/opengl.t
