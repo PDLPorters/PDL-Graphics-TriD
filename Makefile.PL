@@ -38,7 +38,13 @@ WriteMakefile (
   },
 );
 
-sub MY::postamble {
-  my $oneliner = PDL::Core::Dev::_oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(shift); }});
-  qq|\ninstall :: pure_install\n\t$oneliner \$(NAME)\n|;
+{
+my @pd_srcs;
+package MY; # so that "SUPER" works right
+sub init_PM {
+  my ($self) = @_;
+  $self->SUPER::init_PM;
+  @pd_srcs = ::pdlpp_eumm_update_deep($self);
+}
+sub postamble { ::pdlpp_postamble(@pd_srcs) }
 }

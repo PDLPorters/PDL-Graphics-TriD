@@ -28,6 +28,7 @@ lib/PDL/Graphics/TriD/Objects.pm
 lib/PDL/Graphics/TriD/OOGL.pm
 lib/PDL/Graphics/TriD/Polygonize.pm
 lib/PDL/Graphics/TriD/Quaternion.pm
+lib/PDL/Graphics/TriD/Rout.pd
 lib/PDL/Graphics/TriD/ScrollButtonScaler.pm
 lib/PDL/Graphics/TriD/SimpleScaler.pm
 lib/PDL/Graphics/TriD/Surface.pm
@@ -43,6 +44,4 @@ MANIFEST			This list of files
 MANIFEST.SKIP
 OpenGLQ/Makefile.PL
 OpenGLQ/openglq.pd
-Rout/Makefile.PL
-Rout/rout.pd
 t/opengl.t

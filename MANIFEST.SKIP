@@ -37,7 +37,8 @@ Makefile\.old
 \b_eumm/
 
 ^OpenGLQ/OpenGLQ\.*
-^Rout/Rout\.*
+lib/PDL/Graphics/TriD/Rout(\.(pm|xs|c)$|-pp-)
+
 ^TriD/Tk.pm$
 
 ^\.git
