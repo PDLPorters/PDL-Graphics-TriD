@@ -69,6 +69,9 @@ t/*.dll*
 pp-*.c
 *-pp-*.c
 
+lib/PDL/Graphics/OpenGLQ.c
+lib/PDL/Graphics/OpenGLQ.pm
+lib/PDL/Graphics/OpenGLQ.xs
 lib/PDL/Graphics/TriD/Rout.c
 lib/PDL/Graphics/TriD/Rout.pm
 lib/PDL/Graphics/TriD/Rout.xs

@@ -3,6 +3,16 @@ use warnings;
 use ExtUtils::MakeMaker;
 use PDL::Core::Dev;
 
+use OpenGL::Config;
+my ($def, $inc, $libs) = ('', '', '');
+$libs = $OpenGL::Config->{LIBS} if $OpenGL::Config->{LIBS};
+$def .= ' '.$OpenGL::Config->{DEFINE} if $OpenGL::Config->{DEFINE};
+$inc .= ' '.$OpenGL::Config->{INC} if $OpenGL::Config->{INC};
+if($^O eq 'MSWin32') {
+  $def .= ' -DGLUT_DISABLE_ATEXIT_HACK'; # else get errors about PerlProc_exit on at least Strawberry Perl 5.32
+}
+$libs .= ' -lm';
+
 my $package_name = "PDL::Graphics::TriD";
 (my $repo = $package_name) =~ s#::#-#g;
 $repo = "PDLPorters/$repo";
@@ -23,6 +33,9 @@ WriteMakefile (
   TEST_REQUIRES => {
     'Test::More' => '0.88',
   },
+  !$def ? () : (DEFINE => $def),
+  !$inc ? () : (INC => $inc),
+  LIBS => [$libs],
   META_MERGE => {
     "meta-spec" => { version => 2 },
     resources => {
