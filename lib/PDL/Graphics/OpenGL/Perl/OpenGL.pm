@@ -288,11 +288,13 @@ sub _pdl_fake_KeyPress {
    sub _pdl_fake_button_event {
       print "_pdl_fake_button_event: got (@_)\n" if $PDL::Graphics::TriD::verbose;
       $last_fake_mouse_state = $fake_mouse_state;
+      my $mask = $button_to_mask[$_[0]];
+      return if !defined $mask; # MacOS sometimes gives button ID 5
       if ( $_[1] == 0 ) {       # a press
-         $fake_mouse_state |= $button_to_mask[$_[0]];
+         $fake_mouse_state |= $mask;
          push @fakeXEvents, [ 4, $_[0]+1, @_[2,3], -1, -1, $last_fake_mouse_state ];
       } elsif ( $_[1] == 1 ) {  # a release
-         $fake_mouse_state &= ~$button_to_mask[$_[0]];
+         $fake_mouse_state &= ~$mask;
          push @fakeXEvents, [ 5, $_[0]+1 , @_[2,3], -1, -1, $last_fake_mouse_state ];
       } else {
          die "ERROR: _pdl_fake_button_event got unexpected value!";
