@@ -30,7 +30,6 @@ sub new {
 sub xy2qua {
 	my($this,$x,$y) = @_;
 	$x -= $this->{W}/2; $y -= $this->{H}/2;
-	$x /= $this->{SC}; $y /= $this->{SC};
 	$y = -$y;
 	return $this->normxy2qua($x,$y);
 }
@@ -66,6 +65,7 @@ use base qw/PDL::Graphics::TriD::QuaterController/;
 # x,y to unit quaternion on the sphere.
 sub normxy2qua {
 	my($this,$x,$y) = @_;
+	$x /= $this->{SC}; $y /= $this->{SC};
 	my $dist = sqrt ($x ** 2 + $y ** 2);
 	if($dist > 1.0) {$x /= $dist; $y /= $dist; $dist = 1.0;}
 	my $z = sqrt(1-$dist**2);
@@ -80,6 +80,7 @@ use base qw/PDL::Graphics::TriD::QuaterController/;
 # x,y to unit quaternion on the sphere.
 sub normxy2qua {
 	my($this,$x,$y) = @_;
+	$x /= $this->{SC}; $y /= $this->{SC};
 	my $dist = sqrt ($x ** 2 + $y ** 2);
 	if($dist > 1.0) {$x /= $dist; $y /= $dist; $dist = 1.0;}
 	my $z = 1-$dist;
@@ -96,6 +97,7 @@ use base qw/PDL::Graphics::TriD::QuaterController/;
 # x,y to unit quaternion on the sphere.
 sub normxy2qua {
 	my($this,$x,$y) = @_;
+	$x /= $this->{SC}; $y /= $this->{SC};
 	my $dist = sqrt ($x ** 2 + $y ** 2);
 	if($dist > 1.0) {$x /= $dist; $y /= $dist; $dist = 1.0;}
 	my $z = cos($dist*3.142/2);
