@@ -30,40 +30,46 @@ sub new {
   $this;
 }
 
-sub xy2qua {
-	my($this,$x,$y) = @_;
-	$x -= $this->{W}/2; $y -= $this->{H}/2;
-	$y = -$y;
-	return $this->normxy2qua($x,$y);
-}
-
+# setup for subclasses
 sub mouse_moved {
-	my($this,$x0,$y0,$x1,$y1) = @_;
-	# Copy the size of the owning viewport to our size, in case it changed
-	@$this{qw(H W)} = @{$this->{Win}}{qw(H W)};
-	if ($PDL::Graphics::TriD::verbose) {
-	  print "QuaterController: mouse-moved: $this: $x0,$y0,$x1,$y1,$this->{W},$this->{H},$this->{SC}\n";
-	  if ($PDL::Graphics::TriD::verbose > 1) {
-	    print "\tthis is:\n";
-	    foreach my $k(sort keys %$this) {
-	      print "\t$k\t=>\t$this->{$k}\n";
-	    }
-	  }
-	}
-# Convert both to quaternions.
-	my ($qua0,$qua1) = ($this->xy2qua($x0,$y0),$this->xy2qua($x1,$y1));
-	my $arc = $qua1->multiply($qua0->invert());
-	if ($this->{Inv}) {
-		$arc->invert_rotation_this();
-	}
-	$this->{Quat}->set($arc->multiply($this->{Quat}));
-	1;  # signals a refresh
+  my($this,$x0,$y0,$x1,$y1) = @_;
+  # Copy the size of the owning viewport to our size, in case it changed
+  @$this{qw(H W)} = @{$this->{Win}}{qw(H W)};
+  if ($PDL::Graphics::TriD::verbose) {
+    print "QuaterController: mouse-moved: $this: $x0,$y0,$x1,$y1,$this->{W},$this->{H},$this->{SC}\n";
+    if ($PDL::Graphics::TriD::verbose > 1) {
+      print "\tthis is:\n";
+      foreach my $k(sort keys %$this) {
+        print "\t$k\t=>\t$this->{$k}\n";
+      }
+    }
+  }
 }
 
 # Original ArcBall
 #
 package PDL::Graphics::TriD::ArcBall;
 use base qw/PDL::Graphics::TriD::QuaterController/;
+
+sub xy2qua {
+  my($this,$x,$y) = @_;
+  $x -= $this->{W}/2; $y -= $this->{H}/2;
+  $y = -$y;
+  return $this->normxy2qua($x,$y);
+}
+
+sub mouse_moved {
+  my($this,$x0,$y0,$x1,$y1) = @_;
+  $this->SUPER::mouse_moved($x0,$y0,$x1,$y1);
+# Convert both to quaternions.
+  my ($qua0,$qua1) = ($this->xy2qua($x0,$y0),$this->xy2qua($x1,$y1));
+  my $arc = $qua1->multiply($qua0->invert());
+  if ($this->{Inv}) {
+          $arc->invert_rotation_this();
+  }
+  $this->{Quat}->set($arc->multiply($this->{Quat}));
+  1;  # signals a refresh
+}
 
 sub get_z {
   my ($this, $dist) = @_;
