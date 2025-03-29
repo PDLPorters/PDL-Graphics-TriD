@@ -41,11 +41,11 @@ my $arcbowl = PDL::Graphics::TriD::ArcBowl->new($win);
 isa_ok $arcbowl, 'PDL::Graphics::TriD::ArcBowl';
 $arcbowl->set_wh(100,100);
 is_qua $arcbowl->xy2qua(50,50), [0,0,0,1];
-is_qua $arcbowl->xy2qua(25,25), [0,-0.598883,0.598883,0.531673];
-is_qua $arcbowl->xy2qua(25,50), [0,-0.577389,0,0.816468];
-is_qua $arcbowl->xy2qua(25,75), [0,-0.598883,-0.598883,0.531673];
-is_qua $arcbowl->xy2qua(75,25), [0,0.598883,0.598883,0.531673];
-is_qua $arcbowl->xy2qua(75,50), [0,0.577389,0,0.816468];
-is_qua $arcbowl->xy2qua(75,75), [0,0.598883,-0.598883,0.531673];
+is_qua $arcbowl->xy2qua(25,25), [0,-0.598834,0.598834,0.531784];
+is_qua $arcbowl->xy2qua(25,50), [0,-0.577350,0,0.816496];
+is_qua $arcbowl->xy2qua(25,75), [0,-0.598834,-0.598834,0.531784];
+is_qua $arcbowl->xy2qua(75,75), [0,0.598834,-0.598834,0.531784];
+is_qua $arcbowl->xy2qua(75,50), [0,0.577350,0,0.816496];
+is_qua $arcbowl->xy2qua(75,75), [0,0.598834,-0.598834,0.531784];
 
 done_testing;

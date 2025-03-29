@@ -16,6 +16,8 @@ use PDL::Graphics::TriD::Quaternion;
 use base qw(PDL::Graphics::TriD::ButtonControl);
 use fields qw /Inv Quat/;
 
+use constant PI => 3.14159265358979323846264338327950288;
+
 $PDL::Graphics::TriD::verbose //= 0;
 
 sub new {
@@ -25,7 +27,7 @@ sub new {
   $this->{Quat} = (defined($quat) ? $quat :
 			PDL::Graphics::TriD::Quaternion->new(1,0,0,0));
   $win->add_resizecommand(sub {$this->set_wh(@_)});
-  return $this;
+  $this;
 }
 
 sub xy2qua {
@@ -63,46 +65,40 @@ sub mouse_moved {
 package PDL::Graphics::TriD::ArcBall;
 use base qw/PDL::Graphics::TriD::QuaterController/;
 
+sub get_z {
+  my ($this, $dist) = @_;
+  sqrt(1-$dist**2);
+}
+
 # x,y to unit quaternion on the sphere.
 sub normxy2qua {
-	my($this,$x,$y) = @_;
-	$x /= $this->{SC}; $y /= $this->{SC};
-	my $dist = sqrt ($x ** 2 + $y ** 2);
-	if ($dist > 1.0) {$x /= $dist; $y /= $dist; $dist = 1.0;}
-	my $z = sqrt(1-$dist**2);
-	return PDL::Graphics::TriD::Quaternion->new(0,$x,$y,$z);
+  my($this,$x,$y) = @_;
+  $x /= $this->{SC}; $y /= $this->{SC};
+  my $dist = sqrt ($x ** 2 + $y ** 2);
+  if ($dist > 1.0) {$x /= $dist; $y /= $dist; $dist = 1.0;}
+  my $z = $this->get_z($dist);
+  PDL::Graphics::TriD::Quaternion->new(0,$x,$y,$z)->normalise;
 }
 
 # Tjl's version: a cone - more even change of
 package PDL::Graphics::TriD::ArcCone;
 
-use base qw/PDL::Graphics::TriD::QuaterController/;
+use base qw/PDL::Graphics::TriD::ArcBall/;
 
-# x,y to unit quaternion on the sphere.
-sub normxy2qua {
-	my($this,$x,$y) = @_;
-	$x /= $this->{SC}; $y /= $this->{SC};
-	my $dist = sqrt ($x ** 2 + $y ** 2);
-	if ($dist > 1.0) {$x /= $dist; $y /= $dist; $dist = 1.0;}
-	my $z = 1-$dist;
-	my $qua = PDL::Graphics::TriD::Quaternion->new(0,$x,$y,$z);
-	$qua->normalise;
+sub get_z {
+  my ($this, $dist) = @_;
+  1-$dist;
 }
 
 # Tjl's version2: a bowl -- angle is proportional to displacement.
 package PDL::Graphics::TriD::ArcBowl;
 
-use base qw/PDL::Graphics::TriD::QuaterController/;
+use base qw/PDL::Graphics::TriD::ArcBall/;
+BEGIN { *PI = \&PDL::Graphics::TriD::QuaterController::PI; }
 
-# x,y to unit quaternion on the sphere.
-sub normxy2qua {
-	my($this,$x,$y) = @_;
-	$x /= $this->{SC}; $y /= $this->{SC};
-	my $dist = sqrt ($x ** 2 + $y ** 2);
-	if ($dist > 1.0) {$x /= $dist; $y /= $dist; $dist = 1.0;}
-	my $z = cos($dist*3.142/2);
-	my $qua = PDL::Graphics::TriD::Quaternion->new(0,$x,$y,$z);
-	$qua->normalise;
+sub get_z {
+  my ($this, $dist) = @_;
+  cos($dist*PI/2);
 }
 
 1;
