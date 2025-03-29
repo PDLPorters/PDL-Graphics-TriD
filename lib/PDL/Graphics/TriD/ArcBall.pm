@@ -12,6 +12,7 @@
 package PDL::Graphics::TriD::QuaterController;
 use strict;
 use warnings;
+use PDL::Graphics::TriD::Quaternion;
 use base qw(PDL::Graphics::TriD::ButtonControl);
 use fields qw /Inv Quat/;
 
@@ -67,7 +68,7 @@ sub normxy2qua {
 	my($this,$x,$y) = @_;
 	$x /= $this->{SC}; $y /= $this->{SC};
 	my $dist = sqrt ($x ** 2 + $y ** 2);
-	if($dist > 1.0) {$x /= $dist; $y /= $dist; $dist = 1.0;}
+	if ($dist > 1.0) {$x /= $dist; $y /= $dist; $dist = 1.0;}
 	my $z = sqrt(1-$dist**2);
 	return PDL::Graphics::TriD::Quaternion->new(0,$x,$y,$z);
 }
@@ -82,7 +83,7 @@ sub normxy2qua {
 	my($this,$x,$y) = @_;
 	$x /= $this->{SC}; $y /= $this->{SC};
 	my $dist = sqrt ($x ** 2 + $y ** 2);
-	if($dist > 1.0) {$x /= $dist; $y /= $dist; $dist = 1.0;}
+	if ($dist > 1.0) {$x /= $dist; $y /= $dist; $dist = 1.0;}
 	my $z = 1-$dist;
 	my $qua = PDL::Graphics::TriD::Quaternion->new(0,$x,$y,$z);
 	$qua->normalize_this();
@@ -99,7 +100,7 @@ sub normxy2qua {
 	my($this,$x,$y) = @_;
 	$x /= $this->{SC}; $y /= $this->{SC};
 	my $dist = sqrt ($x ** 2 + $y ** 2);
-	if($dist > 1.0) {$x /= $dist; $y /= $dist; $dist = 1.0;}
+	if ($dist > 1.0) {$x /= $dist; $y /= $dist; $dist = 1.0;}
 	my $z = cos($dist*3.142/2);
 	my $qua = PDL::Graphics::TriD::Quaternion->new(0,$x,$y,$z);
 	$qua->normalize_this();

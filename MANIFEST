@@ -43,4 +43,5 @@ lib/PDL/Graphics/VRML/Protos.pm
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
+t/arcball.t
 t/opengl.t
