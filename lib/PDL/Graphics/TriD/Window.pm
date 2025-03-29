@@ -57,7 +57,7 @@ sub new_viewport {
 	 use PDL::Graphics::TriD::ArcBall;
 	 use PDL::Graphics::TriD::SimpleScaler;
 	 use PDL::Graphics::TriD::ScrollButtonScaler;
-	 use PDL::Graphics::TriD::Control3D;
+	 use PDL::Graphics::TriD::SimpleController;
          if (defined($PDL::Graphics::TriD::offline) and $PDL::Graphics::TriD::offline==1 ) {
             eval "use PDL::Graphics::TriD::VRML";  
          } else {

@@ -1,16 +1,10 @@
-package PDL::Graphics::TriD::Control3D;
-
-# Mustn't have empty package in some perl versions.
-
 ##############################################
-#
 # A quaternion-based controller framework with the following transformations:
 #   1. world "origin". This is what the world revolves around
 #   2. world "rotation" at origin.
 #   3. camera "distance" along z axis after that (camera looks
 #	at negative z axis).
 #   4. camera "rotation" after that (not always usable).
-
 
 package PDL::Graphics::TriD::SimpleController;
 use strict;

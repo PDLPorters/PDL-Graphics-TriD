@@ -15,7 +15,6 @@ lib/PDL/Graphics/TriD.pm
 lib/PDL/Graphics/TriD/ArcBall.pm
 lib/PDL/Graphics/TriD/ButtonControl.pm
 lib/PDL/Graphics/TriD/Contours.pm
-lib/PDL/Graphics/TriD/Control3D.pm
 lib/PDL/Graphics/TriD/GL.pm
 lib/PDL/Graphics/TriD/Graph.pm
 lib/PDL/Graphics/TriD/Image.pm
@@ -31,6 +30,7 @@ lib/PDL/Graphics/TriD/Polygonize.pm
 lib/PDL/Graphics/TriD/Quaternion.pm
 lib/PDL/Graphics/TriD/Rout.pd
 lib/PDL/Graphics/TriD/ScrollButtonScaler.pm
+lib/PDL/Graphics/TriD/SimpleController.pm
 lib/PDL/Graphics/TriD/SimpleScaler.pm
 lib/PDL/Graphics/TriD/Surface.pm
 lib/PDL/Graphics/TriD/TextObjects.pm

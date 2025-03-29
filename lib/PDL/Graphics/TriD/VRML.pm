@@ -592,7 +592,7 @@ sub tovrml {
 #package PDL::Graphics::TriD::VRML::Window;
 package PDL::Graphics::TriD::Window;
 
-use PDL::Graphics::TriD::Control3D;
+use PDL::Graphics::TriD::SimpleController;
 PDL::Graphics::VRMLNode->import();
 PDL::Graphics::VRMLProto->import();
 use PDL::Core '';  # barf
