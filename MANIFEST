@@ -45,3 +45,4 @@ MANIFEST			This list of files
 MANIFEST.SKIP
 t/arcball.t
 t/opengl.t
+t/quaternion.t

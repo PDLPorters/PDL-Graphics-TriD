@@ -86,8 +86,7 @@ sub normxy2qua {
 	if ($dist > 1.0) {$x /= $dist; $y /= $dist; $dist = 1.0;}
 	my $z = 1-$dist;
 	my $qua = PDL::Graphics::TriD::Quaternion->new(0,$x,$y,$z);
-	$qua->normalize_this();
-	return $qua;
+	$qua->normalise;
 }
 
 # Tjl's version2: a bowl -- angle is proportional to displacement.
@@ -103,8 +102,7 @@ sub normxy2qua {
 	if ($dist > 1.0) {$x /= $dist; $y /= $dist; $dist = 1.0;}
 	my $z = cos($dist*3.142/2);
 	my $qua = PDL::Graphics::TriD::Quaternion->new(0,$x,$y,$z);
-	$qua->normalize_this();
-	return $qua;
+	$qua->normalise;
 }
 
 1;

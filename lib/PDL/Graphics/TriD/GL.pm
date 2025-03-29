@@ -175,7 +175,7 @@ sub PDL::Graphics::TriD::Quaternion::togl {
   my($this) = @_;
   if(abs($this->[0]) == 1) { return ; }
   if(abs($this->[0]) >= 1) {
-    $this->normalize_this();
+    $this->normalise;
   } 
   glRotatef(2*POSIX::acos($this->[0])/3.14*180, @{$this}[1..3]);
 }

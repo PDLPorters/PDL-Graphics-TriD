@@ -6,7 +6,7 @@
 #
 # Stored as [c,x,y,z].
 #
-# XXX REMEMBER!!!! First component = cos(angle*2), *NOT* cos(angle)
+# XXX REMEMBER!!!! First component = cos(angle/2), *NOT* cos(angle)
 
 package PDL::Graphics::TriD::Quaternion;
 
@@ -29,15 +29,14 @@ sub new {
 }
 
 sub copy {
-	return PDL::Graphics::TriD::Quaternion->new(@{$_[0]});
+  PDL::Graphics::TriD::Quaternion->new(@{$_[0]});
 }
 
 sub new_vrmlrot {
 	my($type,$x,$y,$z,$c) = @_;
 	my $l = sqrt($x**2+$y**2+$z**2);
 	my $this = bless [cos($c/2),map {sin($c/2)*$_/$l} $x,$y,$z],$type;
-	$this->normalize_this();
-	return $this;
+	$this->normalise;
 }
 
 sub to_vrmlrot {
@@ -123,15 +122,16 @@ sub invert_rotation_this {
 	$this->[0] = - $this->[0];
 }
 
-sub normalize_this {
-	my($this) = @_;
-	my $abs = sqrt($this->abssq());
-	@$this = map {$_/$abs} @$this;
+sub normalise {
+  my($this) = @_;
+  my $abs = sqrt($this->abssq);
+  @$this = map $_/$abs, @$this;
+  $this;
 }
 
 sub rotate {
   my($this,$vec) = @_;
-  my $q = (PDL::Graphics::TriD::Quaternion)->new(0,@$vec);
+  my $q = PDL::Graphics::TriD::Quaternion->new(0,@$vec);
   my $m = $this->multiply($q->multiply($this->invert));
   return [@$m[1..3]];
 }

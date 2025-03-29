@@ -153,8 +153,8 @@ sub PDL::Graphics::TriD::Transformation::tovrml {
 sub PDL::Graphics::TriD::Quaternion::tovrml {my($this) = @_;
 	if(abs($this->[0]) == 1) { return ; }
 	if(abs($this->[0]) >= 1) {
-		# die "Unnormalized Quaternion!\n";
-		$this->normalize_this();
+		# die "Unnormalised Quaternion!\n";
+		$this->normalise;
 	}
 	PDL::Graphics::VRMLNode->new('Transform',
 		   'rotation',vrml3v(@{$this}[1..3])." $this->[0]");

@@ -25,8 +25,8 @@ sub new{
 }
 
 sub normalize { my($this) = @_;
-	$this->{WRotation}->normalize_this();
-	$this->{CRotation}->normalize_this();
+	$this->{WRotation}->normalise;
+	$this->{CRotation}->normalise;
 }
 
 sub reset { 
