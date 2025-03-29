@@ -63,12 +63,10 @@ sub new_viewport {
          } else {
             eval "use PDL::Graphics::TriD::GL";  
          }
-	 my $ev = $options->{EHandler};
-	 $ev = PDL::Graphics::TriD::EventHandler->new($vp) unless defined($ev);
-	 my $cont = $options->{Transformer};
-	 $cont = PDL::Graphics::TriD::SimpleController->new unless defined($cont);
+	 my $ev = $options->{EHandler} // PDL::Graphics::TriD::EventHandler->new($vp);
+	 my $cont = $options->{Transformer} // PDL::Graphics::TriD::SimpleController->new;
 	 $vp->transformer($cont);
-	 if(ref($ev)){
+	 if (ref($ev)){
 		$ev->set_button(0,PDL::Graphics::TriD::ArcCone->new( $vp, 0, $cont->{WRotation}));
 		$ev->set_button(2,PDL::Graphics::TriD::SimpleScaler->new( $vp, \$cont->{CDistance}));
 		$ev->set_button(3,PDL::Graphics::TriD::ScrollButtonScaler->new( $vp, \$cont->{CDistance}, 0.9));

@@ -29,7 +29,7 @@ sub new {
 }
 
 sub copy {
-	return new PDL::Graphics::TriD::Quaternion(@{$_[0]});
+	return PDL::Graphics::TriD::Quaternion->new(@{$_[0]});
 }
 
 sub new_vrmlrot {
@@ -77,11 +77,11 @@ sub multiply_scalar {
 	my $ang = POSIX::acos($this->[0]);
 	my $d = sin($ang);
 	if(abs($d) < 0.0000001) {
-		return new PDL::Graphics::TriD::Quaternion(1,0,0,0);
+		return PDL::Graphics::TriD::Quaternion->new(1,0,0,0);
 	}
 	$ang *= $scalar;
 	my $d2 = sin($ang);
-	return new PDL::Graphics::TriD::Quaternion(
+	return PDL::Graphics::TriD::Quaternion->new(
 		cos($ang), map {$_*$d2/$d} @{$this}[1..3]
 	);
 }

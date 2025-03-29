@@ -120,7 +120,7 @@ sub PDL::Graphics::TriD::Material::tovrml {
   my $ambi = (pdl(@{$this->{Ambient}})**2)->sum /
     (pdl(@{$this->{Diffuse}})**2)->sum;
   $ambi = sqrt($ambi);
-  new PDL::Graphics::VRMLNode('Material',
+  PDL::Graphics::VRMLNode->new('Material',
 			'diffuseColor' => vrml3v($this->{Diffuse}),
 			'emissiveColor' => vrml3v($this->{Emissive}),
 			'shininess' => $this->{Shine},
@@ -131,14 +131,14 @@ sub PDL::Graphics::TriD::Material::tovrml {
 
 sub PDL::Graphics::TriD::Scale::tovrml {my ($this) = @_;
 	print "Scale ",(join ',',@{$this->{Args}}),"\n";
-	new PDL::Graphics::VRMLNode('Transform',
+	PDL::Graphics::VRMLNode->new('Transform',
 		   'scale',vrml3v(@{$this->{Args}}));
     }
 
 
 sub PDL::Graphics::TriD::Translation::tovrml {
   my ($this) = @_;
-  new PDL::Graphics::VRMLNode('Transform',
+  PDL::Graphics::VRMLNode->new('Transform',
 		   'translation',vrml3v(@{$this->{Args}}));
 }
 
@@ -156,7 +156,7 @@ sub PDL::Graphics::TriD::Quaternion::tovrml {my($this) = @_;
 		# die "Unnormalized Quaternion!\n";
 		$this->normalize_this();
 	}
-	new PDL::Graphics::VRMLNode('Transform',
+	PDL::Graphics::VRMLNode->new('Transform',
 		   'rotation',vrml3v(@{$this}[1..3])." $this->[0]");
 }
 
@@ -185,27 +185,27 @@ sub PDL::Graphics::TriD::GObject::tovrml_graph {
 
 sub PDL::Graphics::TriD::Points::vdraw {
 	my($this,$points) = @_;
-	new PDL::Graphics::VRMLNode('Shape',
+	PDL::Graphics::VRMLNode->new('Shape',
 			 'geometry' =>
-			 new PDL::Graphics::VRMLPdlNode($points,$this->{Colors},
+			 PDL::Graphics::VRMLPdlNode->new($points,$this->{Colors},
 					     {Title => 'PointSet',
 					     DefColors => $this->defcols}));
 }
 
 sub PDL::Graphics::TriD::LineStrip::vdraw {
 	my($this,$points) = @_;
-	new PDL::Graphics::VRMLNode('Shape',
+	PDL::Graphics::VRMLNode->new('Shape',
 			 'geometry' =>
-			 new PDL::Graphics::VRMLPdlNode($points,$this->{Colors},
+			 PDL::Graphics::VRMLPdlNode->new($points,$this->{Colors},
 					     {Title => 'IndexedLineSet',
 					      DefColors => $this->defcols}));
 }
 
 sub PDL::Graphics::TriD::Lattice::vdraw {
 	my($this,$points) = @_;
-	new PDL::Graphics::VRMLNode('Shape',
+	PDL::Graphics::VRMLNode->new('Shape',
 			 'geometry' =>
-			 new PDL::Graphics::VRMLPdlNode($points,$this->{Colors},
+			 PDL::Graphics::VRMLPdlNode->new($points,$this->{Colors},
 					     {Title => 'IndexedLineSet',
 					      DefColors => $this->defcols,
 					      IsLattice => 1}));
@@ -215,14 +215,14 @@ sub PDL::Graphics::TriD::SLattice::vdraw {
 	my($this,$points) = @_;
 	my $children = [vrn('Shape',
 		'geometry' =>
-		 new PDL::Graphics::VRMLPdlNode($points,$this->{Colors},
+		 PDL::Graphics::VRMLPdlNode->new($points,$this->{Colors},
 				      {Title => 'IndexedFaceSet',
 				       DefColors => $this->defcols,
 				       IsLattice => 1,
 				      }))];
 	push @$children, vrn('Shape',
 		 'geometry' =>
-		 new PDL::Graphics::VRMLPdlNode($points,$this->{Colors},
+		 PDL::Graphics::VRMLPdlNode->new($points,$this->{Colors},
 				      {Title => 'IndexedLineSet',
 				       DefColors => 0,
 				       Surface => 1,
@@ -242,7 +242,7 @@ sub PDL::Graphics::TriD::SLattice_S::vdraw {
 		 'appearance' => vrn('Appearance',
 				    'material' => $mat),
 		'geometry' =>
-		 new PDL::Graphics::VRMLPdlNode($points,$this->{Colors},
+		 PDL::Graphics::VRMLPdlNode->new($points,$this->{Colors},
 				      {Title => 'IndexedFaceSet',
 				       DefColors => 1,
 				       IsLattice => 1,
@@ -250,7 +250,7 @@ sub PDL::Graphics::TriD::SLattice_S::vdraw {
 				      }))];
 	push @$children, vrn('Shape',
 		 'geometry' =>
-		 new PDL::Graphics::VRMLPdlNode($points,$this->{Colors},
+		 PDL::Graphics::VRMLPdlNode->new($points,$this->{Colors},
 				      {Title => 'IndexedLineSet',
 				       DefColors => 0,
 				       Surface => 1,
@@ -561,7 +561,7 @@ package PDL::Graphics::TriD::VRML;
 $PDL::Graphics::VRML::current_window = undef;
 $PDL::Graphics::TriD::create_window_sub =
 $PDL::Graphics::TriD::create_window_sub = sub {
-	return new PDL::Graphics::TriD::Window;
+	return PDL::Graphics::TriD::Window->new;
 };
 
 # set up the default parameters for VRML
