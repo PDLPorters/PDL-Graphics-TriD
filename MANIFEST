@@ -21,7 +21,6 @@ lib/PDL/Graphics/TriD/Image.pm
 lib/PDL/Graphics/TriD/Labels.pm
 lib/PDL/Graphics/TriD/Logo.pm
 lib/PDL/Graphics/TriD/MathGraph.pm
-lib/PDL/Graphics/TriD/Mesh.pm
 lib/PDL/Graphics/TriD/Object.pm
 lib/PDL/Graphics/TriD/Objects.pm
 lib/PDL/Graphics/TriD/OOGL.pm
@@ -31,7 +30,6 @@ lib/PDL/Graphics/TriD/Rout.pd
 lib/PDL/Graphics/TriD/ScrollButtonScaler.pm
 lib/PDL/Graphics/TriD/SimpleController.pm
 lib/PDL/Graphics/TriD/SimpleScaler.pm
-lib/PDL/Graphics/TriD/Surface.pm
 lib/PDL/Graphics/TriD/TextObjects.pm
 lib/PDL/Graphics/TriD/Tk.pm
 lib/PDL/Graphics/TriD/ViewPort.pm

@@ -47,7 +47,6 @@ sub PDL::Graphics::TriD::Object::gl_update_list {
     @objs = grep !$_->cannot_mklist(), @objs if $PDL::Graphics::TriD::any_cannots;
     $_->togl() for @objs;
     print "EGENLIST $lno\n" if($PDL::Graphics::TriD::verbose);
-    #	pdltotrianglemesh($pdl, 0, 1, 0, ($pdl->{Dims}[1]-1)*$mult);
   };
   { local $@; glEndList(); }
   die if $@;
