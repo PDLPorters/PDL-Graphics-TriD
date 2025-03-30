@@ -106,4 +106,26 @@ sub get_z {
   cos($dist*PI/2);
 }
 
+package PDL::Graphics::TriD::Orbiter;
+
+use base qw/PDL::Graphics::TriD::QuaterController/;
+BEGIN { *PI = \&PDL::Graphics::TriD::QuaterController::PI; }
+
+# we rotate about our space's "Z" because that's what we made vertical
+# this is different from the OpenGL Z axis which is towards the viewer
+sub mouse_moved {
+  my($this,$x0,$y0,$x1,$y1) = @_;
+  $this->SUPER::mouse_moved($x0,$y0,$x1,$y1);
+  my ($dx, $dy) = ($x1-$x0, $y1-$y0);
+  $dx /= $this->{W}/2; $dy /= $this->{H}/2; # scale to whole window not SC
+  my ($x_rad, $y_rad) = map PI*$_, $dx, $dy;
+  my $q_horiz = PDL::Graphics::TriD::Quaternion->new(cos $x_rad/2, 0, 0, sin $x_rad/2);
+  my $q_vert = PDL::Graphics::TriD::Quaternion->new(cos $y_rad/2, sin $y_rad/2, 0, 0);
+  if ($this->{Inv}) {
+    $_->invert_rotation_this for $q_horiz, $q_vert;
+  }
+  $this->{Quat} .= $q_vert * $this->{Quat} * $q_horiz;
+  1;  # signals a refresh
+}
+
 1;

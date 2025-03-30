@@ -62,4 +62,12 @@ is_qua $arcbowl->xy2qua(75,75), [0,0.598834,-0.598834,0.531784];
 mousemove $arcbowl, 50, 50, 50, 50, [1,0,0,0];
 mousemove $arcbowl, 50, 50, 25, 25, [0.531784,-0.598834,-0.598834,0];
 
+my $orbiter = PDL::Graphics::TriD::Orbiter->new($win);
+isa_ok $orbiter, 'PDL::Graphics::TriD::Orbiter';
+$orbiter->set_wh(100,100);
+mousemove $orbiter, 50, 50, 50, 50, [1,0,0,0];
+mousemove $orbiter, 25, 25, 25, 25, [1,0,0,0];
+mousemove $orbiter, 50, 50, 25, 25, [0.5,-0.5,-0.5,-0.5];
+mousemove $orbiter, 25, 25, 0, 0, [0.5,-0.5,-0.5,-0.5];
+
 done_testing;

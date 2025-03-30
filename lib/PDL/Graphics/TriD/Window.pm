@@ -67,7 +67,7 @@ sub new_viewport {
 	 my $cont = $options->{Transformer} // PDL::Graphics::TriD::SimpleController->new;
 	 $vp->transformer($cont);
 	 if (ref($ev)){
-		$ev->set_button(0,PDL::Graphics::TriD::ArcCone->new( $vp, 0, $cont->{WRotation}));
+		$ev->set_button(0,PDL::Graphics::TriD::Orbiter->new( $vp, 0, $cont->{WRotation}));
 		$ev->set_button(2,PDL::Graphics::TriD::SimpleScaler->new( $vp, \$cont->{CDistance}));
 		$ev->set_button(3,PDL::Graphics::TriD::ScrollButtonScaler->new( $vp, \$cont->{CDistance}, 0.9));
 		$ev->set_button(4,PDL::Graphics::TriD::ScrollButtonScaler->new( $vp, \$cont->{CDistance}, 1.1));
