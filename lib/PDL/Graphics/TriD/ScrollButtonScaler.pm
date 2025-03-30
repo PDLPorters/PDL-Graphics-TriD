@@ -5,12 +5,12 @@
 
 package PDL::Graphics::TriD::ScrollButtonScaler;
 use base qw/PDL::Graphics::TriD::ButtonControl/;
-use fields qw/Dist Zoom/;
+use fields qw/DistRef Zoom/;
 
 sub new {
   my($type,$win,$dist,$zoom) = @_;
   my $this = $type->SUPER::new($win);
-  $this->{Dist} = $dist;
+  $this->{DistRef} = $dist;
   $this->{Zoom} = $zoom;  # multiplier for zooming
                           # >1 zooms out, <1 zooms in
   return $this;
@@ -19,7 +19,7 @@ sub new {
 sub ButtonRelease{
   my ($this,$x,$y) = @_;
   print "ButtonRelease @_\n"  if $PDL::Graphics::TriD::verbose;
-  ${$this->{Dist}} *= $this->{Zoom};
+  ${$this->{DistRef}} *= $this->{Zoom};
   1;
 }
 

@@ -7,16 +7,16 @@ package PDL::Graphics::TriD::SimpleScaler;
 use strict;
 use warnings;
 use base qw/PDL::Graphics::TriD::ButtonControl/;
-use fields qw/Dist/;
+use fields qw/DistRef/;
 
 $PDL::Graphics::TriD::verbose //= 0;
 
 sub new {
   my($type,$win,$dist) = @_;
-  
+
   my $this = $type->SUPER::new( $win);
 
-  $this->{Dist} = $dist;				  
+  $this->{DistRef} = $dist;
   $win->add_resizecommand(sub {print "Resized window: ",join(",",@_),"\n" if $PDL::Graphics::TriD::verbose;  $this->set_wh(@_); });
   return $this;
 }
@@ -32,7 +32,7 @@ sub xy2norm {
 
 sub mouse_moved {
 	my($this,$x0,$y0,$x1,$y1) = @_;
-	${$this->{Dist}} *=
+	${$this->{DistRef}} *=
 	  $this->xy2fac($this->xy2norm($x0,$y0),$this->xy2norm($x1,$y1));
 }
 
