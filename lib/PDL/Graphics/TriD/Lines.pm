@@ -2,7 +2,6 @@ package PDL::Graphics::TriD::LinesFOOOLD;
 use strict;
 use warnings;
 use OpenGL qw(:all);
-use PDL::Graphics::OpenGL::Perl::OpenGL;
 use PDL::Lite;
 
 our @ISA=qw/PDL::Graphics::TriD::Object/;

@@ -10,7 +10,6 @@ package PDL::Graphics::TriD::Object;
 
 use OpenGL qw(:all);
 
-use PDL::Graphics::OpenGL::Perl::OpenGL;
 sub tooogl {
    my($this) = @_;
    join "\n",map { $_->togl() } (@{$this->{Objects}})

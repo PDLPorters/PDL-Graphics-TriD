@@ -34,7 +34,6 @@ use warnings;
 use PDL::Graphics::TriD::Objects;
 use base qw/PDL::Graphics::TriD::GObject/;
 use OpenGL qw(:all);
-use PDL::Graphics::OpenGL::Perl::OpenGL;
 
 sub gdraw {
 	my($this,$points) = @_;
