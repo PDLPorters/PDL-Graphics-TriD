@@ -48,27 +48,26 @@ sub to_vrmlrot {
 	return [(map {$_/sin($d)} @{$this}[1..3]),2*$d];
 }
 
-# Yuck
 sub multiply {
-	my($this,$with) = @_;
-	return PDL::Graphics::TriD::Quaternion->new(
-		$this->[0] * $with->[0] -
-		$this->[1] * $with->[1] -
-		$this->[2] * $with->[2] -
-		$this->[3] * $with->[3],
-			$this->[2] * $with->[3] -
-			$this->[3] * $with->[2] +
-			$this->[0] * $with->[1] +
-			$this->[1] * $with->[0],
-		$this->[3] * $with->[1] -
-		$this->[1] * $with->[3] +
-		$this->[0] * $with->[2] +
-		$this->[2] * $with->[0],
-			$this->[1] * $with->[2] -
-			$this->[2] * $with->[1] +
-			$this->[0] * $with->[3] +
-			$this->[3] * $with->[0],
-	);
+  my($this,$with) = @_;
+  return PDL::Graphics::TriD::Quaternion->new(
+        $this->[0] * $with->[0]
+      - $this->[1] * $with->[1]
+      - $this->[2] * $with->[2]
+      - $this->[3] * $with->[3],
+            $this->[0] * $with->[1]
+          + $this->[1] * $with->[0]
+          + $this->[2] * $with->[3]
+          - $this->[3] * $with->[2],
+        $this->[0] * $with->[2]
+      - $this->[1] * $with->[3]
+      + $this->[2] * $with->[0]
+      + $this->[3] * $with->[1],
+            $this->[0] * $with->[3]
+          + $this->[1] * $with->[2]
+          - $this->[2] * $with->[1]
+          + $this->[3] * $with->[0],
+  );
 }
 
 sub multiply_scalar {
