@@ -62,12 +62,11 @@ sub mouse_moved {
   my($this,$x0,$y0,$x1,$y1) = @_;
   $this->SUPER::mouse_moved($x0,$y0,$x1,$y1);
 # Convert both to quaternions.
-  my ($qua0,$qua1) = ($this->xy2qua($x0,$y0),$this->xy2qua($x1,$y1));
-  my $arc = $qua1->multiply($qua0->invert());
+  my $arc = $this->xy2qua($x1,$y1) / $this->xy2qua($x0,$y0);
   if ($this->{Inv}) {
           $arc->invert_rotation_this();
   }
-  $this->{Quat}->set($arc->multiply($this->{Quat}));
+  $this->{Quat} .= $arc * $this->{Quat};
   1;  # signals a refresh
 }
 

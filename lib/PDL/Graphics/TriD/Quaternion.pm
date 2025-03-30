@@ -13,7 +13,35 @@ package PDL::Graphics::TriD::Quaternion;
 use strict;
 use warnings;
 
+sub _scalar_wrap {
+  my ($v) = @_;
+  return PDL::Graphics::TriD::Quaternion->new($v,0,0,0) if !ref $v;
+  return PDL::Graphics::TriD::Quaternion->new(@$v) if ref $v eq 'ARRAY';
+  $v;
+}
 use overload
+  '=' => sub {$_[0]}, # without this, `$this->{Quat} .= $q` errors
+  '.=' => sub {
+    my ($a1, $a2) = @_;
+    $a1->set(_scalar_wrap $a2);
+  },
+  '+' => sub {
+    my ($a1, $a2, $swap) = @_;
+    $a1->add(_scalar_wrap $a2);
+  },
+  '*' => sub {
+    my ($a1, $a2, $swap) = @_;
+    $a2 = _scalar_wrap $a2;
+    ($a2, $a1) = ($a1, $a2) if $swap;
+    $a1->multiply($a2);
+  },
+  '/' => sub {
+    my ($a1, $a2, $swap) = @_;
+    $a2 = _scalar_wrap $a2;
+    ($a2, $a1) = ($a1, $a2) if $swap;
+    $a1->multiply($a2->invert);
+  },
+  '!' => \&invert,
   '""' => sub { ref($_[0])."->new(".join(',', @{$_[0]}).")" };
 
 sub new {
@@ -70,32 +98,15 @@ sub multiply {
   );
 }
 
-sub multiply_scalar {
-	my($this,$scalar) = @_;
-	my $ang = POSIX::acos($this->[0]);
-	my $d = sin($ang);
-	if(abs($d) < 0.0000001) {
-		return PDL::Graphics::TriD::Quaternion->new(1,0,0,0);
-	}
-	$ang *= $scalar;
-	my $d2 = sin($ang);
-	return PDL::Graphics::TriD::Quaternion->new(
-		cos($ang), map {$_*$d2/$d} @{$this}[1..3]
-	);
-}
-
 sub set {
-	my($this,$new) = @_;
-	@$this = @$new;
+  my($this,$new) = @_;
+  @$this = @$new;
+  $this;
 }
 
 sub add {
-	my($this,$with) = @_;
-	return PDL::Graphics::TriD::Quaternion->new(
-		$this->[0] * $with->[0],
-		$this->[1] * $with->[1],
-		$this->[2] * $with->[2],
-		$this->[3] * $with->[3]);
+  my($this,$with) = @_;
+  PDL::Graphics::TriD::Quaternion->new(map $this->[$_]+$with->[$_], 0..3);
 }
 
 sub abssq {
@@ -133,47 +144,6 @@ sub rotate {
   my $q = PDL::Graphics::TriD::Quaternion->new(0,@$vec);
   my $m = $this->multiply($q->multiply($this->invert));
   return [@$m[1..3]];
-}
-
-sub rotate_foo {
-  my ($this,$vec) = @_;
-#  print "CP: ",(join ',',@$this)," and ",(join ',',@$vec),"\n";
-  return $vec if $this->[0] == 1 or $this->[0] == -1;
-# 1. cross product of my vector and rotated vector
-# XXX I'm not sure of any signs!
-  my @u = @$this[1..3];
-  my @v = @$vec;
-  my $tl = sqrt($u[0]**2 + $u[1]**2 + $u[2]**2);
-  my $up = sqrt($v[0]**2 + $v[1]**2 + $v[2]**2);
-  my @cp = (
-  	$u[1] * $v[2] - $u[2] * $v[1],
-  	$u[0] * $v[2] - $u[2] * $v[0],
-  	$u[0] * $v[1] - $u[1] * $v[0],
-  );
-# Cross product of this and my vector
-  my @cp2 = (
-  	$u[1] * $cp[2] - $u[2] * $cp[1],
-  	$u[0] * $cp[2] - $u[2] * $cp[0],
-  	$u[0] * $cp[1] - $u[1] * $cp[0],
-  );
-  my $cpl = 0.00000001 + sqrt($cp[0]**2 + $cp[1]**2 + $cp[2]**2);
-  my $cp2l = 0.0000001 + sqrt($cp2[0]**2 + $cp2[1]**2 + $cp2[2]**2);
-  for(@cp) {$_ /= $cpl}
-  for(@cp2) {$_ /= $cp2l}
-  my $mult1 = $up * sqrt(1-$this->[0]**2);
-  # my $mult1 = $up * sqrt(1-$this->[0]**2);
-  my $mult2 = $up * $this->[0];
-  print "ME: ",(join '    ',@u),"\n";
-  print "VEC: ",(join '    ',@v),"\n";
-  print "CP: ",(join '    ',@cp),"\n";
-  print "CP2: ",(join '    ',@cp2),"\n";
-  print "MULT1: $mult1, MULT2: $mult2\n";
-  print "CPL: ",$cpl, " TL: $tl  CPLTL: ",$cpl/$tl,"\n";
-  my $res = [map {
-  	$v[$_] + $mult1 * $cp[$_] + ($mult2 - $cpl/$tl)* $cp2[$_]
-  } 0..2];
-#  print "RES: ",(join ',',@$res),"\n";
-  return $res;
 }
 
 1;

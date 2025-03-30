@@ -1,4 +1,5 @@
 - non-trivial tests added
+- add overloads of ::Quaternion
 
 2.100 2025-01-16
 - adjust MathGraph and Labels so Debian packaging is happy
