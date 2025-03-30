@@ -23,7 +23,6 @@ lib/PDL/Graphics/TriD/Logo.pm
 lib/PDL/Graphics/TriD/MathGraph.pm
 lib/PDL/Graphics/TriD/Object.pm
 lib/PDL/Graphics/TriD/Objects.pm
-lib/PDL/Graphics/TriD/OOGL.pm
 lib/PDL/Graphics/TriD/Polygonize.pm
 lib/PDL/Graphics/TriD/Quaternion.pm
 lib/PDL/Graphics/TriD/Rout.pd

@@ -747,7 +747,6 @@ BEGIN {
 	my $dv;
 # The following is just a sanity check.
 	for($dev) {
-#		(/^OOGL$/  and $dv="PDL::Graphics::TriD::OOGL") or
 		(/^GL$/  and $dv="PDL::Graphics::TriD::GL") or
 		(/^GLpic$/  and $dv="PDL::Graphics::TriD::GL" and $PDL::Graphics::TriD::offline=1) or
 		(/^VRML$/  and $dv="PDL::Graphics::TriD::VRML" and $PDL::Graphics::TriD::offline=1) or
