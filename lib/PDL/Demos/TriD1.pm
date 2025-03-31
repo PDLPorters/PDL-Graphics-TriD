@@ -49,6 +49,7 @@ my @demo = (
 
 [actnw => q|
 	# Show a PDL logo
+	use PDL::Constants qw(PI);
 	require PDL::Graphics::TriD::Logo;
 	$vertices = $PDL::Graphics::TriD::Logo::POINTS;
 	$faceidx = $PDL::Graphics::TriD::Logo::FACES;
