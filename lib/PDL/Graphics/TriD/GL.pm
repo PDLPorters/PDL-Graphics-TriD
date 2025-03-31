@@ -29,12 +29,7 @@ sub PDL::Graphics::TriD::Material::togl{
   glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,$diff);
 }
 
-$PDL::Graphics::TriD::any_cannots = 0;
 $PDL::Graphics::TriD::verbose //= 0;
-
-sub PDL::Graphics::TriD::Object::cannot_mklist {
-	return 0;
-}
 
 sub PDL::Graphics::TriD::Object::gl_update_list {
   my($this) = @_;
@@ -44,7 +39,6 @@ sub PDL::Graphics::TriD::Object::gl_update_list {
   glNewList($lno,GL_COMPILE);
   eval {
     my @objs = @{$this->{Objects}};
-    @objs = grep !$_->cannot_mklist(), @objs if $PDL::Graphics::TriD::any_cannots;
     $_->togl() for @objs;
     print "EGENLIST $lno\n" if($PDL::Graphics::TriD::verbose);
   };
@@ -60,11 +54,6 @@ sub PDL::Graphics::TriD::Object::gl_call_list {
 	print "CHECKVALID $this=$this->{ValidList}\n" if $PDL::Graphics::TriD::verbose;
 	$this->gl_update_list if !$this->{ValidList};
 	glCallList($this->{List});
-	return if !$PDL::Graphics::TriD::any_cannots;
-	for (grep $_->cannot_mklist, @{$this->{Objects}}) {
-	  print ref($_)," cannot mklist\n";
-	  $_->togl();
-	}
 }
 
 sub PDL::Graphics::TriD::Object::delete_displist {
