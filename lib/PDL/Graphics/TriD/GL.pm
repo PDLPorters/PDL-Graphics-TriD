@@ -771,9 +771,6 @@ sub set_button {
 # VIEWPORT MINI_PACKAGE FOLLOWS!
 
 package PDL::Graphics::TriD::ViewPort;
-use base qw/PDL::Graphics::TriD::Object/;
-use fields qw/X0 Y0 W H Transformer EHandler Active ResizeCommands 
-              DefMaterial AspectRatio Graphs/;
 
 use OpenGL qw/ :glfunctions :glconstants :glufunctions /;
 use PDL::Graphics::OpenGLQ;

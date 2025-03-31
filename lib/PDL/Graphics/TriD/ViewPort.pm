@@ -6,6 +6,9 @@
 package PDL::Graphics::TriD::ViewPort;
 use strict;
 use warnings;
+use base qw/PDL::Graphics::TriD::Object/;
+use fields qw/X0 Y0 W H Transformer EHandler Active ResizeCommands
+              DefMaterial AspectRatio Graphs/;
 
 $PDL::Graphics::TriD::verbose //= 0;
 
