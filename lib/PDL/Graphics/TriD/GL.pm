@@ -9,7 +9,6 @@ use warnings;
 no warnings 'redefine';
 use OpenGL qw/ :glfunctions :glconstants gluPerspective gluOrtho2D /;
 use OpenGL::GLUT qw( :all );
-use PDL::Graphics::OpenGL::Perl::OpenGL;
 use PDL::Core qw(barf);
 
 $PDL::Graphics::TriD::create_window_sub = # warnings
@@ -777,8 +776,6 @@ use fields qw/X0 Y0 W H Transformer EHandler Active ResizeCommands
               DefMaterial AspectRatio Graphs/;
 
 use OpenGL qw/ :glfunctions :glconstants :glufunctions /;
-use OpenGL::GLUT qw( :all );
-use PDL::Graphics::OpenGL::Perl::OpenGL;
 use PDL::Graphics::OpenGLQ;
 
 sub highlight {
@@ -802,18 +799,18 @@ sub highlight {
 }
 
 sub do_perspective {
-	my($this) = @_;
-	print "do_perspective ",$this->{W}," ",$this->{H} ,"\n" if $PDL::Graphics::TriD::verbose;
-	print Carp::longmess() if $PDL::Graphics::TriD::verbose>1;
-        unless($this->{W}>0 and $this->{H}>0) {return;}
-	$this->{AspectRatio} = (1.0*$this->{W})/$this->{H};
-	glViewport($this->{X0},$this->{Y0},$this->{W},$this->{H});
-	$this->highlight if $this->{Active};
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(40.0, $this->{AspectRatio} , 0.1, 200000.0);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity ();
+  my($this) = @_;
+  print "do_perspective ",$this->{W}," ",$this->{H} ,"\n" if $PDL::Graphics::TriD::verbose;
+  print Carp::longmess() if $PDL::Graphics::TriD::verbose>1;
+  unless($this->{W}>0 and $this->{H}>0) {return;}
+  $this->{AspectRatio} = (1.0*$this->{W})/$this->{H};
+  glViewport($this->{X0},$this->{Y0},$this->{W},$this->{H});
+  $this->highlight if $this->{Active};
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluPerspective(40.0, $this->{AspectRatio} , 0.1, 200000.0);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity ();
 }
 
 1;
