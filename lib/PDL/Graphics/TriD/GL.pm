@@ -2,7 +2,6 @@
 #  - multiple windows - requires editing generate.pl in OpenGL/
 #  - clean up
 #
-#package PDL::Graphics::TriD::GL;
 
 use strict;
 use warnings;
@@ -566,8 +565,6 @@ sub reshape {
 	}
 }
 
-sub get_size { @{$_[0]}{qw(Width Height)} }
-
 sub twiddle {
   my($this,$getout,$dontshow) = @_;
   my (@e);
@@ -643,10 +640,6 @@ sub close {
   print "CLOSE\n" if $PDL::Graphics::TriD::verbose;
   undef $this->{_GLObject};
   $PDL::Graphics::TriD::current_window = undef;
-}
-
-sub setlist { my($this,$list) = @_;
-	$this->{List} = $list;
 }
 
 # Resize window.
