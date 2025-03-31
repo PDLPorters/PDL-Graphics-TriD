@@ -816,31 +816,4 @@ sub do_perspective {
 	glLoadIdentity ();
 }
 
-###############
-#
-# Because of the way GL does texturing, this must be the very last thing
-# in the object stack before the actual surface. There must not be any
-# transformations after this.
-#
-# There may be several of these but all of these must have just one texture.
-
-@PDL::Graphics::TriD::GL::SliceTexture::ISA = qw/PDL::Graphics::TriD::Object/;
-
-sub PDL::Graphics::TriD::GL::SliceTexture::new {
-	my $image;
-	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
-	glTexImage1D(GL_TEXTURE_1D,0 , 4, 2,0,GL_RGBA,GL_UNSIGNED_BYTE,
-		$image);
-	glTexParameterf(GL_TEXTURE_1D,GL_TEXTURE_WRAP_S,GL_CLAMP);
-	glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
-}
-
-sub PDL::Graphics::TriD::GL::SliceTexture::togl {
-	my ($this) = @_;
-	glEnable(GL_TEXTURE_1D);
-	glTexGen();
-	$this->SUPER::togl();
-	glDisable(GL_TEXTURE_1D);
-}
-
 1;
