@@ -174,6 +174,7 @@ sub new {
       $self =  OpenGL::glpcOpenWindow(
          $p->{x},$p->{y},$p->{width},$p->{height},
          $p->{parent},$p->{mask}, $p->{steal}, @{$p->{attributes}});
+      bless $self, ref($class_or_hash)||$class_or_hash;
    } else {                              # GLUT or FreeGLUT windows
       print STDERR "Creating GLUT OO window\n" if $PDL::Graphics::TriD::verbose;
       OpenGL::GLUT::glutInit() unless OpenGL::GLUT::done_glutInit();        # make sure glut is initialized
@@ -228,6 +229,7 @@ sub _init_glut_window {
 
 sub DESTROY {
   my ($self) = @_;
+  return if !OpenGL::GLUT::done_glutInit();
   print __PACKAGE__."::DESTROY called (win=$self->{glutwindow}), GLUT says ", OpenGL::GLUT::glutGetWindow(), "\n" if $PDL::Graphics::TriD::verbose;
   OpenGL::GLUT::glutMainLoopEvent(); # pump to deal with any clicking "X"
   if (!OpenGL::GLUT::glutGetWindow()) {
@@ -399,9 +401,9 @@ sub glpRasterFont {
      # NOTE: glpRasterFont() will die() if the requested font cannot be found
      #       The new POGL+GLUT TriD implementation uses the builtin GLUT defined
      #       fonts and does not have this failure mode.
-     my $lb =  eval { OpenGL::glpRasterFont(@args[0..2],$this->{Display}) };
+     my $lb =  eval { OpenGL::GLX::glpRasterFont(@args[0..2],$this->{Display}) };
      if ( $@ ) {
-        die "glpRasterFont: unable to load font '%s', please set PDL_3D_FONT to an existing X11 font.";
+        die "glpRasterFont: unable to load font (@args), please set PDL_3D_FONT to an existing X11 font. Error:\n$@";
      }
      return $lb;
   }

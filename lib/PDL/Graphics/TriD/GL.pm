@@ -540,7 +540,7 @@ sub gdriver {
   print "gdriver: Calling glClearColor...\n" if $PDL::Graphics::TriD::verbose;
   glClearColor(0,0,0,1);
   print "gdriver: Calling glpRasterFont...\n" if $PDL::Graphics::TriD::verbose;
-  $PDL::Graphics::TriD::GL::fontbase = $this->{_GLObject}->glpRasterFont($ENV{PDL_3D_FONT} || "5x8", 0, 256);
+  $PDL::Graphics::TriD::GL::fontbase = $this->{_GLObject}->glpRasterFont($ENV{PDL_3D_FONT} || "8x13", 0, 256);
   glShadeModel(GL_FLAT);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_NORMALIZE);
