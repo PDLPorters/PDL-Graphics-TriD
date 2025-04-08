@@ -2,11 +2,25 @@ package PDL::Graphics::TriD::GL::GLX;
 
 use strict;
 use warnings;
+use OpenGL qw/ :glxconstants /;
 
 our @ISA = qw(PDL::Graphics::TriD::GL);
 
 sub new {
   my ($class,$options,$window_obj) = @_;
+  my @db = OpenGL::GLX_DOUBLEBUFFER;
+  if ($PDL::Graphics::TriD::offline) {$options->{x} = -1; @db=()}
+  $options->{attributes} = [GLX_RGBA, @db,
+			    GLX_RED_SIZE,1,
+			    GLX_GREEN_SIZE,1,
+			    GLX_BLUE_SIZE,1,
+			    GLX_DEPTH_SIZE,1,
+			    # Alpha size?
+			   ] unless defined $options->{attributes};
+  $options->{mask} = (KeyPressMask | ButtonPressMask |
+			 ButtonMotionMask | ButtonReleaseMask |
+			 ExposureMask | StructureNotifyMask |
+			 PointerMotionMask) unless defined $options->{mask};
   my $self = $class->SUPER::new($options,$window_obj);
   print STDERR "Creating X11 OO window\n" if $PDL::Graphics::TriD::verbose;
   my $p = $self->{Options};

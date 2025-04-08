@@ -491,19 +491,6 @@ sub gdriver {
 	 print "WARNING: Graphics Driver already defined for this window \n";
 	 return;
   }
-  my @db = OpenGL::GLX_DOUBLEBUFFER;
-  if ($PDL::Graphics::TriD::offline) {$options->{x} = -1; @db=()}
-  $options->{attributes} = [GLX_RGBA, @db,
-			    GLX_RED_SIZE,1,
-			    GLX_GREEN_SIZE,1,
-			    GLX_BLUE_SIZE,1,
-			    GLX_DEPTH_SIZE,1,
-			    # Alpha size?
-			   ] unless defined $options->{attributes};
-  $options->{mask} = (KeyPressMask | ButtonPressMask |
-			 ButtonMotionMask | ButtonReleaseMask |
-			 ExposureMask | StructureNotifyMask |
-			 PointerMotionMask) unless defined $options->{mask};
   # Use GLUT windows and event handling as the TriD default
   my $window_type = $ENV{POGL_WINDOW_TYPE} || 'glut';
   my $gl_class = $window_type =~ /x11/i ? 'PDL::Graphics::TriD::GL::GLX' :
