@@ -44,22 +44,15 @@ BEGIN {
    }
 }
 
-use warnings;
 use strict;
-
-=head1 NAME
-
-PDL::Graphics::OpenGL::Perl::OpenGL - PDL TriD OpenGL interface using POGL
-
-=head1 VERSION
-
-Version 0.01_10
-
-=cut
+use warnings;
 
 our $VERSION = '0.01_10';
 $VERSION = eval $VERSION;
 
+=head1 NAME
+
+PDL::Graphics::OpenGL::Perl::OpenGL - PDL TriD OpenGL interface using POGL
 
 =head1 SYNOPSIS
 
@@ -68,12 +61,6 @@ OpenGL functions and the API defined by the internal
 PDL::Graphics::OpenGL one. It also supports any
 miscellaneous OpenGL or GUI related functionality to
 support PDL::Graphics::TriD refactoring.
-
-You should eventually be able to replace:
-
-    use PDL::Graphics::OpenGL
-by
-    use PDL::Graphics::OpenGL::Perl::OpenGL;
 
 This module also includes support for FreeGLUT and
 GLUT instead of X11+GLX as mechanism for creating

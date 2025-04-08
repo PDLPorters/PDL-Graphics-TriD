@@ -38,12 +38,6 @@ PDL::Graphics::TriD - PDL 3D interface
 
  release3d(); # the next graph will again wipe out things.
 
-=head1 WARNING
-
-These modules are still in a somewhat unfocused state: don't use them yet
-if you don't know how to make them work if they happen to do something
-strange.
-
 =head1 DESCRIPTION
 
 This module implements a generic 3D plotting interface for PDL.
