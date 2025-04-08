@@ -50,31 +50,31 @@ sub add_object {
 sub new_viewport {
   my($this,$x0,$y0,$x1,$y1, $options) = @_;
   my $vp = PDL::Graphics::TriD::ViewPort->new($x0,$y0,$x1,$y1);
-  print "Adding viewport $x0,$y0,$x1,$y1\n" if($PDL::Graphics::TriD::verbose);
+  print "Adding viewport $x0,$y0,$x1,$y1\n" if $PDL::Graphics::TriD::verbose;
   push @{$this->{_ViewPorts}}, $vp;
-  if($this->{Interactive} ){
-	 # set a default controller
-	 use PDL::Graphics::TriD::ArcBall;
-	 use PDL::Graphics::TriD::SimpleScaler;
-	 use PDL::Graphics::TriD::ScrollButtonScaler;
-	 use PDL::Graphics::TriD::SimpleController;
-         if (defined($PDL::Graphics::TriD::offline) and $PDL::Graphics::TriD::offline==1 ) {
-            eval "use PDL::Graphics::TriD::VRML";  
-         } else {
-            eval "use PDL::Graphics::TriD::GL";  
-         }
-	 my $ev = $options->{EHandler} // PDL::Graphics::TriD::EventHandler->new($vp);
-	 my $cont = $options->{Transformer} // PDL::Graphics::TriD::SimpleController->new;
-	 $vp->transformer($cont);
-	 if (ref($ev)){
-		$ev->set_button(0,PDL::Graphics::TriD::Orbiter->new( $vp, 0, $cont->{WRotation}));
-		$ev->set_button(2,PDL::Graphics::TriD::SimpleScaler->new( $vp, \$cont->{CDistance}));
-		$ev->set_button(3,PDL::Graphics::TriD::ScrollButtonScaler->new( $vp, \$cont->{CDistance}, 0.9));
-		$ev->set_button(4,PDL::Graphics::TriD::ScrollButtonScaler->new( $vp, \$cont->{CDistance}, 1.1));
-		$vp->eventhandler($ev);
-	 }
+  if ($this->{Interactive}) {
+    # set a default controller
+    use PDL::Graphics::TriD::ArcBall;
+    use PDL::Graphics::TriD::SimpleScaler;
+    use PDL::Graphics::TriD::ScrollButtonScaler;
+    use PDL::Graphics::TriD::SimpleController;
+    if (defined($PDL::Graphics::TriD::offline) and $PDL::Graphics::TriD::offline==1 ) {
+      eval "use PDL::Graphics::TriD::VRML";  
+    } else {
+      eval "use PDL::Graphics::TriD::GL";  
+    }
+    my $ev = $options->{EHandler} // PDL::Graphics::TriD::EventHandler->new($vp);
+    my $cont = $options->{Transformer} // PDL::Graphics::TriD::SimpleController->new;
+    $vp->transformer($cont);
+    if (ref($ev)) {
+      $ev->set_button(0,PDL::Graphics::TriD::Orbiter->new($vp, 0, $cont->{WRotation}));
+      $ev->set_button(2,PDL::Graphics::TriD::SimpleScaler->new($vp, \$cont->{CDistance}));
+      $ev->set_button(3,PDL::Graphics::TriD::ScrollButtonScaler->new($vp, \$cont->{CDistance}, 0.9));
+      $ev->set_button(4,PDL::Graphics::TriD::ScrollButtonScaler->new($vp, \$cont->{CDistance}, 1.1));
+      $vp->eventhandler($ev);
+    }
   }
-  print "new_viewport: ",ref($vp)," ",$#{$this->{_ViewPorts}},"\n" if($PDL::Graphics::TriD::verbose);
+  print "new_viewport: ",ref($vp)," ",$#{$this->{_ViewPorts}},"\n" if $PDL::Graphics::TriD::verbose;
   return $vp;
 }
 

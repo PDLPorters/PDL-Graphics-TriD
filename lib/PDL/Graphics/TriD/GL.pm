@@ -477,7 +477,7 @@ sub PDL::Graphics::TriD::SimpleController::togl {
 # A window with mouse control over rotation.
 package PDL::Graphics::TriD::Window;
 
-use OpenGL qw/ :glfunctions :glconstants :glxconstants /;
+use OpenGL qw/ :glfunctions :glconstants /;
 use OpenGL::GLUT qw( :all );
 
 use base qw/PDL::Graphics::TriD::Object/;
@@ -488,15 +488,15 @@ sub gdriver {
   my($this, $options) = @_;
   print "GL gdriver...\n" if($PDL::Graphics::TriD::verbose);
   if(defined $this->{_GLObject}){
-	 print "WARNING: Graphics Driver already defined for this window \n";
-	 return;
+    print "WARNING: Graphics Driver already defined for this window \n";
+    return;
   }
   # Use GLUT windows and event handling as the TriD default
   my $window_type = $ENV{POGL_WINDOW_TYPE} || 'glut';
   my $gl_class = $window_type =~ /x11/i ? 'PDL::Graphics::TriD::GL::GLX' :
     'PDL::Graphics::TriD::GL::GLUT';
   (my $file = $gl_class) =~ s#::#/#g; require "$file.pm";
-  print "gdriver: Calling $gl_class(@$options->{qw(width height)})\n" if $PDL::Graphics::TriD::verbose;
+  print "gdriver: Calling $gl_class(@$options{qw(width height)})\n" if $PDL::Graphics::TriD::verbose;
   $this->{_GLObject} = $gl_class->new($options, $this);
   print "gdriver: Calling glClearColor...\n" if $PDL::Graphics::TriD::verbose;
   glClearColor(0,0,0,1);
@@ -543,69 +543,64 @@ sub twiddle {
   my($this,$getout,$dontshow) = @_;
   my (@e);
   my $quit;
-  if($PDL::Graphics::TriD::offline) {
-	 $PDL::Graphics::TriD::offlineindex ++;
-	 $this->display();
-	 require PDL::IO::Pic;
-	 wpic($this->read_picture(),"PDL_$PDL::Graphics::TriD::offlineindex.jpg");
-	 return;
+  if ($PDL::Graphics::TriD::offline) {
+    $PDL::Graphics::TriD::offlineindex ++;
+    $this->display();
+    require PDL::IO::Pic;
+    wpic($this->read_picture(),"PDL_$PDL::Graphics::TriD::offlineindex.jpg");
+    return;
   }
-  return if $getout and $dontshow and !$this->{_GLObject}->XPending;
+  return if $getout and $dontshow and !$this->{_GLObject}->event_pending;
   $getout //= !($PDL::Graphics::TriD::keeptwiddling && $PDL::Graphics::TriD::keeptwiddling);
   $this->display();
- TWIDLOOP: while(1) {
-   print "EVENT!\n" if($PDL::Graphics::TriD::verbose);
-	 my $hap = 0;
-	 my $gotev = 0;
-         if ($this->{_GLObject}->XPending() or !$getout) {
-            @e = $this->{_GLObject}->glpXNextEvent();
-            $gotev=1;
-         }
-   print "e= ".join(",",@e)."\n" if($PDL::Graphics::TriD::verbose);
-	 if(@e){
-		if ($e[0] == VisibilityNotify || $e[0] == Expose) {
-		  $hap = 1;
-		} elsif ($e[0] == ConfigureNotify) {
-		  print "CONFIGNOTIFE\n" if($PDL::Graphics::TriD::verbose);
-		  $this->reshape($e[1],$e[2]);
-		  $hap=1;
-		} elsif ($e[0] == DestroyNotify) {
-		  print "DESTROYNOTIFE\n" if $PDL::Graphics::TriD::verbose;
-		  $quit = 1;
-		  $hap=1;
-		  $this->close;
-		  last TWIDLOOP;
-		} elsif($e[0] == KeyPress) {
-		  print "KEYPRESS: '$e[1]'\n" if($PDL::Graphics::TriD::verbose);
-		  if((lc $e[1]) eq "q") {
-			 $quit = 1;
-		  }
-		  if((lc $e[1]) eq "c") {
-			 $quit = 2;
-		  }
-		  if((lc $e[1]) eq "q" and not $getout) {
-			 last TWIDLOOP;
-		  }
-		  $hap=1;
-		}
-	 }
-	 if($gotev){
-		#			print "HANDLING $this->{EHandler}\n";
-		foreach my $vp (@{$this->{_ViewPorts}}) {
-		  if(defined($vp->{EHandler})) {
-			 $hap += $vp->{EHandler}->event(@e) || 0;
-		  }
-		}
-	 }
-	 if(! $this->{_GLObject}->XPending()) {
-		if($hap) {
-		  $this->display();
-		}
-		if($getout) {last TWIDLOOP}
-	 }
-	 @e = ();
+  TWIDLOOP: while(1) {
+    print "EVENT!\n" if $PDL::Graphics::TriD::verbose;
+    my $hap = 0;
+    my $gotev = 0;
+    if ($this->{_GLObject}->event_pending or !$getout) {
+      @e = $this->{_GLObject}->next_event;
+      $gotev=1;
+    }
+    print "e= ".join(",",$e[0]//'undef',@e[1..$#e])."\n" if $PDL::Graphics::TriD::verbose;
+    if (@e and defined $e[0]) {
+      if ($e[0] eq 'visible') {
+        $hap = 1;
+      } elsif ($e[0] eq 'reshape') {
+        print "CONFIGNOTIFE\n" if $PDL::Graphics::TriD::verbose;
+        $this->reshape(@e[1,2]);
+        $hap=1;
+      } elsif ($e[0] eq 'destroy') {
+        print "DESTROYNOTIFE\n" if $PDL::Graphics::TriD::verbose;
+        $quit = 1;
+        $hap=1;
+        $this->close;
+        last TWIDLOOP;
+      } elsif ($e[0] eq 'keypress') {
+        print "KEYPRESS: '$e[1]'\n" if $PDL::Graphics::TriD::verbose;
+        if (lc($e[1]) eq "q") {
+          $quit = 1;
+          last TWIDLOOP if not $getout;
+        }
+        if (lc($e[1]) eq "c") {
+          $quit = 2;
+        }
+        $hap=1;
+      }
+    }
+    if ($gotev) {
+      foreach my $vp (@{$this->{_ViewPorts}}) {
+        if (defined($vp->{EHandler})) {
+          $hap += $vp->{EHandler}->event(@e) || 0;
+        }
+      }
+    }
+    if (!$this->{_GLObject}->event_pending) {
+           $this->display if $hap;
+           last TWIDLOOP if $getout;
+    }
+    @e = ();
   }
-  print "STOPTWIDDLE\n" if($PDL::Graphics::TriD::verbose);
+  print "STOPTWIDDLE\n" if $PDL::Graphics::TriD::verbose;
   return $quit;
 }
 
@@ -685,51 +680,39 @@ sub new {
 
 sub event {
   my($this,$type,@args) = @_;
-  print "EH: ",ref($this)," $type (",join(",",@args),")\n" if($PDL::Graphics::TriD::verbose);
+  print "EH: ",ref($this)," $type (",join(",",@args),")\n" if $PDL::Graphics::TriD::verbose;
+  return if !defined $type;
   my $retval;
-  if($type == MotionNotify) {
-	 my $but = -1;
-  SWITCH: {
-		$but = 0, last SWITCH if ($args[0] & (Button1Mask));
-		$but = 1, last SWITCH if ($args[0] & (Button2Mask));
-		$but = 2, last SWITCH if ($args[0] & (Button3Mask));
-		$but = 3, last SWITCH if ($args[0] & (Button4Mask));
-		print "No button pressed...\n" if($PDL::Graphics::TriD::verbose);
-		goto NOBUT;
-	 }
-	 print "MOTION $but $args[0]\n" if($PDL::Graphics::TriD::verbose);
-	 if($this->{Buttons}[$but]) {
-		if($this->{VP}->{Active}){
-		  print "calling ".($this->{Buttons}[$but])."->mouse_moved ($this->{X},$this->{Y},$args[1],$args[2])...\n" if($PDL::Graphics::TriD::verbose);
-		  $retval = $this->{Buttons}[$but]->mouse_moved(
-								$this->{X},$this->{Y},
-								$args[1],$args[2]);
-		}
-	 }
-	 $this->{X} = $args[1]; $this->{Y} = $args[2];
-  NOBUT:
-       } elsif($type == ButtonPress) {
-	 my $but = $args[0]-1;
-	 print "BUTTONPRESS $but\n" if($PDL::Graphics::TriD::verbose);
-	 $this->{X} = $args[1]; $this->{Y} = $args[2];
-	 $retval = $this->{Buttons}[$but]->ButtonPress($args[1],$args[2])
-	   if($this->{Buttons}[$but]);
-       } elsif($type == ButtonRelease) {
-	 my $but = $args[0]-1;
-	 print "BUTTONRELEASE $but\n" if($PDL::Graphics::TriD::verbose);
-	 $retval = $this->{Buttons}[$but]->ButtonRelease($args[1],$args[2])
-	   if($this->{Buttons}[$but]);
-       } elsif($type== ConfigureNotify) {
-	 # Kludge to force reshape of the viewport associated with the window -CD
-	 print "ConfigureNotify (".join(",",@args).")\n" if($PDL::Graphics::TriD::verbose);
-	 print "viewport is $this->{VP}\n" if($PDL::Graphics::TriD::verbose);
-       }
+  if ($type eq 'motion') {
+    return if (my $but = $args[0]) < 0;
+    print "MOTION $args[0]\n" if $PDL::Graphics::TriD::verbose;
+    if ($this->{Buttons}[$but] and $this->{VP}->{Active}) {
+      print "calling ".($this->{Buttons}[$but])."->mouse_moved ($this->{X},$this->{Y},$args[1],$args[2])...\n" if $PDL::Graphics::TriD::verbose;
+      $retval = $this->{Buttons}[$but]->mouse_moved(@$this{qw(X Y)}, @args[1,2]);
+    }
+    @$this{qw(X Y)} = @args[1,2];
+  } elsif ($type eq 'buttonpress') {
+    my $but = $args[0]-1;
+    print "BUTTONPRESS $but\n" if $PDL::Graphics::TriD::verbose;
+    @$this{qw(X Y)} = @args[1,2];
+    $retval = $this->{Buttons}[$but]->ButtonPress(@args[1,2])
+      if $this->{Buttons}[$but];
+  } elsif ($type eq 'buttonrelease') {
+    my $but = $args[0]-1;
+    print "BUTTONRELEASE $but\n" if $PDL::Graphics::TriD::verbose;
+    $retval = $this->{Buttons}[$but]->ButtonRelease($args[1],$args[2])
+      if $this->{Buttons}[$but];
+  } elsif ($type eq 'reshape') {
+    # Kludge to force reshape of the viewport associated with the window -CD
+    print "ConfigureNotify (".join(",",@args).")\n" if $PDL::Graphics::TriD::verbose;
+    print "viewport is $this->{VP}\n" if $PDL::Graphics::TriD::verbose;
+  }
   $retval;
 }
 
 sub set_button {
-	my($this,$butno,$act) = @_;
-	$this->{Buttons}[$butno] = $act;
+  my($this,$butno,$act) = @_;
+  $this->{Buttons}[$butno] = $act;
 }
 
 ######################################################################

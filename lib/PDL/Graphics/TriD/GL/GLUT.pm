@@ -8,46 +8,6 @@ use OpenGL::Config;
 our @ISA = qw(PDL::Graphics::TriD::GL);
 my (@fakeXEvents, @winObjects);
 
-BEGIN {
-   eval 'OpenGL::ConfigureNotify()';
-   if ($@) {
-      # Set up some X11 and GLX constants for fake XEvent emulation
-      {
-         no warnings 'redefine';
-         eval "sub OpenGL::GLX_DOUBLEBUFFER    () { 5 }";
-         eval "sub OpenGL::GLX_RGBA            () { 4 }";
-         eval "sub OpenGL::GLX_RED_SIZE        () { 8 }";
-         eval "sub OpenGL::GLX_GREEN_SIZE      () { 9 }";
-         eval "sub OpenGL::GLX_BLUE_SIZE       () { 10 }";
-         eval "sub OpenGL::GLX_DEPTH_SIZE      () { 12 }";
-         eval "sub OpenGL::KeyPressMask        () { (1<<0 ) }";
-         eval "sub OpenGL::KeyReleaseMask      () { (1<<1 ) }";
-         eval "sub OpenGL::ButtonPressMask     () { (1<<2 ) }";
-         eval "sub OpenGL::ButtonReleaseMask   () { (1<<3 ) }";
-         eval "sub OpenGL::PointerMotionMask   () { (1<<6 ) }";
-         eval "sub OpenGL::Button1Mask         () { (1<<8 ) }";
-         eval "sub OpenGL::Button2Mask         () { (1<<9 ) }";
-         eval "sub OpenGL::Button3Mask         () { (1<<10) }";
-         eval "sub OpenGL::Button4Mask         () { (1<<11) }";  # scroll wheel
-         eval "sub OpenGL::Button5Mask         () { (1<<12) }";  # scroll wheel
-         eval "sub OpenGL::ButtonMotionMask    () { (1<<13) }";
-         eval "sub OpenGL::ExposureMask        () { (1<<15) }";
-         eval "sub OpenGL::StructureNotifyMask    { (1<<17) }";
-         eval "sub OpenGL::KeyPress            () { 2 }";
-         eval "sub OpenGL::KeyRelease          () { 3 }";
-         eval "sub OpenGL::ButtonPress         () { 4 }";
-         eval "sub OpenGL::ButtonRelease       () { 5 }";
-         eval "sub OpenGL::MotionNotify        () { 6 }";
-         eval "sub OpenGL::Expose              () { 12 }";
-         eval "sub OpenGL::GraphicsExpose      () { 13 }";
-         eval "sub OpenGL::NoExpose            () { 14 }";
-         eval "sub OpenGL::VisibilityNotify    () { 15 }";
-         eval "sub OpenGL::ConfigureNotify     () { 22 }";
-         eval "sub OpenGL::DestroyNotify       () { 17 }";
-      }
-   }
-}
-
 sub new {
   my ($class,$options,$window_obj) = @_;
   my $self = $class->SUPER::new($options,$window_obj);
@@ -126,22 +86,22 @@ sub _pdl_display_wrapper {
 sub _pdl_fake_exit_handler {
    my ($win) = shift;
    print "_pdl_fake_exit_handler: clicked for window $win\n" if $PDL::Graphics::TriD::verbose;
-   push @fakeXEvents, [ 17, @_ ];
+   push @fakeXEvents, [ 'destroy', @_ ];
 }
 
 sub _pdl_fake_ConfigureNotify {
    print "_pdl_fake_ConfigureNotify: got (@_)\n" if $PDL::Graphics::TriD::verbose;
    OpenGL::GLUT::glutPostRedisplay();
-   push @fakeXEvents, [ 22, @_ ];
+   push @fakeXEvents, [ 'reshape', @_ ];
 }
 
 sub _pdl_fake_KeyPress {
    print "_pdl_fake_KeyPress: got (@_)\n" if $PDL::Graphics::TriD::verbose;
-   push @fakeXEvents, [ 2, chr($_[0]) ];
+   push @fakeXEvents, [ 'keypress', chr($_[0]) ];
 }
 
 {
-   my @button_to_mask = (1<<8, 1<<9, 1<<10, 1<<11, 1<<12);
+   my @button_to_mask = (1<<8, 1<<9, 1<<10, 1<<11);
    my $fake_mouse_state = 16;  # default have EnterWindowMask set;
    my $last_fake_mouse_state;
 
@@ -152,10 +112,10 @@ sub _pdl_fake_KeyPress {
       return if !defined $mask; # MacOS sometimes gives button ID 5
       if ( $_[1] == 0 ) {       # a press
          $fake_mouse_state |= $mask;
-         push @fakeXEvents, [ 4, $_[0]+1, @_[2,3], -1, -1, $last_fake_mouse_state ];
+         push @fakeXEvents, [ 'buttonpress', $_[0]+1, @_[2,3], -1, -1, $last_fake_mouse_state ];
       } elsif ( $_[1] == 1 ) {  # a release
          $fake_mouse_state &= ~$mask;
-         push @fakeXEvents, [ 5, $_[0]+1 , @_[2,3], -1, -1, $last_fake_mouse_state ];
+         push @fakeXEvents, [ 'buttonrelease', $_[0]+1 , @_[2,3], -1, -1, $last_fake_mouse_state ];
       } else {
          die "ERROR: _pdl_fake_button_event got unexpected value!";
       }
@@ -163,20 +123,27 @@ sub _pdl_fake_KeyPress {
 
    sub _pdl_fake_MotionNotify {
       print "_pdl_fake_MotionNotify: got (@_)\n" if $PDL::Graphics::TriD::verbose;
-      push @fakeXEvents, [ 6, $fake_mouse_state, @_ ];
+      my $but = -1;
+      SWITCH: {
+        for (0..3) {
+          $but = $_, last SWITCH if $fake_mouse_state & $button_to_mask[$_];
+        }
+        print "No button pressed...\n" if $PDL::Graphics::TriD::verbose;
+      }
+      push @fakeXEvents, [ 'motion', $but, @_ ];
    }
 
 }
 
-sub XPending {
+sub event_pending {
    my($self) = @_;
    # monitor state of @fakeXEvents, return number on queue
    OpenGL::GLUT::glutMainLoopEvent() if !@{$self->{xevents}};
-   print STDERR "OO::XPending: have " .  scalar( @{$self->{xevents}} ) . " xevents\n" if $PDL::Graphics::TriD::verbose > 1;
+   print STDERR "OO::event_pending: have " .  scalar( @{$self->{xevents}} ) . " xevents\n" if $PDL::Graphics::TriD::verbose > 1;
    scalar( @{$self->{xevents}} );
 }
 
-sub glpXNextEvent {
+sub next_event {
   my($self) = @_;
   while ( !scalar( @{$self->{xevents}} ) ) {
     # If no events, we keep pumping the event loop

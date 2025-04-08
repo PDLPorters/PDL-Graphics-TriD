@@ -31,14 +31,37 @@ sub new {
   $self;
 }
 
-sub XPending {
+sub event_pending {
   my ($self) = @_;
   OpenGL::XPending($self->{Display});
 }
 
-sub glpXNextEvent {
+my %ev2str = (
+  VisibilityNotify() => 'visible',
+  Expose() => 'visible',
+  ConfigureNotify() => 'reshape',
+  DestroyNotify() => 'destroy',
+  KeyPress() => 'keypress',
+  MotionNotify() => 'motion',
+  ButtonPress() => 'buttonpress',
+  ButtonRelease() => 'buttonrelease',
+);
+sub next_event {
   my ($self) = @_;
-  OpenGL::glpXNextEvent($self->{Display});
+  my @e = OpenGL::glpXNextEvent($self->{Display});
+  if ($e[0] == MotionNotify) {
+    my $but = -1;
+    SWITCH: {
+      $but = 0, last SWITCH if $e[1] & Button1Mask;
+      $but = 1, last SWITCH if $e[1] & Button2Mask;
+      $but = 2, last SWITCH if $e[1] & Button3Mask;
+      $but = 3, last SWITCH if $e[1] & Button4Mask;
+      print "No button pressed...\n" if $PDL::Graphics::TriD::verbose;
+    }
+    $e[1] = $but;
+  }
+  $e[0] = $ev2str{$e[0]};
+  @e;
 }
 
 sub glpRasterFont {
