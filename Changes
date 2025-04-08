@@ -1,3 +1,4 @@
+2.101 2025-04-08
 - non-trivial tests added
 - add overloads of ::Quaternion
 - change mouse control from ArcBall-like to orbiting-camera-like
