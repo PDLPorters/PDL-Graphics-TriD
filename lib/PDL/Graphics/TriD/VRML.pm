@@ -559,10 +559,6 @@ sub save { &{$_[0]->{Type}->{save}}(@_) }
 
 package PDL::Graphics::TriD::VRML;
 $PDL::Graphics::VRML::current_window = undef;
-$PDL::Graphics::TriD::create_window_sub =
-$PDL::Graphics::TriD::create_window_sub = sub {
-	return PDL::Graphics::TriD::Window->new;
-};
 
 # set up the default parameters for VRML
 my $tmpdir = File::Temp::tempdir(CLEANUP=>1);

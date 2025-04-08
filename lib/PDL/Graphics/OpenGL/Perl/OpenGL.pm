@@ -153,7 +153,6 @@ sub new {
 
    # Use GLUT windows and event handling as the TriD default
    $window_type ||= $ENV{POGL_WINDOW_TYPE} || 'glut';
-   # $window_type ||= 'x11';       # use X11 default until glut code is ready
 
    my $self;
    if ( $window_type =~ /x11/i ) {       # X11 windows

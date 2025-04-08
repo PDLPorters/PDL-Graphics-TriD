@@ -695,7 +695,6 @@ method.
 $PDL::Graphics::TriD::verbose //= 0;
 # $PDL::Graphics::TriD::keeptwiddling
 # $PDL::Graphics::TriD::only_one
-# $PDL::Graphics::TriD::create_window_sub
 # $PDL::Graphics::TriD::current_window
 #
 # '
@@ -983,15 +982,11 @@ sub get_current_graph {
 	return $g;
 }
 
-# $PDL::Graphics::TriD::create_window_sub = undef;
 sub get_current_window {
   my $opts = shift @_;
   my $win = $PDL::Graphics::TriD::current_window;
 
   if(!defined $win) {
-	 if(!$PDL::Graphics::TriD::create_window_sub) {
-		barf("PDL::Graphics::TriD must be used with a display mechanism: for example PDL::Graphics::TriD::GL!\n");
-	 }
 	 print "get_current_window - creating window...\n" if($PDL::Graphics::TriD::verbose);
 	 $PDL::Graphics::TriD::current_window = $win = PDL::Graphics::TriD::Window->new($opts);
 

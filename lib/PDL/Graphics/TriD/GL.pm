@@ -10,11 +10,6 @@ use OpenGL qw/ :glfunctions :glconstants gluPerspective gluOrtho2D /;
 use OpenGL::GLUT qw( :all );
 use PDL::Core qw(barf);
 
-$PDL::Graphics::TriD::create_window_sub = # warnings
-$PDL::Graphics::TriD::create_window_sub = sub {
-  return PDL::Graphics::TriD::GL::Window->new(@_);
-};
-
 sub PDL::Graphics::TriD::Material::togl{
   my $this = shift;
   my $shin = pack "f*",$this->{Shine};
