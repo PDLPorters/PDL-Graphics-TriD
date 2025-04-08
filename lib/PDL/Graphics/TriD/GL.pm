@@ -56,7 +56,7 @@ sub PDL::Graphics::TriD::Object::togl { $_->togl for @{$_[0]->{Objects}} }
 my @bb1 = ([0,4,2],[0,1,2],[0,1,5],[0,4,5],[0,4,2],[3,4,2],
 	   [3,1,2],[3,1,5],[3,4,5],[3,4,2]);
 my @bb2 = ([0,1,2],[3,1,2],[0,1,5],[3,1,5],[0,4,5],[3,4,5]);
-sub PDL::Graphics::TriD::BoundingBox::togl { 
+sub PDL::Graphics::TriD::BoundingBox::togl {
   my($this) = @_;
   $this = $this->{Box};
   glDisable(GL_LIGHTING);
@@ -152,7 +152,7 @@ sub PDL::Graphics::TriD::Quaternion::togl {
   if(abs($this->[0]) == 1) { return ; }
   if(abs($this->[0]) >= 1) {
     $this->normalise;
-  } 
+  }
   glRotatef(2*POSIX::acos($this->[0])/3.14*180, @{$this}[1..3]);
 }
 
@@ -479,7 +479,6 @@ package PDL::Graphics::TriD::Window;
 
 use OpenGL qw/ :glfunctions :glconstants :glxconstants /;
 use OpenGL::GLUT qw( :all );
-use PDL::Graphics::OpenGL::Perl::OpenGL;
 
 use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/Ev Width Height Interactive _GLObject
@@ -493,7 +492,7 @@ sub gdriver {
 	 return;
   }
   my @db = OpenGL::GLX_DOUBLEBUFFER;
-  if($PDL::Graphics::TriD::offline) {$options->{x} = -1; @db=()}
+  if ($PDL::Graphics::TriD::offline) {$options->{x} = -1; @db=()}
   $options->{attributes} = [GLX_RGBA, @db,
 			    GLX_RED_SIZE,1,
 			    GLX_GREEN_SIZE,1,
@@ -505,15 +504,13 @@ sub gdriver {
 			 ButtonMotionMask | ButtonReleaseMask |
 			 ExposureMask | StructureNotifyMask |
 			 PointerMotionMask) unless defined $options->{mask};
-  print "STARTING OPENGL $options->{width} $options->{height}\n" if($PDL::Graphics::TriD::verbose);
-  print "gdriver: Calling OpengGL::OO($options)...\n" if ($PDL::Graphics::TriD::verbose);
-  $this->{_GLObject}= PDL::Graphics::OpenGL::OO->new($options);
-  if (exists $this->{_GLObject}->{glutwindow}) {
-     if ($PDL::Graphics::TriD::verbose) {
-        print "gdriver: Got OpenGL::OO object(GLUT window ID# " . $this->{_GLObject}->{glutwindow} . ")\n";
-     }
-     $this->{_GLObject}->{winobjects}->[$this->{_GLObject}->{glutwindow}] = $this;      # circular ref
-  }
+  # Use GLUT windows and event handling as the TriD default
+  my $window_type = $ENV{POGL_WINDOW_TYPE} || 'glut';
+  my $gl_class = $window_type =~ /x11/i ? 'PDL::Graphics::TriD::GL::GLX' :
+    'PDL::Graphics::TriD::GL::GLUT';
+  (my $file = $gl_class) =~ s#::#/#g; require "$file.pm";
+  print "gdriver: Calling $gl_class(@$options->{qw(width height)})\n" if $PDL::Graphics::TriD::verbose;
+  $this->{_GLObject} = $gl_class->new($options, $this);
   print "gdriver: Calling glClearColor...\n" if $PDL::Graphics::TriD::verbose;
   glClearColor(0,0,0,1);
   print "gdriver: Calling glpRasterFont...\n" if $PDL::Graphics::TriD::verbose;
@@ -686,7 +683,6 @@ use OpenGL qw(
   ConfigureNotify MotionNotify DestroyNotify
   ButtonPress ButtonRelease Button1Mask Button2Mask Button3Mask Button4Mask
 );
-use PDL::Graphics::OpenGL::Perl::OpenGL;
 
 use fields qw/X Y Buttons VP/;
 sub new {
@@ -792,5 +788,160 @@ sub do_perspective {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity ();
 }
+
+package PDL::Graphics::TriD::GL;
+
+use OpenGL ();
+
+use strict;
+use warnings;
+use PDL::Graphics::TriD::Window qw();
+use PDL::Options;
+
+$PDL::Graphics::TriD::verbose //= 0;
+
+# This is a list of all the fields of the opengl object
+#use fields qw/Display Window Context Options GL_Vendor GL_Version GL_Renderer/;
+
+=head1 NAME
+
+PDL::Graphics::TriD::GL - PDL TriD OpenGL interface using POGL
+
+=head1 DESCRIPTION
+
+This module provides the glue between the Perl
+OpenGL functions and the API defined by the internal
+PDL::Graphics::OpenGL one. It also supports any
+miscellaneous OpenGL or GUI related functionality to
+support PDL::Graphics::TriD refactoring.
+
+It defines an interface that subclasses will conform to, implementing
+support for GLUT, X11+GLX, etc, as mechanism for creating windows
+and graphics contexts.
+
+=head1 CONFIG
+
+Defaults to using L<OpenGL::GLUT> - override by setting the environment
+variable C<POGL_WINDOW_TYPE> to C<x11> (the default is C<glut>).
+This is implemented by C<PDL::Graphics::TriD::Window::gdriver>.
+
+=head2 new
+
+=for ref
+
+Returns a new OpenGL object.
+
+=for usage
+
+  new($class,$options,[$window_type])
+
+  Attributes are specified in the $options field; the 3d $window_type is optionsl. The attributes are:
+
+=over
+
+=item x,y - the position of the upper left corner of the window (0,0)
+
+=item width,height - the width and height of the window in pixels (500,500)
+
+=item parent - the parent under which the new window should be opened (root)
+
+=item mask - the user interface mask (StructureNotifyMask)
+
+=item attributes - attributes to pass to glXChooseVisual
+
+=back
+
+Allowed 3d window types, case insensitive, are:
+
+=over
+
+=item glut - use Perl OpenGL bindings and GLUT windows (no Tk)
+
+=item x11  - use Perl OpenGL (POGL) bindings with X11
+
+=back
+
+=cut
+
+sub new {
+  my($class,$options,$window_obj) = @_;
+  my $opt = PDL::Options->new(default_options());
+  $opt->incremental(1);
+  $opt->options($options) if(defined $options);
+  my $p = $opt->options;
+  bless {Options => $p}, ref($class)||$class;
+}
+
+=head2 default_options
+
+default options for object oriented methods
+
+=cut
+
+sub default_options{
+   {  'x'     => 0,
+      'y'     => 0,
+      'width' => 500,
+      'height'=> 500,
+      'parent'=> 0,
+      'mask'  => eval '&OpenGL::StructureNotifyMask',
+      'steal' => 0,
+      'attributes' => eval '[ &OpenGL::GLX_DOUBLEBUFFER, &OpenGL::GLX_RGBA ]',
+   }
+}
+
+=head2 swap_buffers
+
+OO interface to swapping frame buffers
+
+=cut
+
+sub swap_buffers {
+  my ($this) = @_;
+  die "swap_buffers: got object with inconsistent _GLObject info\n";
+}
+
+=head2 set_window
+
+OO interface to setting the display window (if appropriate)
+
+=cut
+
+sub set_window {
+  my ($this) = @_;
+}
+
+=head1 AUTHOR
+
+Chris Marshall, C<< <devel dot chm dot 01 at gmail.com> >>
+
+=head1 BUGS
+
+Bugs and feature requests may be submitted through the PDL GitHub
+project page at L<https://github.com/PDLPorters/pdl/issues> .
+
+=head1 SUPPORT
+
+PDL uses a mailing list support model.  The Perldl mailing list
+is the best for questions, problems, and feature discussions with
+other PDL users and PDL developers.
+
+To subscribe see the page at L<http://pdl.perl.org/?page=mailing-lists>
+
+=head1 ACKNOWLEDGEMENTS
+
+TBD including PDL TriD developers and POGL developers...thanks to all.
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright 2009 Chris Marshall.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation; or the Artistic License.
+
+See http://dev.perl.org/licenses/ for more information.
+
+=cut
 
 1;
