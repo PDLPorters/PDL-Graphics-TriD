@@ -1,8 +1,3 @@
-# ToDo:
-#  - multiple windows - requires editing generate.pl in OpenGL/
-#  - clean up
-#
-
 use strict;
 use warnings;
 no warnings 'redefine';

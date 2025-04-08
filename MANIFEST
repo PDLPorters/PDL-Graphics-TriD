@@ -1,11 +1,11 @@
 Changes
+demos/DemoTkTriD.pm
 demos/test4.p
 demos/test5.p
 demos/test7.p
 demos/testimg.p
 demos/tvrml.p
 demos/tvrml2.p
-DemoTkTriD.pm
 lib/PDL/Demos/TriD1.pm
 lib/PDL/Demos/TriD2.pm
 lib/PDL/Demos/TriDGallery.pm
