@@ -1,4 +1,5 @@
 - fix scrolling out with mousewheel/double-finger-scroll in GLUT
+- add support for POGL_WINDOW_TYPE of glfw
 
 2.101 2025-04-08
 - non-trivial tests added

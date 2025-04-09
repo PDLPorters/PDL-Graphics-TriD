@@ -15,6 +15,7 @@ lib/PDL/Graphics/TriD/ArcBall.pm
 lib/PDL/Graphics/TriD/ButtonControl.pm
 lib/PDL/Graphics/TriD/Contours.pm
 lib/PDL/Graphics/TriD/GL.pm
+lib/PDL/Graphics/TriD/GL/GLFW.pm
 lib/PDL/Graphics/TriD/GL/GLUT.pm
 lib/PDL/Graphics/TriD/GL/GLX.pm
 lib/PDL/Graphics/TriD/Graph.pm

@@ -499,6 +499,7 @@ sub gdriver {
   # Use GLUT windows and event handling as the TriD default
   my $window_type = $ENV{POGL_WINDOW_TYPE} || 'glut';
   my $gl_class = $window_type =~ /x11/i ? 'PDL::Graphics::TriD::GL::GLX' :
+    $window_type =~ /glfw/i ? 'PDL::Graphics::TriD::GL::GLFW' :
     'PDL::Graphics::TriD::GL::GLUT';
   (my $file = $gl_class) =~ s#::#/#g; require "$file.pm";
   print "gdriver: Calling $gl_class(@$options{qw(width height)})\n" if $PDL::Graphics::TriD::verbose;
@@ -785,13 +786,13 @@ miscellaneous OpenGL or GUI related functionality to
 support PDL::Graphics::TriD refactoring.
 
 It defines an interface that subclasses will conform to, implementing
-support for GLUT, X11+GLX, etc, as mechanism for creating windows
+support for GLFW, GLUT, X11+GLX, etc, as the mechanism for creating windows
 and graphics contexts.
 
 =head1 CONFIG
 
 Defaults to using L<OpenGL::GLUT> - override by setting the environment
-variable C<POGL_WINDOW_TYPE> to C<x11> (the default is C<glut>).
+variable C<POGL_WINDOW_TYPE> to C<glfw>, C<x11> , or the default is C<glut>.
 This is implemented by C<PDL::Graphics::TriD::Window::gdriver>.
 
 =head2 new
