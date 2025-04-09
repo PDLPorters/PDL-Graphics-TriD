@@ -31,7 +31,6 @@ lib/PDL/Graphics/TriD/ScrollButtonScaler.pm
 lib/PDL/Graphics/TriD/SimpleController.pm
 lib/PDL/Graphics/TriD/SimpleScaler.pm
 lib/PDL/Graphics/TriD/TextObjects.pm
-lib/PDL/Graphics/TriD/Tk.pm
 lib/PDL/Graphics/TriD/ViewPort.pm
 lib/PDL/Graphics/TriD/VRML.pm
 lib/PDL/Graphics/TriD/Window.pm
