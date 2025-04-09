@@ -101,7 +101,7 @@ sub _pdl_fake_KeyPress {
 }
 
 {
-   my @button_to_mask = (1<<8, 1<<9, 1<<10, 1<<11);
+   my @button_to_mask = (1<<8, 1<<9, 1<<10, 1<<11, 1<<12);
    my $fake_mouse_state = 16;  # default have EnterWindowMask set;
    my $last_fake_mouse_state;
 
@@ -125,7 +125,7 @@ sub _pdl_fake_KeyPress {
       print "_pdl_fake_MotionNotify: got (@_)\n" if $PDL::Graphics::TriD::verbose;
       my $but = -1;
       SWITCH: {
-        for (0..3) {
+        for (0..4) {
           $but = $_, last SWITCH if $fake_mouse_state & $button_to_mask[$_];
         }
         print "No button pressed...\n" if $PDL::Graphics::TriD::verbose;
