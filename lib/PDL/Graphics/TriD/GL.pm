@@ -236,6 +236,11 @@ sub PDL::Graphics::TriD::GObject::glOptions {
   my ($this) = @_;
   glLineWidth($this->{Options}{LineWidth} || 1);
   glPointSize($this->{Options}{PointSize} || 1);
+  glEnable(GL_DEPTH_TEST); # moved here from gdriver else GLFW evaporates it
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+  glLightfv_s(GL_LIGHT0,GL_POSITION,pack "f*",1.0,1.0,1.0,0.0);
 }
 
 sub PDL::Graphics::TriD::GObject::_lattice_lines {
@@ -503,13 +508,7 @@ sub gdriver {
   print "gdriver: Calling glpRasterFont...\n" if $PDL::Graphics::TriD::verbose;
   $PDL::Graphics::TriD::GL::fontbase = $this->{_GLObject}->glpRasterFont($ENV{PDL_3D_FONT} || "8x13", 0, 256);
   glShadeModel(GL_FLAT);
-  glEnable(GL_DEPTH_TEST);
   glEnable(GL_NORMALIZE);
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
-  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-  my $light = pack "f*",1.0,1.0,1.0,0.0;
-  glLightfv_s(GL_LIGHT0,GL_POSITION,$light);
   glColor3f(1,1,1);
   print "STARTED OPENGL!\n" if $PDL::Graphics::TriD::verbose;
   if($PDL::Graphics::TriD::offline) {
