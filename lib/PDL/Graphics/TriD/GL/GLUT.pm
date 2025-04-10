@@ -153,12 +153,6 @@ sub next_event {
   @{ shift @{$self->{xevents}} };
 }
 
-sub glpRasterFont {
-  my($this,@args) = @_;
-  print STDERR "gdriver: window_type => 'glut' so not actually setting the rasterfont\n" if $PDL::Graphics::TriD::verbose;
-  eval { OpenGL::GLUT_BITMAP_8_BY_13() };
-}
-
 sub swap_buffers {
   my ($this) = @_;
   OpenGL::GLUT::glutSwapBuffers();

@@ -2,7 +2,6 @@ use strict;
 use warnings;
 no warnings 'redefine';
 use OpenGL qw/ :glfunctions :glconstants gluPerspective gluOrtho2D /;
-use OpenGL::GLUT qw( :all );
 use PDL::Core qw(barf);
 
 sub PDL::Graphics::TriD::Material::togl{
@@ -79,7 +78,6 @@ sub PDL::Graphics::TriD::Graph::togl {
 use PDL;
 sub PDL::Graphics::TriD::CylindricalEquidistantAxes::togl_axis {
 	my($this,$graph) = @_;
-	my $fontbase = $PDL::Graphics::TriD::GL::fontbase;
         my (@nadd,@nc,@ns);
 	for my $dim (0..1) {
 	  my $width = $this->{Scale}[$dim][1]-$this->{Scale}[$dim][0];
@@ -126,7 +124,6 @@ sub PDL::Graphics::TriD::CylindricalEquidistantAxes::togl_axis {
 sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 	my($this,$graph) = @_;
         print "togl_axis: got object type " . ref($this) . "\n" if $PDL::Graphics::TriD::verbose;
-	my $fontbase = $PDL::Graphics::TriD::GL::fontbase;
 	glLineWidth(1); # ought to be user defined
 	glDisable(GL_LIGHTING);
 	my $ndiv = 4;
@@ -140,8 +137,7 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 	my @label = map sprintf("%.3f", $_), @{ $axisvals->flat->unpdl };
 	push @label, @{$this->{Names}};
 	glColor3d(1,1,1);
-	PDL::Graphics::OpenGLQ::gl_texts($ends->glue(1, $id3), done_glutInit(),
-	    $fontbase, \@label);
+	PDL::Graphics::OpenGLQ::gl_texts($ends->glue(1, $id3), \@label);
 	PDL::gl_lines_nc($line_coord->splitdim(0,3)->clump(1,2));
 	glEnable(GL_LIGHTING);
 }
@@ -274,7 +270,6 @@ sub PDL::Graphics::TriD::Contours::gdraw {
 	   glColor3d(1,1,1);
 	   my $seg = sprintf ":,%d:%d",$this->{Labels}[0],$this->{Labels}[1];
 	   PDL::Graphics::OpenGLQ::gl_texts($points->slice($seg),
-		   done_glutInit(), $this->{Options}{Font},
 		   $this->{LabelStrings});
     }
   };
@@ -483,7 +478,6 @@ sub PDL::Graphics::TriD::SimpleController::togl {
 package PDL::Graphics::TriD::Window;
 
 use OpenGL qw/ :glfunctions :glconstants /;
-use OpenGL::GLUT qw( :all );
 
 use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/Ev Width Height Interactive _GLObject
@@ -506,8 +500,6 @@ sub gdriver {
   $this->{_GLObject} = $gl_class->new($options, $this);
   print "gdriver: Calling glClearColor...\n" if $PDL::Graphics::TriD::verbose;
   glClearColor(0,0,0,1);
-  print "gdriver: Calling glpRasterFont...\n" if $PDL::Graphics::TriD::verbose;
-  $PDL::Graphics::TriD::GL::fontbase = $this->{_GLObject}->glpRasterFont($ENV{PDL_3D_FONT} || "8x13", 0, 256);
   glShadeModel(GL_FLAT);
   glEnable(GL_NORMALIZE);
   glColor3f(1,1,1);
@@ -824,6 +816,8 @@ Returns a new OpenGL object.
 Allowed 3d window types, case insensitive, are:
 
 =over
+
+=item glfw - use Perl OpenGL bindings and GLFW windows (no Tk)
 
 =item glut - use Perl OpenGL bindings and GLUT windows (no Tk)
 
