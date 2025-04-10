@@ -1,6 +1,7 @@
-- fix scrolling out with mousewheel/double-finger-scroll in GLUT
+- fix scrolling out with mousewheel/double-touch-scroll in GLUT
 - add support for POGL_WINDOW_TYPE of glfw
 - add own text rendering, now Helvetica
+- add own sphere-rendering, removing dependency on GLUT
 
 2.101 2025-04-08
 - non-trivial tests added

@@ -3,7 +3,7 @@ use warnings;
 use PDL::Types qw(types ppdefs_all);
 
 { no warnings 'once'; # pass info back to Makefile.PL
-$PDL::Core::Dev::EXTRAS{$::PDLMOD}{OBJECT} .= join '', map " $::PDLBASE-$_\$(OBJ_EXT)", qw(font);
+$PDL::Core::Dev::EXTRAS{$::PDLMOD}{OBJECT} .= join '', map " $::PDLBASE-$_\$(OBJ_EXT)", qw(font sphere);
 }
 
 my $F = ['F'];
@@ -35,13 +35,10 @@ the copyright notice should be included in the file.
 EOD
 
 pp_addhdr('
-#ifdef HAVE_AGL_GLUT
+#ifdef __APPLE__
 #include <OpenGL/gl.h>
-#include <GLUT/glut.h>
 #else
 #include <GL/gl.h>
-#include <GL/glut.h>
-#include <GL/freeglut.h>
 #endif
 ');
 
@@ -52,6 +49,7 @@ pp_def(
   GenericTypes => $F,
   Pars => 'coords(tri=3,n);',
   OtherPars => 'double radius; int slices; int stacks;',
+  CHeader => "char *pdl_3d_solidSphere(double radius, GLint slices, GLint stacks);\n",
   Code => '
     float oldcoord0 = 0.0, oldcoord1 = 0.0, oldcoord2 = 0.0;
     glPushMatrix();
@@ -61,7 +59,8 @@ pp_def(
 	$coords(tri=>1) - oldcoord1,
 	$coords(tri=>2) - oldcoord2
       );
-      glutSolidSphere($COMP(radius), $COMP(slices), $COMP(stacks));
+      char *err = pdl_3d_solidSphere($COMP(radius), $COMP(slices), $COMP(stacks));
+      if (err) $CROAK("%s", err);
       oldcoord0 = $coords(tri=>0), oldcoord1 = $coords(tri=>1), oldcoord2 = $coords(tri=>2);
     %}
     glPopMatrix();
