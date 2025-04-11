@@ -11,7 +11,7 @@ $inc .= ' '.$OpenGL::Config->{INC} if $OpenGL::Config->{INC};
 if($^O eq 'MSWin32') {
   $def .= ' -DGLUT_DISABLE_ATEXIT_HACK'; # else get errors about PerlProc_exit on at least Strawberry Perl 5.32
 }
-$libs .= ' -lm';
+$libs .= ' -lm' if $libs !~ /\s-lm\b/;
 
 my $package_name = "PDL::Graphics::TriD";
 (my $repo = $package_name) =~ s#::#-#g;
@@ -24,7 +24,7 @@ WriteMakefile (
   CONFIGURE_REQUIRES => {
     'ExtUtils::MakeMaker' => 0,
     'PDL' => '2.096',
-    'OpenGL' => '0.7004',
+    'OpenGL' => '0.7004', # for $OpenGL::Config
   },
   PREREQ_PM => {
     'PDL' => '2.096',
