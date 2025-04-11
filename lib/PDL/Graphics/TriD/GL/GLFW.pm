@@ -16,7 +16,7 @@ sub new {
   $self->{xevents} = \@fakeXEvents;
   $self->{winobjects} = \%winObjects;
   my $p = $self->{Options};
-  glfwWindowHint(GLFW_SCALE_FRAMEBUFFER, GLFW_FALSE);
+  glfwWindowHint(GLFW_SCALE_FRAMEBUFFER, GLFW_FALSE) if $^O eq 'darwin';
   die "GLFW failed to create window"
     if !defined(my $glfwin = $self->{glfwwindow} = glfwCreateWindow(@$p{qw(width height)}, "GLFW TriD", NULL, NULL));
   $self->{window_seq} = ++$window_seq;
