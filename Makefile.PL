@@ -8,9 +8,6 @@ my ($def, $inc, $libs) = ('', '', '');
 $libs = $OpenGL::Config->{LIBS} if $OpenGL::Config->{LIBS};
 $def .= ' '.$OpenGL::Config->{DEFINE} if $OpenGL::Config->{DEFINE};
 $inc .= ' '.$OpenGL::Config->{INC} if $OpenGL::Config->{INC};
-if($^O eq 'MSWin32') {
-  $def .= ' -DGLUT_DISABLE_ATEXIT_HACK'; # else get errors about PerlProc_exit on at least Strawberry Perl 5.32
-}
 $libs .= ' -lm' if $libs !~ /\s-lm\b/;
 
 my $package_name = "PDL::Graphics::TriD";
