@@ -19,19 +19,19 @@ sub PDL::Graphics::TriD::Material::togl{
 $PDL::Graphics::TriD::verbose //= 0;
 
 sub PDL::Graphics::TriD::Object::gl_update_list {
-  my($this) = @_;
+  my ($this) = @_;
   glDeleteLists($this->{List},1) if $this->{List};
   $this->{List} = my $lno = glGenLists(1);
-  print "GENLIST $lno\n" if($PDL::Graphics::TriD::verbose);
+  print "GENLIST $this $lno\n" if $PDL::Graphics::TriD::verbose;
   glNewList($lno,GL_COMPILE);
   eval {
     my @objs = @{$this->{Objects}};
     $_->togl() for @objs;
-    print "EGENLIST $lno\n" if($PDL::Graphics::TriD::verbose);
+    print "EGENLIST $lno\n" if $PDL::Graphics::TriD::verbose;
   };
   { local $@; glEndList(); }
   die if $@;
-  print "VALID1 $this\n" if($PDL::Graphics::TriD::verbose);
+  print "VALID1 $this\n" if $PDL::Graphics::TriD::verbose;
   $this->{ValidList} = 1;
 }
 
@@ -156,12 +156,14 @@ sub PDL::Graphics::TriD::Quaternion::togl {
 # Graph Objects
 
 sub PDL::Graphics::TriD::GObject::togl {
-	$_[0]->gdraw($_[0]->{Points});
+  print "togl $_[0]\n" if $PDL::Graphics::TriD::verbose;
+  $_[0]->gdraw($_[0]->{Points});
 }
 
 # (this,graphs,points)
 sub PDL::Graphics::TriD::GObject::togl_graph {
-	$_[0]->gdraw($_[2]);
+  print "togl_graph $_[0]\n" if $PDL::Graphics::TriD::verbose;
+  $_[0]->gdraw($_[2]);
 }
 
 sub PDL::Graphics::TriD::Points::gdraw {
