@@ -329,27 +329,34 @@ sub PDL::Graphics::TriD::SCLattice::gdraw {
 }
 
 sub PDL::Graphics::TriD::SLattice_S::gdraw {
-	my($this,$points) = @_;
-	barf "Need 3D points"
-	  if grep $_->ndims < 3, $points;
-	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
-	$this->glOptions;
-# For some reason, we need to set this here as well.
-	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-	glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
-	eval {
-	  my $f = 'PDL::gl_triangles_';
-	  $f .= 'w' if $this->{Options}{Smooth};
-	  $f .= 'n_mat';
-	  { no strict 'refs'; $f = \&$f; }
-	  my @pdls = $points;
-	  push @pdls, $this->{Normals} if $this->{Options}{Smooth};
-	  push @pdls, $this->{Colors};
-	  _lattice_slice($f, @pdls);
-	  $this->_lattice_lines($points) if $this->{Options}{Lines};
-	};
-	{ local $@; glPopAttrib(); }
-	die if $@;
+  my($this,$points) = @_;
+  barf "Need 3D points"
+    if grep $_->ndims < 3, $points;
+  glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+  $this->glOptions;
+  # For some reason, we need to set this here as well.
+  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+  glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
+  eval {
+    my $f = 'PDL::gl_triangles_';
+    $f .= 'w' if $this->{Options}{Smooth};
+    $f .= 'n_mat';
+    { no strict 'refs'; $f = \&$f; }
+    my @pdls = $points;
+    push @pdls, $this->{Normals} if $this->{Options}{Smooth};
+    push @pdls, $this->{Colors};
+    _lattice_slice($f, @pdls);
+    $this->_lattice_lines($points) if $this->{Options}{Lines};
+    if ($this->{Options}{ShowNormals}) {
+      die "No normals to show!" if !defined $this->{Normals};
+      my $arrows = $points->append($points + $this->{Normals}*0.1)->splitdim(0,3);
+      glDisable(GL_LIGHTING);
+      glColor3d(1,1,1);
+      PDL::Graphics::OpenGLQ::gl_arrows($arrows, 0, 1, 0.5, 0.02);
+    }
+  };
+  { local $@; glPopAttrib(); }
+  die if $@;
 }
 
 sub PDL::Graphics::TriD::STrigrid_S::gdraw {
