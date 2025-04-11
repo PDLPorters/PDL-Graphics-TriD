@@ -334,8 +334,6 @@ sub PDL::Graphics::TriD::SLattice_S::gdraw {
     if grep $_->ndims < 3, $points;
   glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
   $this->glOptions;
-  # For some reason, we need to set this here as well.
-  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
   glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
   eval {
     my $f = 'PDL::gl_triangles_';
@@ -365,8 +363,6 @@ sub PDL::Graphics::TriD::STrigrid_S::gdraw {
   glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
   $this->glOptions;
   eval {
-    # For some reason, we need to set this here as well.
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
     glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
     my @sls = (":,(0)",":,(1)",":,(2)");
     my $idx = [0,1,2,0]; # for lines, below
