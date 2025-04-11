@@ -146,7 +146,7 @@ sub swap_buffers {
 
 sub set_window {
   my ($this) = @_;
-  # set GLUT context to current window (for multiwindow support)
+  # set context to current window (for multiwindow support)
   glfwMakeContextCurrent($this->{glfwwindow});
 }
 

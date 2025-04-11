@@ -32,6 +32,8 @@ jobs:
           perl-version: ${{ matrix.perl-version }}
       - name: Install pogl dependencies
         uses: Perl-GPU/devops/github-actions/install-dep-pogl-dep@main
+      - name: Install GLFW dependencies
+        uses: Perl-GPU/devops/github-actions/install-dep-opengl-glfw-dep@main
       - name: Install PDL dependencies
         uses: PDLPorters/devops/github-actions/install-dep-pdl-dep@master
       - name: 'ci-dist: target-all'

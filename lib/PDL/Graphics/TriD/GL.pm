@@ -488,11 +488,10 @@ sub gdriver {
     print "WARNING: Graphics Driver already defined for this window \n";
     return;
   }
-  # Use GLUT windows and event handling as the TriD default
-  my $window_type = $ENV{POGL_WINDOW_TYPE} || 'glut';
+  my $window_type = $ENV{POGL_WINDOW_TYPE} || 'glfw';
   my $gl_class = $window_type =~ /x11/i ? 'PDL::Graphics::TriD::GL::GLX' :
-    $window_type =~ /glfw/i ? 'PDL::Graphics::TriD::GL::GLFW' :
-    'PDL::Graphics::TriD::GL::GLUT';
+    $window_type =~ /glut/i ? 'PDL::Graphics::TriD::GL::GLUT' :
+    'PDL::Graphics::TriD::GL::GLFW';
   (my $file = $gl_class) =~ s#::#/#g; require "$file.pm";
   print "gdriver: Calling $gl_class(@$options{qw(width height)})\n" if $PDL::Graphics::TriD::verbose;
   $this->{_GLObject} = $gl_class->new($options, $this);
@@ -781,8 +780,8 @@ and graphics contexts.
 
 =head1 CONFIG
 
-Defaults to using L<OpenGL::GLUT> - override by setting the environment
-variable C<POGL_WINDOW_TYPE> to C<glfw>, C<x11> , or the default is C<glut>.
+Defaults to using L<OpenGL::GLFW> - override by setting the environment
+variable C<POGL_WINDOW_TYPE> to C<glut>, C<x11> , or the default is C<glfw>.
 This is implemented by C<PDL::Graphics::TriD::Window::gdriver>.
 
 =head2 new
