@@ -303,8 +303,7 @@ sub PDL::Graphics::TriD::SLattice::gdraw {
 	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
 	$this->glOptions;
 	glDisable(GL_LIGHTING);
-# By-vertex doesn't make sense otherwise.
-	glShadeModel(GL_SMOOTH);
+	glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
 	eval {
 	  _lattice_slice(\&PDL::gl_triangles, $points, $this->{Colors});
 	  $this->_lattice_lines($points) if $this->{Options}{Lines};
@@ -320,8 +319,7 @@ sub PDL::Graphics::TriD::SCLattice::gdraw {
 	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
 	$this->glOptions;
 	glDisable(GL_LIGHTING);
-# By-vertex doesn't make sense otherwise.
-	glShadeModel(GL_FLAT);
+	glShadeModel(GL_FLAT); # By-vertex doesn't make sense otherwise.
 	eval {
 	  _lattice_slice(\&PDL::gl_triangles, $points, $this->{Colors});
 	  $this->_lattice_lines($points) if $this->{Options}{Lines};
@@ -338,8 +336,7 @@ sub PDL::Graphics::TriD::SLattice_S::gdraw {
 	$this->glOptions;
 # For some reason, we need to set this here as well.
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-# By-vertex doesn't make sense otherwise.
-	glShadeModel(GL_SMOOTH);
+	glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
 	eval {
 	  my $f = 'PDL::gl_triangles_';
 	  $f .= 'w' if $this->{Options}{Smooth};
@@ -363,8 +360,7 @@ sub PDL::Graphics::TriD::STrigrid_S::gdraw {
   eval {
     # For some reason, we need to set this here as well.
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-    # By-vertex doesn't make sense otherwise.
-    glShadeModel(GL_SMOOTH);
+    glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
     my @sls = (":,(0)",":,(1)",":,(2)");
     my $idx = [0,1,2,0]; # for lines, below
     if ($this->{Options}{Smooth}) {
@@ -402,8 +398,7 @@ sub PDL::Graphics::TriD::STrigrid::gdraw {
   $this->glOptions;
   eval {
     glDisable(GL_LIGHTING);
-# By-vertex doesn't make sense otherwise.
-    glShadeModel(GL_SMOOTH);
+    glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
     PDL::gl_triangles(map $_->mv(1,-1)->dog, $faces, $this->{Colors});
     if ($this->{Options}{Lines}) {
       glColor3f(0,0,0);
