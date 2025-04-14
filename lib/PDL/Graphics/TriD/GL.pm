@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 no warnings 'redefine';
-use OpenGL qw/ :glfunctions :glconstants gluPerspective gluOrtho2D /;
+use OpenGL qw/ :glfunctions :glconstants /;
 use PDL::Core qw(barf);
 
 sub PDL::Graphics::TriD::Material::togl{
@@ -423,7 +423,7 @@ sub PDL::Graphics::TriD::Image::togl {
   glLoadIdentity();
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluOrtho2D(0,1,0,1);
+  glOrtho(0,1,0,1,-1,1);
   &PDL::Graphics::TriD::Image::togl_graph;
 }
 
@@ -712,7 +712,7 @@ sub set_button {
 
 package PDL::Graphics::TriD::ViewPort;
 
-use OpenGL qw/ :glfunctions :glconstants :glufunctions /;
+use OpenGL qw/ :glfunctions :glconstants /;
 use PDL::Graphics::OpenGLQ;
 
 sub highlight {
@@ -727,7 +727,7 @@ sub highlight {
   glLoadIdentity();
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluOrtho2D(0,$vp->{W},0,$vp->{H});
+  glOrtho(0,$vp->{W},0,$vp->{H},-1,1);
   glLineWidth(4);
   glColor3f(1,1,1);
   gl_line_strip_nc($pts);
@@ -735,17 +735,25 @@ sub highlight {
   glEnable(GL_LIGHTING);
 }
 
+use constant PI => 3.1415926535897932384626433832795;
+use constant FOVY => 40.0;
+use constant ANGLE => FOVY / 360 * PI;
+use constant TAN => sin(ANGLE)/cos(ANGLE);
+use constant { zNEAR => 0.1, zFAR => 200000.0 };
+use constant fH => TAN * zNEAR;
 sub do_perspective {
   my($this) = @_;
   print "do_perspective ",$this->{W}," ",$this->{H} ,"\n" if $PDL::Graphics::TriD::verbose;
   print Carp::longmess() if $PDL::Graphics::TriD::verbose>1;
   unless($this->{W}>0 and $this->{H}>0) {return;}
   $this->{AspectRatio} = (1.0*$this->{W})/$this->{H};
-  glViewport($this->{X0},$this->{Y0},$this->{W},$this->{H});
+  glViewport(@$this{qw(X0 Y0 W H)});
   $this->highlight if $this->{Active};
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(40.0, $this->{AspectRatio} , 0.1, 200000.0);
+  # https://stackoverflow.com/questions/12943164/replacement-for-gluperspective-with-glfrustrum
+  my $fW = fH * $this->{AspectRatio};
+  glFrustum(-$fW, $fW, -fH, fH, zNEAR, zFAR);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity ();
 }
