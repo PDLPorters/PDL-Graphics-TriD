@@ -31,6 +31,16 @@ sub new {
   $self;
 }
 
+sub default_options {
+  my ($class) = @_;
+  +{ %{ $class->SUPER::default_options },
+    parent => 0,
+    mask => StructureNotifyMask,
+    steal => 0,
+    attributes => [ GLX_DOUBLEBUFFER, GLX_RGBA ],
+  };
+}
+
 sub event_pending {
   my ($self) = @_;
   OpenGL::XPending($self->{Display});

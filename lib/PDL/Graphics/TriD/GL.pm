@@ -805,12 +805,6 @@ Returns a new OpenGL object.
 
 =item width,height - the width and height of the window in pixels (500,500)
 
-=item parent - the parent under which the new window should be opened (root)
-
-=item mask - the user interface mask (StructureNotifyMask)
-
-=item attributes - attributes to pass to glXChooseVisual
-
 =back
 
 Allowed 3d window types, case insensitive, are:
@@ -823,13 +817,25 @@ Allowed 3d window types, case insensitive, are:
 
 =item x11  - use Perl OpenGL (POGL) bindings with X11
 
+Additional attributes for X11 windows:
+
+=over
+
+=item parent - the parent under which the new window should be opened (root)
+
+=item mask - the user interface mask (StructureNotifyMask)
+
+=item attributes - attributes to pass to glXChooseVisual
+
+=back
+
 =back
 
 =cut
 
 sub new {
   my($class,$options,$window_obj) = @_;
-  my $opt = PDL::Options->new(default_options());
+  my $opt = PDL::Options->new($class->default_options);
   $opt->incremental(1);
   $opt->options($options) if(defined $options);
   my $p = $opt->options;
@@ -842,16 +848,13 @@ default options for object oriented methods
 
 =cut
 
-sub default_options{
-   {  'x'     => 0,
-      'y'     => 0,
-      'width' => 500,
-      'height'=> 500,
-      'parent'=> 0,
-      'mask'  => eval '&OpenGL::StructureNotifyMask',
-      'steal' => 0,
-      'attributes' => eval '[ &OpenGL::GLX_DOUBLEBUFFER, &OpenGL::GLX_RGBA ]',
-   }
+sub default_options {
+  {
+    x => 0,
+    y => 0,
+    width => 500,
+    height => 500,
+  }
 }
 
 =head2 swap_buffers
