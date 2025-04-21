@@ -652,11 +652,6 @@ sub read_picture {
 
 package PDL::Graphics::TriD::EventHandler;
 
-use OpenGL qw(
-  ConfigureNotify MotionNotify DestroyNotify
-  ButtonPress ButtonRelease Button1Mask Button2Mask Button3Mask Button4Mask
-);
-
 use fields qw/X Y Buttons VP/;
 sub new {
   my $class = shift;
@@ -759,8 +754,6 @@ sub do_perspective {
 }
 
 package PDL::Graphics::TriD::GL;
-
-use OpenGL ();
 
 use strict;
 use warnings;
