@@ -497,6 +497,7 @@ sub gdriver {
   (my $file = $gl_class) =~ s#::#/#g; require "$file.pm";
   print "gdriver: Calling $gl_class(@$options{qw(width height)})\n" if $PDL::Graphics::TriD::verbose;
   $this->{_GLObject} = $gl_class->new($options, $this);
+  $this->{_GLObject}->set_window;
   print "gdriver: Calling glClearColor...\n" if $PDL::Graphics::TriD::verbose;
   glClearColor(0,0,0,1);
   glShadeModel(GL_FLAT);
