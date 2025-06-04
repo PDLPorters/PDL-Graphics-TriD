@@ -485,7 +485,7 @@ use fields qw/Ev Width Height Interactive _GLObject
 
 sub gdriver {
   my($this, $options) = @_;
-  print "GL gdriver...\n" if($PDL::Graphics::TriD::verbose);
+  print "GL gdriver...\n" if $PDL::Graphics::TriD::verbose;
   if(defined $this->{_GLObject}){
     print "WARNING: Graphics Driver already defined for this window \n";
     return;
@@ -786,7 +786,6 @@ and graphics contexts.
 
 Defaults to using L<OpenGL::GLFW> - override by setting the environment
 variable C<POGL_WINDOW_TYPE> to C<glut>, C<x11> , or the default is C<glfw>.
-This is implemented by C<PDL::Graphics::TriD::Window::gdriver>.
 
 =head2 new
 

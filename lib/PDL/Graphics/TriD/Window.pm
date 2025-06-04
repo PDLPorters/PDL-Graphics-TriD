@@ -16,13 +16,13 @@ sub new {
   my $this = $arg->SUPER::new();
   print "PDL::Graphics::TriD::Window - got back $this\n" if($PDL::Graphics::TriD::verbose);
   # Make sure the Graphics has been initialized
-  $options->{width} =	600 unless defined $options->{width};
-  $options->{height} =	600 unless defined $options->{height};
+  $options->{width} //= 600;
+  $options->{height} //= 600;
   $this->{Width} = $options->{width};
   $this->{Height} = $options->{height};
-  print "PDL::Graphics::TriD::Window: calling gdriver....\n" if($PDL::Graphics::TriD::verbose);
+  print "PDL::Graphics::TriD::Window: calling gdriver....\n" if $PDL::Graphics::TriD::verbose;
   $this->{Interactive} = $this->gdriver($options);
-  print "PDL::Graphics::TriD::Window: gdriver gave back $this->{Interactive}....\n" if($PDL::Graphics::TriD::verbose);
+  print "PDL::Graphics::TriD::Window: gdriver gave back $this->{Interactive}....\n" if $PDL::Graphics::TriD::verbose;
   # set default values
   if($this->{Interactive}){
       print "\tIt's interactive... calling ev_defaults...\n" if($PDL::Graphics::TriD::verbose);

@@ -30,7 +30,7 @@ sub new {
   glfwSetWindowRefreshCallback($glfwin,\&_display_wrapper);
   glfwShowWindow($glfwin);
   if ($PDL::Graphics::TriD::verbose) {
-    print "gdriver: Got TriD::GL object(GLFW window ID#$self->{window_seq} " . $self->{glfwwindow} . ")\n";
+    print "GLFW driver: Got TriD::GL object(GLFW window ID#$self->{window_seq} " . $self->{glfwwindow} . ")\n";
   }
   $self->{winobjects}->{$self->{glfwwindow}} = $window_obj;      # circular ref
   $self;

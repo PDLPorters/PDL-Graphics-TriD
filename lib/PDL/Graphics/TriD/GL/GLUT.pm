@@ -49,7 +49,7 @@ sub _init_glut_window {
   glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS) if _have_freeglut();
   glutMainLoopEvent();       # pump event loop so window appears
   if ($PDL::Graphics::TriD::verbose) {
-    print "gdriver: Got TriD::GL object(GLUT window ID# " . $self->{glutwindow} . ")\n";
+    print "GLUT driver: Got TriD::GL object(GLUT window ID# " . $self->{glutwindow} . ")\n";
   }
   $self->{winobjects}->[$self->{glutwindow}] = $window_obj;      # circular ref
 }
