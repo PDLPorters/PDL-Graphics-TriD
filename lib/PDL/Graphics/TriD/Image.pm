@@ -9,7 +9,7 @@
 package PDL::Graphics::TriD::Image;
 use strict;
 use warnings;
-our @ISA=qw/PDL::Graphics::TriD::Object/;
+our @ISA=qw/PDL::Graphics::TriD::GObject/;
 use PDL::Lite;
 
 my $defaultvert = PDL->pdl([

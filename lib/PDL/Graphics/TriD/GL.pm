@@ -424,11 +424,7 @@ sub PDL::Graphics::TriD::Image::togl {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glOrtho(0,1,0,1,-1,1);
-  &PDL::Graphics::TriD::Image::togl_graph;
-}
-
-sub PDL::Graphics::TriD::Image::togl_graph {
-	$_[0]->gdraw();
+  goto &PDL::Graphics::TriD::GObject::togl;
 }
 
 # The quick method is to use texturing for the good effect.
