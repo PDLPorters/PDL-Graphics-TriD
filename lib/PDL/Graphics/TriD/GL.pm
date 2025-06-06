@@ -71,12 +71,12 @@ sub PDL::Graphics::TriD::BoundingBox::togl {
 
 sub PDL::Graphics::TriD::Graph::togl {
 	my($this) = @_;
-	$this->{Axis}{$_}->togl_axis($this) for grep $_ ne "Default", keys %{$this->{Axis}};
+	$this->{Axis}{$_}->togl($this) for grep $_ ne "Default", keys %{$this->{Axis}};
 	$this->{Data}{$_}->togl_graph($this,$this->get_points($_)) for keys %{$this->{Data}};
 }
 
 use PDL;
-sub PDL::Graphics::TriD::CylindricalEquidistantAxes::togl_axis {
+sub PDL::Graphics::TriD::CylindricalEquidistantAxes::togl {
 	my($this,$graph) = @_;
         my (@nadd,@nc,@ns);
 	for my $dim (0..1) {
@@ -121,9 +121,9 @@ sub PDL::Graphics::TriD::CylindricalEquidistantAxes::togl_axis {
 	glEnable(GL_LIGHTING);
 }
 
-sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
+sub PDL::Graphics::TriD::EuclidAxes::togl {
 	my($this,$graph) = @_;
-        print "togl_axis: got object type " . ref($this) . "\n" if $PDL::Graphics::TriD::verbose;
+        print "togl: got object type " . ref($this) . "\n" if $PDL::Graphics::TriD::verbose;
 	glLineWidth(1); # ought to be user defined
 	glDisable(GL_LIGHTING);
 	my $ndiv = 4;

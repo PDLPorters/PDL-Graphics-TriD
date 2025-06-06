@@ -304,7 +304,7 @@ sub PDL::Graphics::TriD::Graph::tovrml {
 	my @children = ();
 	for(sort keys %{$this->{Axis}}) {
 		if($_ eq "Default") {next}
-		push @children, @{$this->{Axis}{$_}->tovrml_axis($this)};
+		push @children, @{$this->{Axis}{$_}->tovrml($this)};
 	}
 	for(sort keys %{$this->{Data}}) {
 	    push @children,
@@ -314,7 +314,7 @@ sub PDL::Graphics::TriD::Graph::tovrml {
 }
 
 
-sub PDL::Graphics::TriD::EuclidAxes::tovrml_axis {
+sub PDL::Graphics::TriD::EuclidAxes::tovrml {
   my($this,$graph) = @_;
   my $vrml = $PDL::Graphics::VRML::current_window;
   my $lset = vrn('Shape',
