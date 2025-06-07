@@ -213,7 +213,6 @@ sub smoothn {
   my $trip = $p->lags(1,1,2)->slice(':,:,:,1:-1') -
 		$p->lags(1,1,2)->slice(':,:,:,0:-2');
   # coords of diagonals with dim 2 having original and reflected diags
-  my $tmp;
   my $trid = ($p->slice(':,0:-2,1:-1')-$p->slice(':,1:-1,0:-2'))
 		    ->dummy(2,2);
   # $ortho is a (3D,x-1,left/right triangle,y-1) array that enumerates
@@ -223,13 +222,13 @@ sub smoothn {
   # now add to vertices to smooth
   my $aver = ref($p)->zeroes($p->dims);
   # step 1, upper right tri0, upper left tri1
-  ($tmp=$aver->lags(1,1,2)->slice(':,:,:,1:-1')) += $ortho;
+  $aver->lags(1,1,2)->slice(':,:,:,1:-1') += $ortho;
   # step 2, lower right tri0, lower left tri1
-  ($tmp=$aver->lags(1,1,2)->slice(':,:,:,0:-2')) += $ortho;
+  $aver->lags(1,1,2)->slice(':,:,:,0:-2') += $ortho;
   # step 3, upper left tri0
-  ($tmp=$aver->slice(':,0:-2,1:-1')) += $ortho->slice(':,:,(0)');
+  $aver->slice(':,0:-2,1:-1') += $ortho->slice(':,:,(0)');
   # step 4, lower right tri1
-  ($tmp=$aver->slice(':,1:-1,0:-2')) += $ortho->slice(':,:,(1)');
+  $aver->slice(':,1:-1,0:-2') += $ortho->slice(':,:,(1)');
   $aver->norm($aver);
   return $aver;
 }

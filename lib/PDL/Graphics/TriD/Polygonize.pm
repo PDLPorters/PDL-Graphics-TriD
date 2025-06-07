@@ -18,10 +18,10 @@ sub stupidpolygonize {
 	my $za = ($x->slice("(0)"))->yvals;
 	$za *= $mult/2;
 	$za -= 3.14/2;
-	(my $tmp0 = $x->slice("(0)")) += cos($ya);
-	(my $tmp1 = $x->slice("(1)")) += sin($ya);
-	(my $tmp01 = $x->slice("0:1")) *= cos($za)->dummy(0);
-	(my $tmp2 = $x->slice("(2)")) += sin($za);
+	$x->slice("(0)") += cos($ya);
+	$x->slice("(1)") += sin($ya);
+	$x->slice("0:1") *= cos($za)->dummy(0);
+	$x->slice("(2)") += sin($za);
 	my $add = $x->copy;
 	$x *= $initrad;
 	$x += $center;

@@ -152,7 +152,7 @@ sub finish_scale {
 sub transform {
   my($this,$point,$data,$inds) = @_;
   my ($min, $max) = map $this->{Scale}->slice("0:$#$inds,$_"), 0, 1;
-  (my $tmp = $point->slice("0:$#$inds")) +=
+  $point->slice("0:$#$inds") +=
     ($data->dice_axis(0, $inds) - $min) / ($max - $min);
   return $point;
 }
@@ -241,14 +241,14 @@ sub transform {
     exit;
   }
   my $pio180 = 0.017453292;
-  (my $tmp1 = $point->slice("(0)")) +=
+  $point->slice("(0)") +=
     0.5+($data->slice("($inds->[0])")-$this->{Center}[0]) /
       ($this->{Scale}[0][1] - $this->{Scale}[0][0])
 	*cos($data->slice("($inds->[1])")*$pio180);
-  (my $tmp2 = $point->slice("(1)")) +=
+  $point->slice("(1)") +=
     0.5+($data->slice("($inds->[1])")-$this->{Center}[1]) /
       ($this->{Scale}[1][1] - $this->{Scale}[1][0]);
-  (my $tmp3 = $point->slice("(2)")) .=
+  $point->slice("(2)") .=
     log($data->slice("($inds->[2])")/1012.5)/log($this->{Scale}[2][1]/1012.5);
   return $point;
 }
@@ -335,23 +335,23 @@ sub transform {
     exit;
   }
   my $pio180 = 0.017453292;
-  (my $tmp1 = $point->slice("(0)")) +=
+  $point->slice("(0)") +=
     0.5+($data->slice("($inds->[0])")-$this->{Center}[0]) /
       ($this->{Scale}[0][1] - $this->{Scale}[0][0])
 	*cos($data->slice("($inds->[1])")*$pio180);
-  (my $tmp2 = $point->slice("(1)")) +=
+  $point->slice("(1)") +=
     0.5+($data->slice("($inds->[1])")-$this->{Center}[1]) /
       ($this->{Scale}[1][1] - $this->{Scale}[1][0])
 	*cos($data->slice("($inds->[1])")*$pio180);
 # Longitude transformation
-#  (my $tmp = $point->slice("(0)")) =
+#  $point->slice("(0)") =
 #    ($this->{Center}[0]-$point->slice("(0)"))*cos($data->slice("(1)"));
 # Latitude transformation
-#  (my $tmp = $point->slice("(1)")) =
+#  $point->slice("(1)") =
 #    ($this->{Center}[1]-$data->slice("(1)"))*cos($data->slice("(1)"));
 # Vertical transformation
 #  -7.2*log($data->slice("(2)")/1012.5
-  (my $tmp3 = $point->slice("(2)")) .=
+  $point->slice("(2)") .=
     log($data->slice("($inds->[2])")/1012.5)/log($this->{Scale}[2][1]/1012.5);
   return $point;
 }

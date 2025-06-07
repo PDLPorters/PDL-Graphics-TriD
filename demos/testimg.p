@@ -14,10 +14,10 @@ my $r = zeroes(4,5,6,7,2,2,2,2)+0.1;
 my $g = zeroes(4,5,6,7,2,2,2,2);
 my $b = zeroes(4,5,6,7,2,2,2,2);
 
-(my $tmp = $r->slice(":,:,2,2")) .= 1;
-($tmp = $r->slice(":,:,:,1")) .= 0.5;
-($tmp = $g->slice("2,:,1,2")) .= 1;
-($tmp = $b->slice("2,3,1,:")) .= 1;
+$r->slice(":,:,2,2") .= 1;
+$r->slice(":,:,:,1") .= 0.5;
+$g->slice("2,:,1,2") .= 1;
+$b->slice("2,3,1,:") .= 1;
 
 $graph->add_dataseries(PDL::Graphics::TriD::Image->new([$r,$g,$b]));
 $graph->scalethings;
