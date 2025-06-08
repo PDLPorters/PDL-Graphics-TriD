@@ -52,23 +52,6 @@ sub PDL::Graphics::TriD::Object::delete_displist {
 
 sub PDL::Graphics::TriD::Object::togl { $_->togl for @{$_[0]->{Objects}} }
 
-my @bb1 = ([0,4,2],[0,1,2],[0,1,5],[0,4,5],[0,4,2],[3,4,2],
-	   [3,1,2],[3,1,5],[3,4,5],[3,4,2]);
-my @bb2 = ([0,1,2],[3,1,2],[0,1,5],[3,1,5],[0,4,5],[3,4,5]);
-sub PDL::Graphics::TriD::BoundingBox::togl {
-  my($this) = @_;
-  $this = $this->{Box};
-  glDisable(GL_LIGHTING);
-  glColor3d(1,1,1);
-  glBegin(GL_LINES);
-  glVertex3d(@{$this}[@$_]) for @bb1;
-  glEnd();
-  glBegin(GL_LINE_STRIP);
-  glVertex3d(@{$this}[@$_]) for @bb2;
-  glEnd();
-  glEnable(GL_LIGHTING);
-}
-
 sub PDL::Graphics::TriD::Graph::togl {
 	my($this) = @_;
 	$this->{Axis}{$_}->togl($this) for grep $_ ne "Default", keys %{$this->{Axis}};

@@ -129,27 +129,6 @@ sub PDL::Graphics::TriD::Material::tovrml {
 		     );
 }
 
-sub PDL::Graphics::TriD::Scale::tovrml {my ($this) = @_;
-	print "Scale ",(join ',',@{$this->{Args}}),"\n";
-	PDL::Graphics::VRMLNode->new('Transform',
-		   'scale',vrml3v(@{$this->{Args}}));
-    }
-
-
-sub PDL::Graphics::TriD::Translation::tovrml {
-  my ($this) = @_;
-  PDL::Graphics::VRMLNode->new('Transform',
-		   'translation',vrml3v(@{$this->{Args}}));
-}
-
-# XXXXX this has to be fixed -> wrap in one transform + children
-sub PDL::Graphics::TriD::Transformation::tovrml {
-	my($this) = @_;
-	my @nodes = map {$_->tovrml()} @{$this->{Transforms}};
-	push @nodes,$this->SUPER::tovrml();
-}
-
-
 sub PDL::Graphics::TriD::Quaternion::tovrml {my($this) = @_;
 	if(abs($this->[0]) == 1) { return ; }
 	if(abs($this->[0]) >= 1) {

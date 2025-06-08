@@ -600,7 +600,7 @@ without using indices is an Object. That is, if you have a surface,
 each vertex is not an object and neither is each segment of a long
 curve. The whole curve (or a set of curves) is the lowest level Object.
 
-Transformations and groups of Objects are also Objects.
+Groups of Objects are also Objects.
 
 A Window is simply an Object that has subobjects.
 
@@ -622,10 +622,10 @@ There are objects that are not mentioned here; they are either internal
 to PDL3D or in rapidly changing states. If you use them, you do so at
 your own risk.
 
-The syntax C<PDL::Graphics::TriD::Scale(x,y,z)> here means that you create
+The syntax C<PDL::Graphics::TriD::Quaternion(c,x,y,z)> here means that you create
 an object like
 
-	$c = PDL::Graphics::TriD::Scale->new($x,$y,$z);
+	$c = PDL::Graphics::TriD::QuaternionScale->new($c,$x,$y,$z);
 
 =head2 PDL::Graphics::TriD::LineStrip
 
@@ -656,14 +656,6 @@ The constructor takes as arguments 3 2-dimensional ndarrays.
 
 This is simply a set of points in 3-space. Takes as arguments
 the x, y and z coordinates of the points as ndarrays.
-
-=head2 PDL::Graphics::TriD::Scale(x,y,z)
-
-Self-explanatory
-
-=head2 PDL::Graphics::TriD::Translation(x,y,z)
-
-Ditto
 
 =head2 PDL::Graphics::TriD::Quaternion(c,x,y,z)
 
@@ -1018,57 +1010,6 @@ sub new {
     }
   }
   return $this;
-}
-
-package PDL::Graphics::TriD::BoundingBox;
-use base qw/PDL::Graphics::TriD::Object/;
-use fields qw/Box/;
-
-sub new {
-  my($type,$x0,$y0,$z0,$x1,$y1,$z1) = @_;
-  my $this = $type->SUPER::new();
-  $this->{Box} = [$x0,$y0,$z0,$x1,$y1,$z1];
-}
-
-sub normalize {my($this,$x0,$y0,$z0,$x1,$y1,$z1) = @_;
-	$this = $this->{Box};
-	my $trans = PDL::Graphics::TriD::Transformation->new();
-	my $sx = ($x1-$x0)/($this->[3]-$this->[0]);
-	my $sy = ($y1-$y0)/($this->[4]-$this->[1]);
-	my $sz = ($z1-$z0)/($this->[5]-$this->[2]);
-	$trans->add_transformation(
-		PDL::Graphics::TriD::Translation->new(
-			($x0-$this->[0]*$sx),
-			($y0-$this->[1]*$sy),
-			($z0-$this->[2]*$sz)
-		));
-	$trans->add_transformation(PDL::Graphics::TriD::Scale->new($sx,$sy,$sz));
-	return $trans;
-}
-
-package PDL::Graphics::TriD::OneTransformation;
-use fields qw/Args/;
-
-sub new {
-  my($type,@args) = @_;
-  my $this = fields::new($type);
-  $this->{Args} = [@args];
-  $this;
-}
-
-package PDL::Graphics::TriD::Scale;
-use base qw/PDL::Graphics::TriD::OneTransformation/;
-
-package PDL::Graphics::TriD::Translation;
-use base qw/PDL::Graphics::TriD::OneTransformation/;
-
-
-package PDL::Graphics::TriD::Transformation;
-use base qw/PDL::Graphics::TriD::Object/;
-
-sub add_transformation {
-	my($this,$trans) = @_;
-	push @{$this->{Transforms}},$trans;
 }
 
 =head1 AUTHOR
