@@ -159,7 +159,7 @@ sub PDL::Graphics::TriD::GObject::tovrml {
 }
 
 sub PDL::Graphics::TriD::GObject::tovrml_graph {
-	return $_[0]->vdraw($_[2]);
+	return $_[0]->vdraw($_[1]);
 }
 
 sub PDL::Graphics::TriD::Points::vdraw {
@@ -287,7 +287,7 @@ sub PDL::Graphics::TriD::Graph::tovrml {
 	}
 	for(sort keys %{$this->{Data}}) {
 	    push @children,
-	     $this->{Data}{$_}->tovrml_graph($this,$this->get_points($_));
+	     $this->{Data}{$_}->tovrml_graph($this->get_points($_));
 	}
 	return vrn('Group', 'children' => [@children]);
 }
