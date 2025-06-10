@@ -25,7 +25,7 @@ sub new {
 	my $im = PDL::Graphics::TriD::realcoords('COLOR',$color);
 	my $this = {
 		Im => $im,
-		Opts => $opts,
+		Options => $opts,
 		Points => $defaultvert,
 	};
 	if(defined $opts->{Points}) {
@@ -99,8 +99,8 @@ sub flatten {
 	my $p = PDL->zeroes(PDL::float(),3,$xxd,$yyd);
 
 
-	if(defined $this->{Opts}{Bg}) {
-		$p .= $this->{Opts}{Bg};
+	if(defined $this->{Options}{Bg}) {
+		$p .= $this->{Options}{Bg};
 	}
 
 #	print "MKFOOP\n";

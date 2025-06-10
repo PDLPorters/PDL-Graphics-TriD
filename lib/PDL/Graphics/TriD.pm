@@ -795,13 +795,13 @@ sub realcoords {
 }
 
 sub checkargs {
-	if(ref $_[$#_] eq "HASH" and $PDL::Graphics::TriD::verbose) {
+	if(ref $_[-1] eq "HASH" and $PDL::Graphics::TriD::verbose) {
 
 	  print "enter checkargs \n";
 		for(['KeepTwiddling',\&keeptwiddling3d]) {
 		  print "checkargs >$_<\n";
-			if(defined $_[$#_]{$_->[0]}) {
-				&{$_->[1]}(delete $_[$#_]{$_->[0]});
+			if(defined $_[-1]{$_->[0]}) {
+				&{$_->[1]}(delete $_[-1]{$_->[0]});
 			}
 		}
 	}
@@ -855,13 +855,15 @@ sub PDL::describe3d {
 
 *imagrgb=*imagrgb=\&PDL::imagrgb;
 sub PDL::imagrgb {
-	require PDL::Graphics::TriD::Image;
-	my (@data) = @_; &checkargs;
-	my $win = PDL::Graphics::TriD::get_current_window();
-	my $imag = PDL::Graphics::TriD::Image->new(@data);
-	$win->clear_viewports();
-	$win->current_viewport()->add_object($imag);
-	$win->twiddle();
+  require PDL::Graphics::TriD::Image;
+  my ($color, $opts) = @_; &checkargs;
+  my $win = PDL::Graphics::TriD::get_current_window();
+  $opts //= {};
+  $opts->{FullScreen} = 1;
+  my $imag = PDL::Graphics::TriD::Image->new($color, $opts);
+  $win->clear_viewports();
+  $win->current_viewport()->add_object($imag);
+  $win->twiddle();
 }
 
 # Plotting routines that use the 3D graph

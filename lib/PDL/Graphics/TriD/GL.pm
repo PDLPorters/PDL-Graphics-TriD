@@ -402,11 +402,13 @@ sub PDL::Graphics::TriD::STrigrid::gdraw {
 
 sub PDL::Graphics::TriD::Image::togl {
 # A special construct which always faces the display and takes the entire window
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho(0,1,0,1,-1,1);
+  if ($_[0]{Options}{FullScreen}) {
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0,1,0,1,-1,1);
+  }
   goto &PDL::Graphics::TriD::GObject::togl;
 }
 
