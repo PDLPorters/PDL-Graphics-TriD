@@ -55,7 +55,7 @@ sub PDL::Graphics::TriD::Object::togl { $_->togl for @{$_[0]->{Objects}} }
 sub PDL::Graphics::TriD::Graph::togl {
 	my($this) = @_;
 	$this->{Axis}{$_}->togl($this) for grep $_ ne "Default", keys %{$this->{Axis}};
-	$this->{Data}{$_}->togl_graph($this->get_points($_)) for keys %{$this->{Data}};
+	$this->{Data}{$_}->togl($this->get_points($_)) for keys %{$this->{Data}};
 }
 
 use PDL;
@@ -138,15 +138,10 @@ sub PDL::Graphics::TriD::Quaternion::togl {
 ##################################
 # Graph Objects
 
+# (this,points)
 sub PDL::Graphics::TriD::GObject::togl {
   print "togl $_[0]\n" if $PDL::Graphics::TriD::verbose;
-  $_[0]->gdraw($_[0]->{Points});
-}
-
-# (this,points)
-sub PDL::Graphics::TriD::GObject::togl_graph {
-  print "togl_graph $_[0]\n" if $PDL::Graphics::TriD::verbose;
-  $_[0]->gdraw($_[1]);
+  $_[0]->gdraw($_[1] // $_[0]->{Points});
 }
 
 sub PDL::Graphics::TriD::Points::gdraw {

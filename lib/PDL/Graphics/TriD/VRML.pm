@@ -155,11 +155,7 @@ sub PDL::Graphics::TriD::ViewPort::togif_vp {
 }
 
 sub PDL::Graphics::TriD::GObject::tovrml {
-	return $_[0]->vdraw($_[0]->{Points});
-}
-
-sub PDL::Graphics::TriD::GObject::tovrml_graph {
-	return $_[0]->vdraw($_[1]);
+	return $_[0]->vdraw($_[1] // $_[0]->{Points});
 }
 
 sub PDL::Graphics::TriD::Points::vdraw {
@@ -250,11 +246,6 @@ sub PDL::Graphics::TriD::Image::tovrml {
 	$_[0]->vdraw();
 }
 
-sub PDL::Graphics::TriD::Image::tovrml_graph {
-	&PDL::Graphics::TriD::Image::tovrml;
-}
-
-
 # The quick method is to use texturing for the good effect.
 # XXXXXXXXXXXX wpic currently rescales $im 0..255, that's not correct (in $url->save)! fix
 sub PDL::Graphics::TriD::Image::vdraw {
@@ -287,7 +278,7 @@ sub PDL::Graphics::TriD::Graph::tovrml {
 	}
 	for(sort keys %{$this->{Data}}) {
 	    push @children,
-	     $this->{Data}{$_}->tovrml_graph($this->get_points($_));
+	     $this->{Data}{$_}->tovrml($this->get_points($_));
 	}
 	return vrn('Group', 'children' => [@children]);
 }
@@ -638,7 +629,6 @@ sub display {
   my $this = shift;
   my $vrmlparam =  $PDL::Graphics::TriD::Settings;
 
-#  if (@{$this->{_ViewPorts}}) {
   if (0) {
     # show the image
     $vrmlparam->gifmode();
@@ -682,9 +672,6 @@ EOH
 #    use Data::Dumper;
 #    my $out = Dumper($this->{VRML});
 #    print $out;
-
-
-
 
     $this->{VRMLTop}->set_vrml($vp->{VRML});
     $vrmlparam->vrmlmode();
