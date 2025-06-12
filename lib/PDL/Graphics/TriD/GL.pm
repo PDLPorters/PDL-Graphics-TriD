@@ -437,6 +437,7 @@ sub PDL::Graphics::TriD::Image::gdraw {
 		  glVertex3f($vert->slice(":,($_)")->list);
 	  }
 	};
+	glEnd();
 	{ local $@; glEnd(); glPopAttrib(); }
 	die if $@;
 }
