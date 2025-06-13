@@ -152,13 +152,11 @@ sub PDL::Graphics::TriD::GObject::togl {
 
 sub PDL::Graphics::TriD::Points::gdraw {
   my($this,$points) = @_;
-  glDisable(GL_LIGHTING);
   PDL::gl_points_col($points,$this->{Colors});
 }
 
 sub PDL::Graphics::TriD::Spheres::gdraw {
    my($this,$points) = @_;
-   glEnable(GL_LIGHTING);
    glShadeModel(GL_SMOOTH);
    PDL::gl_spheres($points, 0.025, 15, 15);
 }
@@ -167,20 +165,17 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
   my($this,$points) = @_;
   barf "Need 3D points AND colours"
     if grep $_->ndims < 3, $points, $this->{Colors};
-  glDisable(GL_LIGHTING);
   PDL::gl_line_strip_col($points,$this->{Colors});
   PDL::gl_line_strip_col($points->xchg(1,2),$this->{Colors}->xchg(1,2));
 }
 
 sub PDL::Graphics::TriD::LineStrip::gdraw {
   my($this,$points) = @_;
-  glDisable(GL_LIGHTING);
   PDL::gl_line_strip_col($points,$this->{Colors});
 }
 
 sub PDL::Graphics::TriD::Lines::gdraw {
   my($this,$points) = @_;
-  glDisable(GL_LIGHTING);
   PDL::gl_lines_col($points,$this->{Colors});
 }
 
@@ -188,8 +183,8 @@ sub PDL::Graphics::TriD::GObject::glOptions {
   my ($this) = @_;
   glLineWidth($this->{Options}{LineWidth} || 1);
   glPointSize($this->{Options}{PointSize} || 1);
-  glEnable(GL_DEPTH_TEST); # moved here from gdriver else GLFW evaporates it
-  glEnable(GL_LIGHTING);
+  glEnable(GL_DEPTH_TEST);
+  $this->{Options}{Lighting} ? glEnable(GL_LIGHTING) : glDisable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
   glLightfv_s(GL_LIGHT0,GL_POSITION,pack "f*",1.0,1.0,1.0,0.0);
@@ -205,7 +200,6 @@ sub PDL::Graphics::TriD::GObject::_lattice_lines {
 
 sub PDL::Graphics::TriD::Contours::gdraw {
   my ($this,$points) = @_;
-  glDisable(GL_LIGHTING);
   my $pi = $this->{PathIndex};
   my ($pcnt, $i, $thisind) = (0, 0, 0);
   for my $ie (grep defined, @{$this->{ContourPathIndexEnd}}) {
@@ -250,7 +244,6 @@ sub PDL::Graphics::TriD::SLattice::gdraw {
   my($this,$points) = @_;
   barf "Need 3D points"
     if grep $_->ndims < 3, $points;
-  glDisable(GL_LIGHTING);
   glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
   _lattice_slice(\&PDL::gl_triangles, $points, $this->{Colors});
   $this->_lattice_lines($points) if $this->{Options}{Lines};
@@ -260,7 +253,6 @@ sub PDL::Graphics::TriD::SCLattice::gdraw {
   my($this,$points) = @_;
   barf "Need 3D points"
     if grep $_->ndims < 3, $points;
-  glDisable(GL_LIGHTING);
   glShadeModel(GL_FLAT); # By-vertex doesn't make sense otherwise.
   _lattice_slice(\&PDL::gl_triangles, $points, $this->{Colors});
   $this->_lattice_lines($points) if $this->{Options}{Lines};
@@ -323,7 +315,6 @@ sub PDL::Graphics::TriD::STrigrid::gdraw {
   my($this,$points) = @_;
   my $faces = $points->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
   # faces is 3D pdl slices of points, giving cart coords of face verts
-  glDisable(GL_LIGHTING);
   glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
   PDL::gl_triangles(map $_->mv(1,-1)->dog, $faces, $this->{Colors});
   if ($this->{Options}{Lines}) {
@@ -360,7 +351,6 @@ sub PDL::Graphics::TriD::Image::gdraw {
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-  glDisable(GL_LIGHTING);
   glNormal3d(0,0,1);
   glEnable(GL_TEXTURE_2D);
   glBegin(GL_QUADS);

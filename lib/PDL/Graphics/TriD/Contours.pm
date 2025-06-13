@@ -144,14 +144,15 @@ sub new{
   return $this;
 }
 
-sub get_valid_options{
-  return{ ContourInt => undef,
-			 ContourMin => undef,
-			 ContourMax=>  undef,
-			 ContourVals=> pdl->null,
-			 UseDefcols=>1,
-	                 Labels=> undef}
-}
+sub get_valid_options { +{
+  UseDefcols => 1,
+  ContourInt => undef,
+  ContourMin => undef,
+  ContourMax => undef,
+  ContourVals => pdl->null,
+  Labels => undef,
+  Lighting => 0,
+}}
 
 =head2 addlabels()
 

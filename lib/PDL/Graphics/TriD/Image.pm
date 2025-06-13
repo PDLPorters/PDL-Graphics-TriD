@@ -12,6 +12,11 @@ use warnings;
 our @ISA=qw/PDL::Graphics::TriD::GObject/;
 use PDL::Lite;
 
+sub get_valid_options { +{
+  UseDefcols => 0,
+  Lighting => 0,
+}}
+
 my $defaultvert = PDL->pdl([
 	[0,0,0],
 	[1,0,0],

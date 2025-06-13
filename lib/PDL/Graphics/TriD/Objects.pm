@@ -91,7 +91,10 @@ sub set_colors {
   $this->data_changed;
 }
 
-sub get_valid_options { +{UseDefcols => 0} }
+sub get_valid_options { +{
+  UseDefcols => 0,
+  Lighting => 1,
+}}
 sub get_points { $_[0]{Points} }
 sub cdummies { $_[1] }
 sub r_type { "" }
@@ -105,28 +108,40 @@ sub data_changed {
 
 package PDL::Graphics::TriD::Points;
 use base qw/PDL::Graphics::TriD::GObject/;
-sub get_valid_options {
-	return {UseDefcols => 0, PointSize=> 1};
-}
+sub get_valid_options { +{
+  UseDefcols => 0,
+  PointSize => 1,
+  Lighting => 0,
+}}
 
 package PDL::Graphics::TriD::Spheres;
 use base qw/PDL::Graphics::TriD::GObject/;
 # need to add radius
-sub get_valid_options {
-  +{UseDefcols => 0, PointSize=> 1}
-}
+sub get_valid_options { +{
+  UseDefcols => 0,
+  PointSize => 1,
+  Lighting => 1,
+}}
 
 package PDL::Graphics::TriD::Lines;
 use base qw/PDL::Graphics::TriD::GObject/;
 sub cdummies { return $_[1]->dummy(1); }
 sub r_type { return "SURF2D";}
-sub get_valid_options { return {UseDefcols => 0, LineWidth => 1}; }
+sub get_valid_options { +{
+  UseDefcols => 0,
+  LineWidth => 1,
+  Lighting => 0,
+}}
 
 package PDL::Graphics::TriD::LineStrip;
 use base qw/PDL::Graphics::TriD::GObject/;
 sub cdummies { return $_[1]->dummy(1); }
 sub r_type { return "SURF2D";}
-sub get_valid_options { return {UseDefcols => 0, LineWidth => 1}; }
+sub get_valid_options { +{
+  UseDefcols => 0,
+  LineWidth => 1,
+  Lighting => 0,
+}}
 
 package PDL::Graphics::TriD::STrigrid;
 use base qw/PDL::Graphics::TriD::GObject/;
@@ -147,7 +162,11 @@ sub new {
   $this->check_options;
   $this;
 }
-sub get_valid_options { { UseDefcols => 0, Lines => 1 } }
+sub get_valid_options { +{
+  UseDefcols => 0,
+  Lines => 1,
+  Lighting => 0,
+}}
 sub cdummies { # called with (type,colors,faces)
   return $_[1]->dummy(1,$_[2]->getdim(2))->dummy(1,$_[2]->getdim(1)); }
 
@@ -158,7 +177,13 @@ sub new {
   $this->{Normals} //= $this->smoothn if $this->{Options}{Smooth};
   $this;
 }
-sub get_valid_options { { UseDefcols=>0, Lines=>0, Smooth=>1, ShowNormals=>0 } }
+sub get_valid_options { +{
+  UseDefcols => 0,
+  Lines => 0,
+  Smooth => 1,
+  ShowNormals => 0,
+  Lighting => 1,
+}}
 sub smoothn { my ($this) = @_;
   my ($points, $faces, $faceidx) = @$this{qw(Points Faces Faceidx)};
   my @p = $faces->mv(1,-1)->dog;
@@ -172,7 +197,11 @@ sub smoothn { my ($this) = @_;
 package PDL::Graphics::TriD::GObject_Lattice;
 use base qw/PDL::Graphics::TriD::GObject/;
 sub r_type {return "SURF2D";}
-sub get_valid_options { return {UseDefcols=>0, Lines=>1}; }
+sub get_valid_options { +{
+  UseDefcols => 0,
+  Lines => 1,
+  Lighting => 0,
+}}
 
 package PDL::Graphics::TriD::Lattice;
 use base qw/PDL::Graphics::TriD::GObject_Lattice/;
@@ -197,9 +226,13 @@ use fields qw/Normals/;
 sub cdummies {
   $_[1]->slice(":," . join ',', map "*$_", ($_[2]->dims)[1,2])
 }
-sub get_valid_options {
-  {UseDefcols=>0, Lines=>1, Smooth=>1, ShowNormals=>0}
-}
+sub get_valid_options { +{
+  UseDefcols => 0,
+  Lines => 1,
+  Smooth => 1,
+  ShowNormals => 0,
+  Lighting => 1,
+}}
 sub new {
   my ($class,$points,$colors,$options) = @_;
   my $this = $class->SUPER::new($points,$colors,$options);
