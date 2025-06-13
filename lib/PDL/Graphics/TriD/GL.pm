@@ -138,74 +138,50 @@ sub PDL::Graphics::TriD::Quaternion::togl {
 ##################################
 # Graph Objects
 
-# (this,points)
 sub PDL::Graphics::TriD::GObject::togl {
-  print "togl $_[0]\n" if $PDL::Graphics::TriD::verbose;
-  $_[0]->gdraw($_[1] // $_[0]->{Points});
+  my ($this, $points) = @_;
+  print "togl $this\n" if $PDL::Graphics::TriD::verbose;
+  glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+  $this->glOptions;
+  eval {
+    $this->gdraw($points // $this->{Points});
+  };
+  { local $@; glPopAttrib(); }
+  die if $@;
 }
 
 sub PDL::Graphics::TriD::Points::gdraw {
-	my($this,$points) = @_;
-	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
-	$this->glOptions;
-	glDisable(GL_LIGHTING);
-	eval {
-	  PDL::gl_points_col($points,$this->{Colors});
-	};
-	{ local $@; glPopAttrib(); }
-	die if $@;
+  my($this,$points) = @_;
+  glDisable(GL_LIGHTING);
+  PDL::gl_points_col($points,$this->{Colors});
 }
 
 sub PDL::Graphics::TriD::Spheres::gdraw {
    my($this,$points) = @_;
-   glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
-   $this->glOptions;
    glEnable(GL_LIGHTING);
    glShadeModel(GL_SMOOTH);
-   eval {
-      PDL::gl_spheres($points, 0.025, 15, 15);
-   };
-   { local $@; glPopAttrib(); }
-   die if $@;
+   PDL::gl_spheres($points, 0.025, 15, 15);
 }
 
 sub PDL::Graphics::TriD::Lattice::gdraw {
-	my($this,$points) = @_;
-	barf "Need 3D points AND colours"
-	  if grep $_->ndims < 3, $points, $this->{Colors};
-	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
-	$this->glOptions;
-	glDisable(GL_LIGHTING);
-	eval {
-	  PDL::gl_line_strip_col($points,$this->{Colors});
-	  PDL::gl_line_strip_col($points->xchg(1,2),$this->{Colors}->xchg(1,2));
-	};
-	{ local $@; glPopAttrib(); }
-	die if $@;
+  my($this,$points) = @_;
+  barf "Need 3D points AND colours"
+    if grep $_->ndims < 3, $points, $this->{Colors};
+  glDisable(GL_LIGHTING);
+  PDL::gl_line_strip_col($points,$this->{Colors});
+  PDL::gl_line_strip_col($points->xchg(1,2),$this->{Colors}->xchg(1,2));
 }
 
 sub PDL::Graphics::TriD::LineStrip::gdraw {
-	my($this,$points) = @_;
-	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
-	$this->glOptions;
-	glDisable(GL_LIGHTING);
-	eval {
-	  PDL::gl_line_strip_col($points,$this->{Colors});
-	};
-	{ local $@; glPopAttrib(); }
-	die if $@;
+  my($this,$points) = @_;
+  glDisable(GL_LIGHTING);
+  PDL::gl_line_strip_col($points,$this->{Colors});
 }
 
 sub PDL::Graphics::TriD::Lines::gdraw {
-	my($this,$points) = @_;
-	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
-	$this->glOptions;
-	glDisable(GL_LIGHTING);
-	eval {
-	  PDL::gl_lines_col($points,$this->{Colors});
-	};
-	{ local $@; glPopAttrib(); }
-	die if $@;
+  my($this,$points) = @_;
+  glDisable(GL_LIGHTING);
+  PDL::gl_lines_col($points,$this->{Colors});
 }
 
 sub PDL::Graphics::TriD::GObject::glOptions {
@@ -229,32 +205,26 @@ sub PDL::Graphics::TriD::GObject::_lattice_lines {
 
 sub PDL::Graphics::TriD::Contours::gdraw {
   my ($this,$points) = @_;
-  glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
-  $this->glOptions;
   glDisable(GL_LIGHTING);
-  eval {
-    my $pi = $this->{PathIndex};
-    my ($pcnt, $i, $thisind) = (0, 0, 0);
-    for my $ie (grep defined, @{$this->{ContourPathIndexEnd}}) {
-      my $colors = $this->{Colors};
-      $colors = $colors->slice(":,($i)") if $colors->getndims==2;
-      my $this_pi = $pi->slice("$pcnt:$ie");
-      for ($this_pi->list) {
-        PDL::gl_line_strip_col($points->slice(",$thisind:$_"), $colors);
-        $thisind = $_ + 1;
-      }
-      $i++;
-      $pcnt=$ie+1;
+  my $pi = $this->{PathIndex};
+  my ($pcnt, $i, $thisind) = (0, 0, 0);
+  for my $ie (grep defined, @{$this->{ContourPathIndexEnd}}) {
+    my $colors = $this->{Colors};
+    $colors = $colors->slice(":,($i)") if $colors->getndims==2;
+    my $this_pi = $pi->slice("$pcnt:$ie");
+    for ($this_pi->list) {
+      PDL::gl_line_strip_col($points->slice(",$thisind:$_"), $colors);
+      $thisind = $_ + 1;
     }
-    if (defined $this->{Labels}){
-	   glColor3d(1,1,1);
-	   my $seg = sprintf ":,%d:%d",$this->{Labels}[0],$this->{Labels}[1];
-	   PDL::Graphics::OpenGLQ::gl_texts($points->slice($seg),
-		   $this->{LabelStrings});
-    }
-  };
-  { local $@; glPopAttrib(); }
-  die if $@;
+    $i++;
+    $pcnt=$ie+1;
+  }
+  if (defined $this->{Labels}){
+         glColor3d(1,1,1);
+         my $seg = sprintf ":,%d:%d",$this->{Labels}[0],$this->{Labels}[1];
+         PDL::Graphics::OpenGLQ::gl_texts($points->slice($seg),
+                 $this->{LabelStrings});
+  }
 }
 
 my @sls1 = (
@@ -277,119 +247,89 @@ sub _lattice_slice {
 }
 
 sub PDL::Graphics::TriD::SLattice::gdraw {
-	my($this,$points) = @_;
-	barf "Need 3D points"
-	  if grep $_->ndims < 3, $points;
-	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
-	$this->glOptions;
-	glDisable(GL_LIGHTING);
-	glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
-	eval {
-	  _lattice_slice(\&PDL::gl_triangles, $points, $this->{Colors});
-	  $this->_lattice_lines($points) if $this->{Options}{Lines};
-	};
-	{ local $@; glPopAttrib(); }
-	die if $@;
+  my($this,$points) = @_;
+  barf "Need 3D points"
+    if grep $_->ndims < 3, $points;
+  glDisable(GL_LIGHTING);
+  glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
+  _lattice_slice(\&PDL::gl_triangles, $points, $this->{Colors});
+  $this->_lattice_lines($points) if $this->{Options}{Lines};
 }
 
 sub PDL::Graphics::TriD::SCLattice::gdraw {
-	my($this,$points) = @_;
-	barf "Need 3D points"
-	  if grep $_->ndims < 3, $points;
-	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
-	$this->glOptions;
-	glDisable(GL_LIGHTING);
-	glShadeModel(GL_FLAT); # By-vertex doesn't make sense otherwise.
-	eval {
-	  _lattice_slice(\&PDL::gl_triangles, $points, $this->{Colors});
-	  $this->_lattice_lines($points) if $this->{Options}{Lines};
-	};
-	{ local $@; glPopAttrib(); }
-	die if $@;
+  my($this,$points) = @_;
+  barf "Need 3D points"
+    if grep $_->ndims < 3, $points;
+  glDisable(GL_LIGHTING);
+  glShadeModel(GL_FLAT); # By-vertex doesn't make sense otherwise.
+  _lattice_slice(\&PDL::gl_triangles, $points, $this->{Colors});
+  $this->_lattice_lines($points) if $this->{Options}{Lines};
 }
 
 sub PDL::Graphics::TriD::SLattice_S::gdraw {
   my($this,$points) = @_;
   barf "Need 3D points"
     if grep $_->ndims < 3, $points;
-  glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
-  $this->glOptions;
   glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
-  eval {
-    my $f = 'PDL::gl_triangles_';
-    $f .= 'w' if $this->{Options}{Smooth};
-    $f .= 'n_mat';
-    { no strict 'refs'; $f = \&$f; }
-    my @pdls = $points;
-    push @pdls, $this->{Normals} if $this->{Options}{Smooth};
-    push @pdls, $this->{Colors};
-    _lattice_slice($f, @pdls);
-    $this->_lattice_lines($points) if $this->{Options}{Lines};
-    if ($this->{Options}{ShowNormals}) {
-      die "No normals to show!" if !defined $this->{Normals};
-      my $arrows = $points->append($points + $this->{Normals}*0.1)->splitdim(0,3);
-      glDisable(GL_LIGHTING);
-      glColor3d(1,1,1);
-      PDL::Graphics::OpenGLQ::gl_arrows($arrows, 0, 1, 0.5, 0.02);
-    }
-  };
-  { local $@; glPopAttrib(); }
-  die if $@;
+  my $f = 'PDL::gl_triangles_';
+  $f .= 'w' if $this->{Options}{Smooth};
+  $f .= 'n_mat';
+  { no strict 'refs'; $f = \&$f; }
+  my @pdls = $points;
+  push @pdls, $this->{Normals} if $this->{Options}{Smooth};
+  push @pdls, $this->{Colors};
+  _lattice_slice($f, @pdls);
+  $this->_lattice_lines($points) if $this->{Options}{Lines};
+  if ($this->{Options}{ShowNormals}) {
+    die "No normals to show!" if !defined $this->{Normals};
+    my $arrows = $points->append($points + $this->{Normals}*0.1)->splitdim(0,3);
+    glDisable(GL_LIGHTING);
+    glColor3d(1,1,1);
+    PDL::Graphics::OpenGLQ::gl_arrows($arrows, 0, 1, 0.5, 0.02);
+  }
 }
 
 sub PDL::Graphics::TriD::STrigrid_S::gdraw {
   my($this,$points) = @_;
   my $faces = $points->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
-  glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
-  $this->glOptions;
-  eval {
-    glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
-    my @sls = (":,(0)",":,(1)",":,(2)");
-    my $idx = [0,1,2,0]; # for lines, below
-    if ($this->{Options}{Smooth}) {
-      my $tmpn=$this->{Normals}->dice_axis(1,$this->{Faceidx}->flat)
-		      ->splitdim(1,$this->{Faceidx}->dim(0));
-      PDL::gl_triangles_wn_mat(map $_->mv(1,-1)->dog, $faces, $tmpn, $this->{Colors});
-      if ($this->{Options}{ShowNormals}) {
-	my $arrows = $points->append($points + $this->{Normals}*0.1)->splitdim(0,3);
-	glDisable(GL_LIGHTING);
-	glColor3d(1,1,1);
-	PDL::Graphics::OpenGLQ::gl_arrows($arrows, 0, 1, 0.5, 0.02);
-	my $facecentres = $faces->transpose->avgover;
-	my $facearrows = $facecentres->append($facecentres + $this->{FaceNormals}*0.1)->splitdim(0,3);
-	glColor3d(0.5,0.5,0.5);
-	PDL::Graphics::OpenGLQ::gl_arrows($facearrows, 0, 1, 0.5, 0.02);
-      }
-    } else {
-      PDL::gl_triangles_n_mat(map $_->mv(1,-1)->dog, $faces, $this->{Colors});
-    }
-    if ($this->{Options}{Lines}) {
+  glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
+  my @sls = (":,(0)",":,(1)",":,(2)");
+  my $idx = [0,1,2,0]; # for lines, below
+  if ($this->{Options}{Smooth}) {
+    my $tmpn=$this->{Normals}->dice_axis(1,$this->{Faceidx}->flat)
+                    ->splitdim(1,$this->{Faceidx}->dim(0));
+    PDL::gl_triangles_wn_mat(map $_->mv(1,-1)->dog, $faces, $tmpn, $this->{Colors});
+    if ($this->{Options}{ShowNormals}) {
+      my $arrows = $points->append($points + $this->{Normals}*0.1)->splitdim(0,3);
       glDisable(GL_LIGHTING);
-      glColor3f(0,0,0);
-      PDL::gl_lines_nc($this->{Faces}->dice_axis(1,$idx));
+      glColor3d(1,1,1);
+      PDL::Graphics::OpenGLQ::gl_arrows($arrows, 0, 1, 0.5, 0.02);
+      my $facecentres = $faces->transpose->avgover;
+      my $facearrows = $facecentres->append($facecentres + $this->{FaceNormals}*0.1)->splitdim(0,3);
+      glColor3d(0.5,0.5,0.5);
+      PDL::Graphics::OpenGLQ::gl_arrows($facearrows, 0, 1, 0.5, 0.02);
     }
-  };
-  { local $@; glPopAttrib(); }
-  die if $@;
+  } else {
+    PDL::gl_triangles_n_mat(map $_->mv(1,-1)->dog, $faces, $this->{Colors});
+  }
+  if ($this->{Options}{Lines}) {
+    glDisable(GL_LIGHTING);
+    glColor3f(0,0,0);
+    PDL::gl_lines_nc($this->{Faces}->dice_axis(1,$idx));
+  }
 }
 
 sub PDL::Graphics::TriD::STrigrid::gdraw {
   my($this,$points) = @_;
   my $faces = $points->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
   # faces is 3D pdl slices of points, giving cart coords of face verts
-  glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
-  $this->glOptions;
-  eval {
-    glDisable(GL_LIGHTING);
-    glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
-    PDL::gl_triangles(map $_->mv(1,-1)->dog, $faces, $this->{Colors});
-    if ($this->{Options}{Lines}) {
-      glColor3f(0,0,0);
-      PDL::gl_lines_nc($faces->dice_axis(1, [0,1,2,0]));
-    }
-  };
-  { local $@; glPopAttrib(); }
-  die if $@;
+  glDisable(GL_LIGHTING);
+  glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
+  PDL::gl_triangles(map $_->mv(1,-1)->dog, $faces, $this->{Colors});
+  if ($this->{Options}{Lines}) {
+    glColor3f(0,0,0);
+    PDL::gl_lines_nc($faces->dice_axis(1, [0,1,2,0]));
+  }
 }
 
 ##################################
@@ -409,37 +349,32 @@ sub PDL::Graphics::TriD::Image::togl {
 
 # The quick method is to use texturing for the good effect.
 sub PDL::Graphics::TriD::Image::gdraw {
-	my($this,$vert) = @_;
-	my ($p,$xd,$yd,$txd,$tyd) = $this->flatten(1); # do binary alignment
-	if(!defined $vert) {$vert = $this->{Points}}
-	barf "Need 3,4 vert"
-	  if grep $_->dim(1) < 4 || $_->dim(0) != 3, $vert;
-	glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
-	glColor3d(1,1,1);
-         glTexImage2D_s(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->get_dataref());
-	 glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-	    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-	       glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-	          glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-	glDisable(GL_LIGHTING);
-	glNormal3d(0,0,1);
-	glEnable(GL_TEXTURE_2D);
-	glBegin(GL_QUADS);
-	eval {
-	  my @texvert = (
-		  [0,0],
-		  [$xd/$txd, 0],
-		  [$xd/$txd, $yd/$tyd],
-		  [0, $yd/$tyd]
-	  );
-	  for(0..3) {
-		  glTexCoord2f(@{$texvert[$_]});
-		  glVertex3f($vert->slice(":,($_)")->list);
-	  }
-	};
-	glEnd();
-	{ local $@; glEnd(); glPopAttrib(); }
-	die if $@;
+  my($this,$vert) = @_;
+  my ($p,$xd,$yd,$txd,$tyd) = $this->flatten(1); # do binary alignment
+  if(!defined $vert) {$vert = $this->{Points}}
+  barf "Need 3,4 vert"
+    if grep $_->dim(1) < 4 || $_->dim(0) != 3, $vert;
+  glColor3d(1,1,1);
+  glTexImage2D_s(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->get_dataref());
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+  glDisable(GL_LIGHTING);
+  glNormal3d(0,0,1);
+  glEnable(GL_TEXTURE_2D);
+  glBegin(GL_QUADS);
+  my @texvert = (
+    [0,0],
+    [$xd/$txd, 0],
+    [$xd/$txd, $yd/$tyd],
+    [0, $yd/$tyd]
+  );
+  for(0..3) {
+    glTexCoord2f(@{$texvert[$_]});
+    glVertex3f($vert->slice(":,($_)")->list);
+  }
+  glEnd();
 }
 
 sub PDL::Graphics::TriD::SimpleController::togl {
