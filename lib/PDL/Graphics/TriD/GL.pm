@@ -142,7 +142,13 @@ sub PDL::Graphics::TriD::GObject::togl {
   my ($this, $points) = @_;
   print "togl $this\n" if $PDL::Graphics::TriD::verbose;
   glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
-  $this->glOptions;
+  glLineWidth($this->{Options}{LineWidth} || 1);
+  glPointSize($this->{Options}{PointSize} || 1);
+  glEnable(GL_DEPTH_TEST);
+  $this->{Options}{Lighting} ? glEnable(GL_LIGHTING) : glDisable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+  glLightfv_s(GL_LIGHT0,GL_POSITION,pack "f*",1.0,1.0,1.0,0.0);
   eval {
     $this->gdraw($points // $this->{Points});
   };
@@ -177,17 +183,6 @@ sub PDL::Graphics::TriD::LineStrip::gdraw {
 sub PDL::Graphics::TriD::Lines::gdraw {
   my($this,$points) = @_;
   PDL::gl_lines_col($points,$this->{Colors});
-}
-
-sub PDL::Graphics::TriD::GObject::glOptions {
-  my ($this) = @_;
-  glLineWidth($this->{Options}{LineWidth} || 1);
-  glPointSize($this->{Options}{PointSize} || 1);
-  glEnable(GL_DEPTH_TEST);
-  $this->{Options}{Lighting} ? glEnable(GL_LIGHTING) : glDisable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
-  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-  glLightfv_s(GL_LIGHT0,GL_POSITION,pack "f*",1.0,1.0,1.0,0.0);
 }
 
 sub PDL::Graphics::TriD::GObject::_lattice_lines {
