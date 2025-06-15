@@ -145,10 +145,14 @@ sub PDL::Graphics::TriD::GObject::togl {
   glLineWidth($this->{Options}{LineWidth} || 1);
   glPointSize($this->{Options}{PointSize} || 1);
   glEnable(GL_DEPTH_TEST);
-  $this->{Options}{Lighting} ? glEnable(GL_LIGHTING) : glDisable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
-  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-  glLightfv_s(GL_LIGHT0,GL_POSITION,pack "f*",1.0,1.0,1.0,0.0);
+  if ($this->{Options}{Lighting}) {
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+    glLightfv_s(GL_LIGHT0,GL_POSITION,pack "f*",1.0,1.0,1.0,0.0);
+  } else {
+    glDisable(GL_LIGHTING);
+  }
   eval {
     $this->gdraw($points // $this->{Points});
   };
