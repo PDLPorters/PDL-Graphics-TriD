@@ -322,21 +322,7 @@ sub PDL::Graphics::TriD::STrigrid::gdraw {
   }
 }
 
-##################################
-# PDL::Graphics::TriD::Image
-
-sub PDL::Graphics::TriD::Image::togl {
 # A special construct which always faces the display and takes the entire window
-  if ($_[0]{Options}{FullScreen}) {
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0,1,0,1,-1,1);
-  }
-  goto &PDL::Graphics::TriD::GObject::togl;
-}
-
 # The quick method is to use texturing for the good effect.
 sub PDL::Graphics::TriD::Image::gdraw {
   my($this,$vert) = @_;
@@ -344,6 +330,13 @@ sub PDL::Graphics::TriD::Image::gdraw {
   if(!defined $vert) {$vert = $this->{Points}}
   barf "Need 3,4 vert"
     if grep $_->dim(1) < 4 || $_->dim(0) != 3, $vert;
+  if ($_[0]{Options}{FullScreen}) {
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0,1,0,1,-1,1);
+  }
   glColor3d(1,1,1);
   glTexImage2D_s(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->get_dataref());
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
