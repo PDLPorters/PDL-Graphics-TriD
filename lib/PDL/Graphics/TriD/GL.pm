@@ -25,8 +25,7 @@ sub PDL::Graphics::TriD::Object::gl_update_list {
   print "GENLIST $this $lno\n" if $PDL::Graphics::TriD::verbose;
   glNewList($lno,GL_COMPILE);
   eval {
-    my @objs = @{$this->{Objects}};
-    $_->togl() for @objs;
+    $this->togl;
     print "EGENLIST $lno\n" if $PDL::Graphics::TriD::verbose;
   };
   { local $@; glEndList(); }
@@ -330,7 +329,7 @@ sub PDL::Graphics::TriD::Image::gdraw {
   if(!defined $vert) {$vert = $this->{Points}}
   barf "Need 3,4 vert"
     if grep $_->dim(1) < 4 || $_->dim(0) != 3, $vert;
-  if ($_[0]{Options}{FullScreen}) {
+  if ($this->{Options}{FullScreen}) {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glMatrixMode(GL_PROJECTION);
