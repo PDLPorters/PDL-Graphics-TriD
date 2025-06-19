@@ -53,13 +53,13 @@ sub PDL::Graphics::TriD::Object::togl { $_->togl for @{$_[0]->{Objects}} }
 
 sub PDL::Graphics::TriD::Graph::togl {
 	my($this) = @_;
-	$this->{Axis}{$_}->togl($this) for grep $_ ne "Default", keys %{$this->{Axis}};
+	$this->{Axis}{$_}->togl for grep $_ ne "Default", keys %{$this->{Axis}};
 	$this->{Data}{$_}->togl($this->get_points($_)) for keys %{$this->{Data}};
 }
 
 use PDL;
 sub PDL::Graphics::TriD::CylindricalEquidistantAxes::togl {
-	my($this,$graph) = @_;
+	my($this) = @_;
         my (@nadd,@nc,@ns);
 	for my $dim (0..1) {
 	  my $width = $this->{Scale}[$dim][1]-$this->{Scale}[$dim][0];
@@ -104,7 +104,7 @@ sub PDL::Graphics::TriD::CylindricalEquidistantAxes::togl {
 }
 
 sub PDL::Graphics::TriD::EuclidAxes::togl {
-	my($this,$graph) = @_;
+	my($this) = @_;
         print "togl: got object type " . ref($this) . "\n" if $PDL::Graphics::TriD::verbose;
 	glLineWidth(1); # ought to be user defined
 	glDisable(GL_LIGHTING);
