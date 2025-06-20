@@ -110,9 +110,9 @@ sub PDL::Graphics::TriD::EuclidAxes::togl {
 	glDisable(GL_LIGHTING);
 	my $ndiv = 4;
 	my $line_coord = zeroes(3,3)->append(my $id3 = identity(3));
-	my $starts = zeroes($ndiv+1)->xlinvals(0,1)->transpose->append(zeroes(2,$ndiv+1));
+	my $starts = zeroes(1,$ndiv+1)->ylinvals(0,1)->append(zeroes(2,$ndiv+1));
 	my $ends = $starts + append(0, ones 2) * -0.1;
-	my $dupseq = sequence(3)->dummy(0,$ndiv+1)->flat;
+	my $dupseq = yvals($ndiv+1,3)->flat;
 	$_ = $_->dup(1,3)->rotate($dupseq) for $starts, $ends;
 	$line_coord = $line_coord->glue(1, $starts->append($ends));
 	my $axisvals = zeroes(3,$ndiv+1)->ylinvals($this->{Scale}->dog)->transpose->flat->transpose;
