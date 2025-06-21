@@ -117,9 +117,33 @@ sub set_default_axis {
 sub changed {}
 
 package PDL::Graphics::TriD::EuclidAxes;
+our @ISA = qw/PDL::Graphics::TriD::GObject/;
+use fields qw/NDiv Names Scale EndsPlus/;
+use PDL;
+
+sub get_valid_options { +{
+  UseDefcols => 0,
+  NDiv => 4,
+  Names => [qw(X Y Z)],
+  LineWidth => 1,
+  Lighting => 0,
+}}
 
 sub new {
-  my($type) = @_; bless {Names => [qw(X Y Z)]},$type;
+  my $class = $_[0];
+  my $options = ref($_[-1]) eq 'HASH' ? pop : $class->get_valid_options;
+  my $ndiv = $options->{NDiv};
+  my $points = zeroes(3,3)->append(my $id3 = identity(3));
+  my $starts = zeroes(1,$ndiv+1)->ylinvals(0,1)->append(zeroes(2,$ndiv+1));
+  my $ends = $starts + append(0, ones 2) * -0.1;
+  my $dupseq = yvals($ndiv+1,3)->flat;
+  $_ = $_->dup(1,3)->rotate($dupseq) for $starts, $ends;
+  $points = $points->glue(1, $starts->append($ends))->splitdim(0,3)->clump(1,2);
+  my $this = $class->SUPER::new($points, $options);
+  $this->{EndsPlus} = $ends->glue(1, $id3);
+  $this->{Names} = $options->{Names};
+  $this->{NDiv} = $ndiv;
+  $this;
 }
 
 sub init_scale {
