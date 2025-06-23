@@ -78,8 +78,8 @@ sub PDL::Graphics::TriD::CylindricalEquidistantAxes::togl {
   # can be changed to topo heights?
   my $verts = zeroes(3,$ns[0],$ns[1]);
   $verts->slice("2") .= 1012.5;
-  $verts->slice("0") .= $verts->ylinvals($nc[0],$nc[0]+$nadd[0]*($ns[0]-1));
-  $verts->slice("1") .= $verts->zlinvals($nc[1],$nc[1]+$nadd[1]*($ns[1]-1));
+  $verts->slice("0") .= $verts->slice("0")->ylinvals($nc[0],$nc[0]+$nadd[0]*($ns[0]-1));
+  $verts->slice("1") .= $verts->slice("0")->zlinvals($nc[1],$nc[1]+$nadd[1]*($ns[1]-1));
   my $tverts = zeroes(3,$ns[0],$ns[1]);
   $tverts = $this->transform($tverts,$verts,[0,1,2]);
   glDisable(GL_LIGHTING);
