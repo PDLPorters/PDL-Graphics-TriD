@@ -273,7 +273,6 @@ sub PDL::Graphics::TriD::STrigrid_S::gdraw {
   my($this,$points) = @_;
   my $faces = $points->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
   glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
-  my @sls = (":,(0)",":,(1)",":,(2)");
   my $idx = [0,1,2,0]; # for lines, below
   if ($this->{Options}{Smooth}) {
     my $tmpn=$this->{Normals}->dice_axis(1,$this->{Faceidx}->flat)
