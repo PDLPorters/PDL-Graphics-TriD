@@ -16,7 +16,6 @@ This provides the following class hierarchy:
   ├ PDL::Graphics::TriD::Lines           separate lines
   ├ PDL::Graphics::TriD::LineStrip       continuous paths
   ├ PDL::Graphics::TriD::STrigrid        polygons
-  │ └ PDL::Graphics::TriD::STrigrid_S    polygons with normals
   └ PDL::Graphics::TriD::GObject_Lattice (abstract) base class
     ├ PDL::Graphics::TriD::SCLattice     colored lattice
     ├ PDL::Graphics::TriD::SLattice      ...with color per vertex
@@ -160,30 +159,19 @@ sub new {
   my $this = bless { Points => $points, Faceidx => $faceidx, Faces => $faces,
                      Colors => $colors, Options => $options},$type;
   $this->check_options;
-  $this;
-}
-sub get_valid_options { +{
-  UseDefcols => 0,
-  Lines => 1,
-  Lighting => 0,
-}}
-sub cdummies { # called with (type,colors,faces)
-  return $_[1]->dummy(1,$_[2]->getdim(2))->dummy(1,$_[2]->getdim(1)); }
-
-package PDL::Graphics::TriD::STrigrid_S;
-use base qw/PDL::Graphics::TriD::STrigrid/;
-sub new {
-  my $this = shift->SUPER::new(@_);
   $this->{Normals} //= $this->smoothn if $this->{Options}{Smooth};
   $this;
 }
 sub get_valid_options { +{
   UseDefcols => 0,
   Lines => 0,
+  Shading => 1,
   Smooth => 1,
   ShowNormals => 0,
   Lighting => 1,
 }}
+sub cdummies { # called with (type,colors,faces)
+  return $_[1]->dummy(1,$_[2]->getdim(2))->dummy(1,$_[2]->getdim(1)); }
 sub smoothn { my ($this) = @_;
   my ($points, $faces, $faceidx) = @$this{qw(Points Faces Faceidx)};
   my @p = $faces->mv(1,-1)->dog;

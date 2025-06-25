@@ -383,7 +383,7 @@ vector points towards the clockface if the points go clockwise.
 Options: C<Smooth> (on by default), C<Lines> (off by default),
 C<ShowNormals> (off by default, useful for debugging).
 
-Implemented by L<PDL::Graphics::TriD::STrigrid_S>.
+Implemented by L<PDL::Graphics::TriD::STrigrid>.
 
 =head2 trigrid3d_ns
 
@@ -909,13 +909,25 @@ sub PDL::imag3d { &checkargs;
 	graph_object(PDL::Graphics::TriD::SLattice_S->new(@_));
 }
 
+sub _mod_defaults {
+  my ($class, $mods, @args) = @_;
+  my $options = ref($args[-1]) eq 'HASH'
+    ? { %$mods, %{ pop(@args) } } # user overrides defaults
+    : { %{ $class->get_valid_options }, %$mods }; # we override class defaults
+  $class->new(@args, $options);
+}
 *trigrid3d=*trigrid3d=\&PDL::trigrid3d;
-sub PDL::trigrid3d { &checkargs;
-  graph_object(PDL::Graphics::TriD::STrigrid_S->new(@_)); }
+sub PDL::trigrid3d {
+  &checkargs;
+  graph_object(_mod_defaults('PDL::Graphics::TriD::STrigrid', {}, @_));
+}
 
+my %trigrid3d_ns_defs = (Lines => 1, Smooth => 0, Lighting => 0, Shading => 0);
 *trigrid3d_ns=*trigrid3d_ns=\&PDL::trigrid3d_ns;
-sub PDL::trigrid3d_ns { &checkargs;
-  graph_object(PDL::Graphics::TriD::STrigrid->new(@_)); }
+sub PDL::trigrid3d_ns {
+  &checkargs;
+  graph_object(_mod_defaults('PDL::Graphics::TriD::STrigrid', \%trigrid3d_ns_defs, @_));
+}
 
 *mesh3d=*mesh3d=\&PDL::mesh3d;
 *lattice3d=*lattice3d=\&PDL::mesh3d;
