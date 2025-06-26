@@ -17,8 +17,9 @@ This provides the following class hierarchy:
   ├ PDL::Graphics::TriD::LineStrip       continuous paths
   ├ PDL::Graphics::TriD::STrigrid        polygons
   └ PDL::Graphics::TriD::GObject_Lattice (abstract) base class
-    ├ PDL::Graphics::TriD::SCLattice     colored lattice
-    ├ PDL::Graphics::TriD::SLattice      ...with color per vertex
+    ├ PDL::Graphics::TriD::Lattice       colored lattice
+    ├ PDL::Graphics::TriD::SCLattice     ...filled and flat-shaded
+    ├ PDL::Graphics::TriD::SLattice      ...smooth-shaded
     └ PDL::Graphics::TriD::SLattice_S    ...and with normals
 
 =head1 DESCRIPTION
