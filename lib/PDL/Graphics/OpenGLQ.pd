@@ -128,8 +128,7 @@ for my $m (
  Func => \&COLOR},
 ) {
 for(
-{Name => 'gl_triangles',
- NormalCode => ''},
+{Name => 'gl_triangles'},
 {Name => 'gl_triangles_n',
  NormalInit => '
 	tmp1[0] = $coordsb(tri => 0) - $coordsa(tri => 0);
@@ -145,13 +144,13 @@ for(
         tmp3[0] = tmp3[0] / magn;
         tmp3[1] = tmp3[1] / magn;
         tmp3[2] = tmp3[2] / magn;',
- NormalCode => '
+ NormalCodeA => '
 	glNormal3f(tmp3[0], tmp3[1], tmp3[2]);
  '
 },
 {Name => 'gl_triangles_wn',
  NormalArgs => 'norma(tri); normb(tri); normc(tri);',
- (map {("NormalCode".($_ eq 'A'?'':$_),NORMAL(lc $_))} ('A'..'C')),
+ (map +("NormalCode$_"=>NORMAL(lc $_)), 'A'..'C'),
 }) {
 # This may be suboptimal but should still be fast enough..
 # We only do triangles with this.
@@ -166,10 +165,10 @@ pp_def(
 		glBegin(GL_TRIANGLES);
 		broadcastloop %{'.
 			($_->{NormalInit}//"\n").
-			($_->{NormalCode}//'').
-			&{$m->{Func}}("a").VERTEX("a").
+			($_->{NormalCodeA}//'').
+			$m->{Func}->("a").VERTEX("a").
 			($_->{NormalCodeB}//'').
-			&{$m->{Func}}("b").VERTEX("b").
+			$m->{Func}->("b").VERTEX("b").
 			($_->{NormalCodeC}//'').
 			$m->{Func}->("c").VERTEX("c").'
 		%}
