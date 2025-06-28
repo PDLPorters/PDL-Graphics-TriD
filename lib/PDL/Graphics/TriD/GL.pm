@@ -269,7 +269,7 @@ sub PDL::Graphics::TriD::SLattice_S::gdraw {
   }
 }
 
-sub PDL::Graphics::TriD::STrigrid::gdraw {
+sub PDL::Graphics::TriD::Trigrid::gdraw {
   my($this,$points) = @_;
   my $faces = $points->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
   glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.

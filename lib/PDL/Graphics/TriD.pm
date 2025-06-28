@@ -383,13 +383,13 @@ vector points towards the clockface if the points go clockwise.
 Options: C<Smooth> (on by default), C<Lines> (off by default),
 C<ShowNormals> (off by default, useful for debugging).
 
-Implemented by L<PDL::Graphics::TriD::STrigrid>.
+Implemented by L<PDL::Graphics::TriD::Trigrid>.
 
 =head2 trigrid3d_ns
 
 Like L</trigrid3d>, but without shading or normals.
 
-Implemented by L<PDL::Graphics::TriD::STrigrid>.
+Implemented by L<PDL::Graphics::TriD::Trigrid>.
 
 =head2 points3d
 
@@ -919,14 +919,14 @@ sub _mod_defaults {
 *trigrid3d=*trigrid3d=\&PDL::trigrid3d;
 sub PDL::trigrid3d {
   &checkargs;
-  graph_object(_mod_defaults('PDL::Graphics::TriD::STrigrid', {}, @_));
+  graph_object(_mod_defaults('PDL::Graphics::TriD::Trigrid', {}, @_));
 }
 
 my %trigrid3d_ns_defs = (Lines => 1, Smooth => 0, Lighting => 0, Shading => 0);
 *trigrid3d_ns=*trigrid3d_ns=\&PDL::trigrid3d_ns;
 sub PDL::trigrid3d_ns {
   &checkargs;
-  graph_object(_mod_defaults('PDL::Graphics::TriD::STrigrid', \%trigrid3d_ns_defs, @_));
+  graph_object(_mod_defaults('PDL::Graphics::TriD::Trigrid', \%trigrid3d_ns_defs, @_));
 }
 
 *mesh3d=*mesh3d=\&PDL::mesh3d;

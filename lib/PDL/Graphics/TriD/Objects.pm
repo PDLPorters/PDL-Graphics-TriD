@@ -15,7 +15,7 @@ This provides the following class hierarchy:
   ├ PDL::Graphics::TriD::Spheres         fat 3D points :)
   ├ PDL::Graphics::TriD::Lines           separate lines
   ├ PDL::Graphics::TriD::LineStrip       continuous paths
-  ├ PDL::Graphics::TriD::STrigrid        polygons
+  ├ PDL::Graphics::TriD::Trigrid         polygons
   └ PDL::Graphics::TriD::GObject_Lattice (abstract) base class
     ├ PDL::Graphics::TriD::Lattice       colored lattice
     ├ PDL::Graphics::TriD::SCLattice     ...filled and flat-shaded
@@ -143,7 +143,7 @@ sub get_valid_options { +{
   Lighting => 0,
 }}
 
-package PDL::Graphics::TriD::STrigrid;
+package PDL::Graphics::TriD::Trigrid;
 use base qw/PDL::Graphics::TriD::GObject/;
 sub new {
   my($type,$points,$faceidx,$colors,$options) = @_;
