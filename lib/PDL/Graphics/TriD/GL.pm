@@ -164,8 +164,15 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
   my($this,$points) = @_;
   barf "Need 3D points AND colours"
     if grep $_->ndims < 3, $points, $this->{Colors};
-  PDL::gl_line_strip_col($points,$this->{Colors});
-  PDL::gl_line_strip_col($points->xchg(1,2),$this->{Colors}->xchg(1,2));
+  my $shading = $_[0]{Options}{Shading};
+  if ($shading == 0) {
+    PDL::gl_line_strip_col($points,$this->{Colors});
+    PDL::gl_line_strip_col($points->xchg(1,2),$this->{Colors}->xchg(1,2));
+  } else {
+    glShadeModel(GL_FLAT); # By-vertex doesn't make sense otherwise.
+    _lattice_slice(\&PDL::gl_triangles, $points, $this->{Colors});
+    $this->_lattice_lines($points) if $this->{Options}{Lines};
+  }
 }
 
 sub PDL::Graphics::TriD::LineStrip::gdraw {
@@ -233,15 +240,6 @@ sub PDL::Graphics::TriD::SLattice::gdraw {
   barf "Need 3D points"
     if grep $_->ndims < 3, $points;
   glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
-  _lattice_slice(\&PDL::gl_triangles, $points, $this->{Colors});
-  $this->_lattice_lines($points) if $this->{Options}{Lines};
-}
-
-sub PDL::Graphics::TriD::SCLattice::gdraw {
-  my($this,$points) = @_;
-  barf "Need 3D points"
-    if grep $_->ndims < 3, $points;
-  glShadeModel(GL_FLAT); # By-vertex doesn't make sense otherwise.
   _lattice_slice(\&PDL::gl_triangles, $points, $this->{Colors});
   $this->_lattice_lines($points) if $this->{Options}{Lines};
 }

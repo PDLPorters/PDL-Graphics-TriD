@@ -650,7 +650,8 @@ be relatively memory and execution-time-friendly.
 =head2 PDL::Graphics::TriD::Lattice
 
 This is a 2-D set of points connected by lines in 3-space.
-The constructor takes as arguments 3 2-dimensional ndarrays.
+The constructor takes as arguments 2 3-dimensional ndarrays:
+points and colours.
 
 =head2 PDL::Graphics::TriD::Points
 

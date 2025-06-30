@@ -16,8 +16,8 @@ my $c = PDL->zeroes(3,$size,$size);
 random($c->inplace);
 
 my @objs = (
-  ['Lattice'],
-  ['SCLattice'],
+  ['Lattice', {Shading=>0}],
+  ['Lattice', {Shading=>1}],
   ['SLattice'],
   ['SLattice_S', {Smooth=>0}],
   ['SLattice_S'],
