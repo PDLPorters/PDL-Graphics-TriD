@@ -18,7 +18,7 @@ random($c->inplace);
 my @objs = (
   ['Lattice', {Shading=>0}],
   ['Lattice', {Shading=>1}],
-  ['SLattice'],
+  ['Lattice', {Shading=>2}],
   ['SLattice_S', {Smooth=>0}],
   ['SLattice_S'],
 );

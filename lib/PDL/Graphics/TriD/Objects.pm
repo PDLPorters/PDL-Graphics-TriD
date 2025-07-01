@@ -18,8 +18,7 @@ This provides the following class hierarchy:
   ├ PDL::Graphics::TriD::Trigrid         polygons
   └ PDL::Graphics::TriD::GObject_Lattice (abstract) base class
     ├ PDL::Graphics::TriD::Lattice       colored lattice
-    ├ PDL::Graphics::TriD::SLattice      ...filled and smooth-shaded
-    └ PDL::Graphics::TriD::SLattice_S    ...and with normals
+    └ PDL::Graphics::TriD::SLattice_S    ...filled, smooth-shaded, and with normals
 
 =head1 DESCRIPTION
 
@@ -196,20 +195,15 @@ use base qw/PDL::Graphics::TriD::GObject_Lattice/;
 sub cdummies {
   my $shading = $_[0]{Options}{Shading};
   !$shading ? $_[1]->dummy(1)->dummy(1) :
-  $_[1]->dummy(1,$_[2]->getdim(2)-1)->dummy(1,$_[2]->getdim(1)-1);
+  $shading == 1 ? $_[1]->dummy(1,$_[2]->getdim(2)-1)->dummy(1,$_[2]->getdim(1)-1) :
+  $_[1]->dummy(1,$_[2]->getdim(2))->dummy(1,$_[2]->getdim(1));
 }
 sub get_valid_options { +{
   UseDefcols => 0,
   Lines => 1,
   Lighting => 0,
-  Shading => 1, # 0=no fill, 1=flat colour per triangle
+  Shading => 2, # 0=no fill, 1=flat colour per triangle, 2=smooth colour per vertex
 }}
-
-# colors associated with vertices, smooth
-package PDL::Graphics::TriD::SLattice;
-use base qw/PDL::Graphics::TriD::GObject_Lattice/;
-sub cdummies { return $_[1]->dummy(1,$_[2]->getdim(2))
-			-> dummy(1,$_[2]->getdim(1)); }
 
 # colors associated with vertices
 package PDL::Graphics::TriD::SLattice_S;

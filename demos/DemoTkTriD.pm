@@ -300,8 +300,11 @@ sub Torusdemos{
     my $z = $i*cos($u)+$o*sin(3*$t);
 
     if($demo eq "Colors"){
-      $data=PDL::Graphics::TriD::SLattice->new([$x,$y,$z],
-					      [0.5*(1+sin $t),0.5*(1+cos $t),0.25*(2+cos($u)+sin(3*$t))]);
+      $data=PDL::Graphics::TriD::Lattice->new(
+        [$x,$y,$z],
+        [0.5*(1+sin $t),0.5*(1+cos $t),0.25*(2+cos($u)+sin(3*$t))],
+        {Shading=>2}
+      );
     }else{
       $data=PDL::Graphics::TriD::SLattice_S->new([$x,$y,$z]);
     }

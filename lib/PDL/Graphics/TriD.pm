@@ -321,7 +321,7 @@ as produced by L<PDL::ImageND/contour_segments>.
 
 Implemented by L<PDL::Graphics::TriD::SLattice_S>.
 
-The variant, C<imag3d_ns>, is implemented by L<PDL::Graphics::TriD::SLattice>.
+The variant, C<imag3d_ns>, is implemented by L<PDL::Graphics::TriD::Lattice> defaulting to C<< Shading=>2 >>.
 
 =for usage
 
@@ -901,8 +901,9 @@ sub PDL::imagrgb3d { &checkargs;
 }
 
 *imag3d_ns=*imag3d_ns=\&PDL::imag3d_ns;
+my %imag3d_ns_defs = (Shading => 2);
 sub PDL::imag3d_ns {  &checkargs;
-	graph_object(PDL::Graphics::TriD::SLattice->new(@_));
+  graph_object(_mod_defaults('PDL::Graphics::TriD::Lattice', \%imag3d_ns_defs, @_));
 }
 
 *imag3d=*imag3d=\&PDL::imag3d;
@@ -933,8 +934,9 @@ sub PDL::trigrid3d_ns {
 *mesh3d=*mesh3d=\&PDL::mesh3d;
 *lattice3d=*lattice3d=\&PDL::mesh3d;
 *PDL::lattice3d=*PDL::lattice3d=\&PDL::mesh3d;
+my %mesh3d_defs = (Shading => 0);
 sub PDL::mesh3d { &checkargs;
-	graph_object(PDL::Graphics::TriD::Lattice->new(@_));
+  graph_object(_mod_defaults('PDL::Graphics::TriD::Lattice', \%mesh3d_defs, @_));
 }
 
 *points3d=*points3d=\&PDL::points3d;
