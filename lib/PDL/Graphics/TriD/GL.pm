@@ -179,11 +179,13 @@ sub _lattice_slice {
   }
 }
 sub PDL::Graphics::TriD::GObject::_lattice_lines {
-  my ($this, $points) = @_;
+  my ($this, $points, $colors) = @_;
   glDisable(GL_LIGHTING);
   glColor3f(0,0,0);
-  PDL::gl_line_strip_nc($points);
-  PDL::gl_line_strip_nc($points->xchg(1,2));
+  my $f = 'PDL::gl_line_strip_' . (!defined $colors ? 'nc' : 'col');
+  { no strict 'refs'; $f = \&$f; }
+  $f->($points, !defined $colors ? () : $colors);
+  $f->($points->xchg(1,2), !defined $colors ? () : $colors->xchg(1,2));
 }
 
 sub PDL::Graphics::TriD::Lattice::gdraw {
@@ -192,8 +194,7 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
     if grep $_->ndims < 3, $points, $this->{Colors};
   my $shading = $_[0]{Options}{Shading};
   if ($shading == 0) {
-    PDL::gl_line_strip_col($points,$this->{Colors});
-    PDL::gl_line_strip_col($points->xchg(1,2),$this->{Colors}->xchg(1,2));
+    $this->_lattice_lines($points,$this->{Colors});
   } else {
     glShadeModel($shading == 1 ? GL_FLAT : GL_SMOOTH);
     _lattice_slice(\&PDL::gl_triangles, $points, $this->{Colors});
