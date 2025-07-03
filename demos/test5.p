@@ -19,8 +19,8 @@ my @objs = (
   ['Lattice', {Shading=>0}],
   ['Lattice', {Shading=>1}],
   ['Lattice', {Shading=>2}],
-  ['SLattice_S', {Smooth=>0}],
-  ['SLattice_S'],
+  ['Lattice', {Shading=>3, Lighting => 1}],
+  ['Lattice', {Shading=>3, Lighting => 1, Smooth=>1}],
 );
 my $i = 0;
 @objs = map [$i++, @$_], @objs;

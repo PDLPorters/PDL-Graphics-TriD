@@ -306,7 +306,7 @@ sub Torusdemos{
         {Shading=>2}
       );
     }else{
-      $data=PDL::Graphics::TriD::SLattice_S->new([$x,$y,$z]);
+      $data=PDL::Graphics::TriD::Lattice->new([$x,$y,$z], {Shading=>3, Lighting=>1, Smooth=>1});
     }
     $graph->add_dataseries($data,"Torus$demo");
   }

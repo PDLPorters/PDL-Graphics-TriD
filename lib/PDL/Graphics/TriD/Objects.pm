@@ -17,8 +17,7 @@ This provides the following class hierarchy:
   ├ PDL::Graphics::TriD::LineStrip       continuous paths
   ├ PDL::Graphics::TriD::Trigrid         polygons
   └ PDL::Graphics::TriD::GObject_Lattice (abstract) base class
-    ├ PDL::Graphics::TriD::Lattice       colored lattice
-    └ PDL::Graphics::TriD::SLattice_S    ...filled, smooth-shaded, and with normals
+    └ PDL::Graphics::TriD::Lattice       colored lattice
 
 =head1 DESCRIPTION
 
@@ -192,32 +191,20 @@ sub get_valid_options { +{
 
 package PDL::Graphics::TriD::Lattice;
 use base qw/PDL::Graphics::TriD::GObject_Lattice/;
+use fields qw/Normals/;
 sub cdummies {
   my $shading = $_[0]{Options}{Shading};
   !$shading ? $_[1]->dummy(1)->dummy(1) :
   $shading == 1 ? $_[1]->dummy(1,$_[2]->getdim(2)-1)->dummy(1,$_[2]->getdim(1)-1) :
-  $_[1]->dummy(1,$_[2]->getdim(2))->dummy(1,$_[2]->getdim(1));
-}
-sub get_valid_options { +{
-  UseDefcols => 0,
-  Lines => 1,
-  Lighting => 0,
-  Shading => 2, # 0=no fill, 1=flat colour per triangle, 2=smooth colour per vertex
-}}
-
-# colors associated with vertices
-package PDL::Graphics::TriD::SLattice_S;
-use base qw/PDL::Graphics::TriD::GObject_Lattice/;
-use fields qw/Normals/;
-sub cdummies {
   $_[1]->slice(":," . join ',', map "*$_", ($_[2]->dims)[1,2])
 }
 sub get_valid_options { +{
   UseDefcols => 0,
   Lines => 1,
-  Smooth => 1,
+  Lighting => 0,
+  Shading => 2, # 0=no fill, 1=flat colour per triangle, 2=smooth colour per vertex, 3=colors associated with vertices
+  Smooth => 0,
   ShowNormals => 0,
-  Lighting => 1,
 }}
 sub new {
   my ($class,$points,$colors,$options) = @_;

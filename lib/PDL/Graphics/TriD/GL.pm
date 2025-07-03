@@ -197,8 +197,18 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
     $this->_lattice_lines($points,$this->{Colors});
   } else {
     glShadeModel($shading == 1 ? GL_FLAT : GL_SMOOTH);
-    _lattice_slice(\&PDL::gl_triangles, $points, $this->{Colors});
+    my $f = 'PDL::gl_triangles';
+    $f .= '_' . ($this->{Options}{Smooth} ? 'w' : '') . 'n_mat' if $shading > 2;
+    { no strict 'refs'; $f = \&$f; }
+    _lattice_slice($f, $points, $this->{Options}{Smooth} ? $this->{Normals} : (), $this->{Colors});
     $this->_lattice_lines($points) if $this->{Options}{Lines};
+  }
+  if ($this->{Options}{ShowNormals}) {
+    die "No normals to show!" if !defined $this->{Normals};
+    my $arrows = $points->append($points + $this->{Normals}*0.1)->splitdim(0,3);
+    glDisable(GL_LIGHTING);
+    glColor3d(1,1,1);
+    PDL::Graphics::OpenGLQ::gl_arrows($arrows, 0, 1, 0.5, 0.02);
   }
 }
 
@@ -232,29 +242,6 @@ sub PDL::Graphics::TriD::Contours::gdraw {
          my $seg = sprintf ":,%d:%d",$this->{Labels}[0],$this->{Labels}[1];
          PDL::Graphics::OpenGLQ::gl_texts($points->slice($seg),
                  $this->{LabelStrings});
-  }
-}
-
-sub PDL::Graphics::TriD::SLattice_S::gdraw {
-  my($this,$points) = @_;
-  barf "Need 3D points"
-    if grep $_->ndims < 3, $points;
-  glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
-  my $f = 'PDL::gl_triangles_';
-  $f .= 'w' if $this->{Options}{Smooth};
-  $f .= 'n_mat';
-  { no strict 'refs'; $f = \&$f; }
-  my @pdls = $points;
-  push @pdls, $this->{Normals} if $this->{Options}{Smooth};
-  push @pdls, $this->{Colors};
-  _lattice_slice($f, @pdls);
-  $this->_lattice_lines($points) if $this->{Options}{Lines};
-  if ($this->{Options}{ShowNormals}) {
-    die "No normals to show!" if !defined $this->{Normals};
-    my $arrows = $points->append($points + $this->{Normals}*0.1)->splitdim(0,3);
-    glDisable(GL_LIGHTING);
-    glColor3d(1,1,1);
-    PDL::Graphics::OpenGLQ::gl_arrows($arrows, 0, 1, 0.5, 0.02);
   }
 }
 
