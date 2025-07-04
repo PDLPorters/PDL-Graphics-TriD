@@ -16,8 +16,7 @@ This provides the following class hierarchy:
   ├ PDL::Graphics::TriD::Lines           separate lines
   ├ PDL::Graphics::TriD::LineStrip       continuous paths
   ├ PDL::Graphics::TriD::Trigrid         polygons
-  └ PDL::Graphics::TriD::GObject_Lattice (abstract) base class
-    └ PDL::Graphics::TriD::Lattice       colored lattice
+  └ PDL::Graphics::TriD::Lattice         colored lattice, maybe filled/shaded
 
 =head1 DESCRIPTION
 
@@ -180,17 +179,8 @@ sub smoothn { my ($this) = @_;
         0..($points->dim(1)-1) );
 }
 
-package PDL::Graphics::TriD::GObject_Lattice;
-use base qw/PDL::Graphics::TriD::GObject/;
-sub r_type {return "SURF2D";}
-sub get_valid_options { +{
-  UseDefcols => 0,
-  Lines => 1,
-  Lighting => 0,
-}}
-
 package PDL::Graphics::TriD::Lattice;
-use base qw/PDL::Graphics::TriD::GObject_Lattice/;
+use base qw/PDL::Graphics::TriD::GObject/;
 use fields qw/Normals/;
 sub cdummies {
   my $shading = $_[0]{Options}{Shading};
@@ -198,6 +188,7 @@ sub cdummies {
   $shading == 1 ? $_[1]->dummy(1,$_[2]->getdim(2)-1)->dummy(1,$_[2]->getdim(1)-1) :
   $_[1]->slice(":," . join ',', map "*$_", ($_[2]->dims)[1,2])
 }
+sub r_type {return "SURF2D";}
 sub get_valid_options { +{
   UseDefcols => 0,
   Lines => 1,
