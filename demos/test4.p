@@ -4,10 +4,9 @@ use PDL::Graphics::TriD::Image;
 use PDL::IO::Pic;
 
 $s = 10;
-$k = zeroes($s,$s);
+$k = random($s,$s);
 
-$x = $k->xvals();
-random($k->inplace); $x += $k;
+$x = $k->xvals() + $k;
 
 $y = $k->yvals();
 random($k->inplace); $y += $k;
@@ -25,10 +24,8 @@ $win->clear_objects();
 $win->add_object($pa);
 $win->add_object($pb);
 
-$nx = zeroes(3,20);
-$nc = zeroes(3,20);
-random($nx->inplace);
-random($nc->inplace);
+$nx = random(3,20);
+$nc = random(3,20);
 
 use OpenGL qw(:all);
 glShadeModel (&GL_SMOOTH);

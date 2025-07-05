@@ -36,8 +36,8 @@ my @demo = (
 	# Number of subdivisions for lines / surfaces.
 	$size = 25;
 
-	$r = (xvals zeroes $size+1,$size+1) / $size;
-	$g = (yvals zeroes $size+1,$size+1) / $size;
+	$r = (xvals $size+1,$size+1) / $size;
+	$g = (yvals $size+1,$size+1) / $size;
 	$b = ((sin($r*6.3) * sin($g*6.3)) ** 3)/2 + 0.5;   # Bumps
 	imagrgb [$r,$g,$b];	# Draw an image
         # [press 'q' in the graphics window when done]

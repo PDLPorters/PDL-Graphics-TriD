@@ -8,8 +8,8 @@ use PDL::Graphics::TriD;
 
 $nx = 20;
 
-$t =  (xvals zeroes $nx+1,$nx+1)/$nx;
-$u =  (yvals zeroes $nx+1,$nx+1)/$nx;
+$t =  (xvals $nx+1,$nx+1)/$nx;
+$u =  (yvals $nx+1,$nx+1)/$nx;
 
 $x = sin($u*15 + $t * 3)/2+0.5 + 5*($t-0.5)**2;
 

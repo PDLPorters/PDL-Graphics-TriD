@@ -146,7 +146,7 @@ sub linedemos{
   if($demo ne "Off"){
     my $data;
     my $size = 25;
-    my $cz = (xvals zeroes $size+1) / $size;  # interval 0..1
+    my $cz = (xvals $size+1) / $size;  # interval 0..1
     my $cx = 0.5+sin($cz*12.6)/2;	# Corkscrew
     my $cy = 0.5+cos($cz*12.6)/2;
     if($demo eq "B&W"){
@@ -195,8 +195,8 @@ sub Linesdemos{
     my $data;
     my $size = 25;
     my($x,$y,$z);
-    $x = (xvals zeroes $size+1,$size+1) / $size;
-    $y = (yvals zeroes $size+1,$size+1) / $size;
+    $x = (xvals $size+1,$size+1) / $size;
+    $y = (yvals $size+1,$size+1) / $size;
     $z = 0.5 + 0.5 * (sin($x*6.3) * sin($y*6.3)) ** 3; 
     if($demo eq "Lines"){
       $data=PDL::Graphics::TriD::LineStrip->new([$x,$y,$z],[$x,$y,$z]);
@@ -240,8 +240,8 @@ sub Contourdemos{
     my $data;
     my $size = 25;
     my($x,$y,$z);
-    $x = (xvals zeroes $size,$size) / $size;
-    $y = (yvals zeroes $size,$size) / $size;
+    $x = (xvals $size,$size) / $size;
+    $y = (yvals $size,$size) / $size;
     $z = (sin($x*6.3) * sin($y*6.3)) ** 3;
   
     if($demo eq "2DB&W"){

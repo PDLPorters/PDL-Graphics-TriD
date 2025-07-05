@@ -72,7 +72,7 @@ my @demo = (
 [actnw => q|
 	# Number of subdivisions for lines / surfaces.
 	$size = 25;
-	$cz = (xvals zeroes $size+1) / $size;  # interval 0..1
+	$cz = (xvals $size+1) / $size;  # interval 0..1
 	$cx = sin($cz*12.6);	# Corkscrew
 	$cy = cos($cz*12.6);
 	line3d [$cx,$cy,$cz];	# Draw a line
@@ -88,8 +88,8 @@ my @demo = (
 |],
 
 [actnw => q|
-	$x = (xvals zeroes $size+1,$size+1) / $size;
-	$y = (yvals zeroes $size+1,$size+1) / $size;
+	$x = (xvals $size+1,$size+1) / $size;
+	$y = (yvals $size+1,$size+1) / $size;
 	$z = 0.5 + 0.5 * (sin($x*6.3) * sin($y*6.3)) ** 3;   # Bumps
 	line3d [$x,$y,$z];	# Draw several lines
 	# [press 'q' in the graphics window when done]
@@ -168,7 +168,7 @@ my @demo = (
 [actnw => q|
 	# The reason for the [] around $x,$y,$z:
 	# 1. You can give all the coordinates and colors in one ndarray.
-	$c = (zeroes 3,$size+1) / $size;
+	$c = zeroes 3,$size+1;
 	$coords =
 		sin((3+3*xvals $c)*yvals $c);
 	$colors = $coords;

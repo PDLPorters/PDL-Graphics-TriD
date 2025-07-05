@@ -21,7 +21,7 @@ PDL::Graphics::TriD - PDL 3D interface
 
  # Generate a somewhat interesting sequence of surfaces
  $surf1 = (rvals(100, 100) / 50)**2 + sin(xvals(100, 100) / 10);
- $surf2 = sqrt(rvals(zeroes(50,50))/2);
+ $surf2 = sqrt(rvals(50,50)/2);
  $x = sin($surface); $y = cos($surface), $z = $surface;
  $coords = cat($x, $y, $z)->transpose;
  $red = cos(2*$surface); $green = sin($surface); $blue = $surface;
@@ -214,7 +214,7 @@ This is how, and why, the 3D earth in C<demo 3d> arranges its data.
  line3d $coords;
 
  # Draw a regularly-gridded surface:
- $surface = sqrt(rvals(zeroes(50,50))/2);
+ $surface = sqrt(rvals(50,50)/2);
  print "draw a mesh of a regularly-gridded surface using mesh3d\n";
  mesh3d [$surface];
  print "draw a regularly-gridded surface using imag3d\n";
@@ -274,7 +274,7 @@ Implemented by L<PDL::Graphics::TriD::LineStrip>.
 
 Example:
 
- pdl> line3d [sqrt(rvals(zeroes(50,50))/2)]
+ pdl> line3d [sqrt(rvals(50,50)/2)]
  - Lines on surface
  pdl> line3d [$x,$y,$z]
  - Lines over X, Y, Z
@@ -332,7 +332,7 @@ The variant, C<imag3d_ns>, is implemented by L<PDL::Graphics::TriD::Lattice> def
 
 Example:
 
- pdl> imag3d [sqrt(rvals(zeroes(50,50))/2)], {Lines=>0};
+ pdl> imag3d [sqrt(rvals(50,50)/2)], {Lines=>0};
 
  - Rendered image of surface
 
@@ -356,7 +356,7 @@ Implemented by L<PDL::Graphics::TriD::Lattice>.
 
 Example:
 
- pdl> mesh3d [sqrt(rvals(zeroes(50,50))/2)]
+ pdl> mesh3d [sqrt(rvals(50,50)/2)]
 
  - mesh of surface
 
@@ -408,7 +408,7 @@ Implemented by L<PDL::Graphics::TriD::Points>.
 
 Example:
 
- pdl> points3d [sqrt(rvals(zeroes(50,50))/2)];
+ pdl> points3d [sqrt(rvals(50,50)/2)];
  - points on surface
 
 See module documentation for more information on
@@ -461,7 +461,7 @@ ways one might want to do this.
 
 e.g.
 
- pdl> $x=sqrt(rvals(zeroes(50,50))/2)
+ pdl> $x=sqrt(rvals(50,50)/2)
  pdl> imagrgb [0.5*sin(8*$x)+0.5,0.5*cos(8*$x)+0.5,0.5*cos(4*$x)+0.5]
 
 =head2 imagrgb3d

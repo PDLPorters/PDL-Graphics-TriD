@@ -16,16 +16,13 @@ $set->browser_com('netscape/unix');
 
 $nx = 5;
 
-$t =  (xvals zeroes $nx+1,$nx+1)/$nx;
-$u =  (yvals zeroes $nx+1,$nx+1)/$nx;
+$t =  (xvals $nx+1,$nx+1)/$nx;
+$u =  (yvals $nx+1,$nx+1)/$nx;
 
 $x = sin($u*15 + $t * 3)/2+0.5 + 5*($t-0.5)**2;
-$cx = PDL->zeroes(3,$nx+1,$nx+1);
-random($cx->inplace);
-$pdl = PDL->zeroes(3,20);
-$pdl->inplace->random;
-$cols = PDL->zeroes(3,20);
-$cols->inplace->random;
+$cx = PDL->random(3,$nx+1,$nx+1);
+$pdl = PDL->random(3,20);
+$cols = PDL->random(3,20);
 
 $g = PDL::Graphics::TriD::get_new_graph;
 $name = $g->add_dataseries(PDL::Graphics::TriD::Points->new($pdl,$cols));

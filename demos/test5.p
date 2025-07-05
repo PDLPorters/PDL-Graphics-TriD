@@ -12,8 +12,7 @@ $y /= $size;
 srandom(5);
 random((my $ysl2 = $y->slice("(2)"))->inplace);
 $ysl2 /= 5;
-my $c = PDL->zeroes(3,$size,$size);
-random($c->inplace);
+my $c = PDL->random(3,$size,$size);
 
 my @objs = (
   ['Lattice', {Shading=>0}],

@@ -11,8 +11,8 @@ PDL::Graphics::TriD::Contours - 3D Surface contours for TriD
     use PDL::Graphics::TriD;
     use PDL::Graphics::TriD::Contours;
     $size = 25;
-    $x = (xvals zeroes $size,$size) / $size;
-    $y = (yvals zeroes $size,$size) / $size;
+    $x = (xvals $size,$size) / $size;
+    $y = (yvals $size,$size) / $size;
     $z = (sin($x*6.3) * sin($y*6.3)) ** 3;
     $data=PDL::Graphics::TriD::Contours->new($z,
                [$z->xvals/$size,$z->yvals/$size,0]);

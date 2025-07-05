@@ -161,7 +161,7 @@ points3d[map $_+$_->float->random, whichND(($x!=0)&($x != 255))->transpose->dog]
 |],
 
 # use PDL; use PDL::Image2D; use PDL::Graphics::TriD;nokeeptwiddling3d;
-# $d=byte(random(zeroes(90,90))>0.5);do{$k=byte [[1,1,1],[1,0,1],[1,1,1]];
+# $d=byte(random(90,90)>0.5);do{$k=byte [[1,1,1],[1,0,1],[1,1,1]];
 # imagrgb[$d]if($k++%2); $s=conv2d($d,$k)/8;$i=90*90*random(50);$t=$d->
 # clump(2)-> index($i);$t.=($s->clump(2)->index($i)>.5);}while(!twiddle3d)
 
@@ -202,7 +202,7 @@ keeptwiddling3d(); # restore waiting for user to press 'q'
 [actnw => q~
 # Game of life [Robin Williams (edited by Tjl)]
 use PDL::Image2D;
-$d=byte(random(zeroes(40,40))>0.85); $k=byte [[1,1,1],[1,0,1],[1,1,1]];
+$d=byte(random(40,40)>0.85); $k=byte [[1,1,1],[1,0,1],[1,1,1]];
 nokeeptwiddling3d;
 do {
   imagrgb [$d]; $s=conv2d($d,$k);
@@ -238,7 +238,7 @@ twiddle3d();
 # Dewdney's voters (parallelized) [Tjl, inspired by the above 'life']
 use PDL::Image2D;
 nokeeptwiddling3d;
-$d=byte(random(zeroes(100,100))>0.5); $k=float [[1,1,1],[1,0,1],[1,1,1]];
+$d=byte(random(100,100)>0.5); $k=float [[1,1,1],[1,0,1],[1,1,1]];
 do{
   imagrgb[$d];
   $s=conv2d($d,$k)/8;
