@@ -133,8 +133,8 @@ sub new {
   my $class = $_[0];
   my $options = ref($_[-1]) eq 'HASH' ? pop : $class->get_valid_options;
   my $ndiv = $options->{NDiv};
-  my $points = zeroes(3,3)->append(my $id3 = identity(3));
-  my $starts = zeroes(1,$ndiv+1)->ylinvals(0,1)->append(zeroes(2,$ndiv+1));
+  my $points = zeroes(PDL::float(),3,3)->append(my $id3 = identity(3));
+  my $starts = zeroes(PDL::float(),1,$ndiv+1)->ylinvals(0,1)->append(zeroes(PDL::float(),2,$ndiv+1));
   my $ends = $starts + append(0, ones 2) * -0.1;
   my $dupseq = yvals($ndiv+1,3)->flat;
   $_ = $_->dup(1,3)->rotate($dupseq) for $starts, $ends;

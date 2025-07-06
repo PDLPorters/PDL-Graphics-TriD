@@ -114,7 +114,7 @@ sub new{
 #
   my $cvals;
   if (!defined($this->{Options}{ContourVals}) || $this->{Options}{ContourVals}->isempty){
-    $cvals=zeroes(int(($this->{Options}{ContourMax}-$this->{Options}{ContourMin})/$this->{Options}{ContourInt}+1));
+    $cvals=zeroes(float(), int(($this->{Options}{ContourMax}-$this->{Options}{ContourMin})/$this->{Options}{ContourInt}+1));
     $cvals = $cvals->xlinvals($this->{Options}{ContourMin},$this->{Options}{ContourMax});
   }else{
     $cvals = $this->{Options}{ContourVals};

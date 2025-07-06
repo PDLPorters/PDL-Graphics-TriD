@@ -217,7 +217,7 @@ sub smoothn {
   my $ortho = $trip->crossp($trid);
   $ortho->norm($ortho); # normalise inplace
   # now add to vertices to smooth
-  my $aver = ref($p)->zeroes($p->dims);
+  my $aver = ref($p)->zeroes(PDL::float(), $p->dims);
   # step 1, upper right tri0, upper left tri1
   $aver->lags(1,1,2)->slice(':,:,:,1:-1') += $ortho;
   # step 2, lower right tri0, lower left tri1

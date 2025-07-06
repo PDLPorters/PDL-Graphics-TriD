@@ -76,11 +76,11 @@ sub PDL::Graphics::TriD::CylindricalEquidistantAxes::togl {
     $ns[$dim] = int($width/$nadd[$dim])+1;
   }
   # can be changed to topo heights?
-  my $verts = zeroes(3,$ns[0],$ns[1]);
+  my $verts = zeroes(PDL::float(),3,$ns[0],$ns[1]);
   $verts->slice("2") .= 1012.5;
   $verts->slice("0") .= $verts->slice("0")->ylinvals($nc[0],$nc[0]+$nadd[0]*($ns[0]-1));
   $verts->slice("1") .= $verts->slice("0")->zlinvals($nc[1],$nc[1]+$nadd[1]*($ns[1]-1));
-  my $tverts = zeroes(3,$ns[0],$ns[1]);
+  my $tverts = zeroes(PDL::float(),3,$ns[0],$ns[1]);
   $tverts = $this->transform($tverts,$verts,[0,1,2]);
   glDisable(GL_LIGHTING);
   glColor3d(1,1,1);
@@ -106,7 +106,7 @@ sub PDL::Graphics::TriD::CylindricalEquidistantAxes::togl {
 sub PDL::Graphics::TriD::EuclidAxes::gdraw {
   my ($this, $points) = @_;
   print "gdraw: got object type " . ref($this) . "\n" if $PDL::Graphics::TriD::verbose;
-  my $axisvals = zeroes(3,$this->{NDiv}+1)->ylinvals($this->{Scale}->dog)->t->flat->t;
+  my $axisvals = zeroes(PDL::float(),3,$this->{NDiv}+1)->ylinvals($this->{Scale}->dog)->t->flat->t;
   my @label = map sprintf("%.3f", $_), @{ $axisvals->flat->unpdl };
   push @label, @{$this->{Names}};
   glColor3d(1,1,1);
