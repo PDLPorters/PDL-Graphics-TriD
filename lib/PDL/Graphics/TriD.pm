@@ -758,7 +758,7 @@ sub realcoords {
 		if($c->getdim(0) != 3) {
 			barf "If one ndarray given for coordinate, must be (3,...) or have default interpretation";
 		}
-		return $c ;
+		return $c->float;
 	}
 	my @c = @$c;
 	if(!ref $c[0]) {$type = shift @c}
@@ -792,7 +792,7 @@ sub realcoords {
 	}
 	my $g = PDL::ImageND::combcoords(@c);
 	$g->dump if $PDL::Graphics::TriD::verbose;
-	return $g;
+	$g;
 }
 
 sub checkargs {

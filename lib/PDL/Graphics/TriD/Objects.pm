@@ -62,7 +62,7 @@ sub new {
 	print "GObject new - back from  realcoords\n" if($PDL::Graphics::TriD::verbose);
 	$this->{Colors} = defined $colors
 	  ? PDL::Graphics::TriD::realcoords("COLOR",$colors)
-	  : $this->cdummies(PDL->pdl(1,1,1),$points);
+	  : $this->cdummies(PDL->pdl(PDL::float(),1,1,1),$points);
 	print "GObject new - returning\n" if($PDL::Graphics::TriD::verbose);
 	return $this;
 }
@@ -144,12 +144,13 @@ use base qw/PDL::Graphics::TriD::GObject/;
 sub new {
   my($type,$points,$faceidx,$colors,$options) = @_;
   # faceidx is 2D pdl of indices into points for each face
+  $faceidx = $faceidx->ulong;
   if(!defined $options and ref $colors eq "HASH") {
     $options = $colors;undef $colors; } 
   $points = PDL::Graphics::TriD::realcoords($type->r_type,$points);
   my $faces = $points->dice_axis(1,$faceidx->flat)->splitdim(1,3);
   # faces is 3D pdl slices of points, giving cart coords of face verts
-  if(!defined $colors) { $colors = PDL->pdl(0.8,0.8,0.8);
+  if(!defined $colors) { $colors = PDL->pdl(PDL::float(),0.8,0.8,0.8);
     $colors = $type->cdummies($colors,$faces);
     $options->{ UseDefcols } = 1; } # for VRML efficiency
   else { $colors = PDL::Graphics::TriD::realcoords("COLOR",$colors); }
