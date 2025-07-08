@@ -154,10 +154,10 @@ sub new {
     $colors = $type->cdummies($colors,$faces);
     $options->{ UseDefcols } = 1; } # for VRML efficiency
   else { $colors = PDL::Graphics::TriD::realcoords("COLOR",$colors); }
-  my $this = bless { Points => $points, Faceidx => $faceidx, Faces => $faces,
+  my $this = bless { Points => $points, Faceidx => $faceidx,
                      Colors => $colors, Options => $options},$type;
   $this->check_options;
-  $this->{Normals} //= $this->smoothn if $this->{Options}{Smooth};
+  $this->{Normals} = $this->smoothn($faces) if $this->{Options}{Smooth};
   $this;
 }
 sub get_valid_options { +{
@@ -170,8 +170,8 @@ sub get_valid_options { +{
 }}
 sub cdummies { # called with (type,colors,faces)
   return $_[1]->dummy(1,$_[2]->getdim(2))->dummy(1,$_[2]->getdim(1)); }
-sub smoothn { my ($this) = @_;
-  my ($points, $faces, $faceidx) = @$this{qw(Points Faces Faceidx)};
+sub smoothn { my ($this, $faces) = @_;
+  my ($points, $faceidx) = @$this{qw(Points Faceidx)};
   my @p = $faces->mv(1,-1)->dog;
   my $fn = ($p[1]-$p[0])->crossp($p[2]-$p[1])->norm; # flat faces, >= 3 points
   $this->{FaceNormals} = $fn if $this->{Options}{ShowNormals};
