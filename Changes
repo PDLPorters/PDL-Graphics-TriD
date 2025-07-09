@@ -1,6 +1,7 @@
 - build improvements
 - drop use of GLU functions
 - rationalise/unify ::Objects classes
+- trigrid3d $colours is now per-vertex
 
 2.102 2025-04-11
 - fix scrolling out with mousewheel/double-touch-scroll in GLUT

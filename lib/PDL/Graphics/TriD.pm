@@ -369,16 +369,26 @@ contexts and options
 
 =head2 lattice3d
 
+=for usage
+
+ trigrid3d $vertices, $faceidx, [$colours], [{OPTIONS}]
+
 =for ref
 
 alias for mesh3d
 
 =head2 trigrid3d
 
-Show a triangular mesh, giving C<$vertices> and C<$faceidx> which is
+=for ref
+
+Show a triangular mesh.
+
+C<$faceidx> is
 a series of triplets of indices into the vertices, each describing
 one triangle. The order of points matters for the shading - the normal
 vector points towards the clockface if the points go clockwise.
+
+C<$colours> is per vertex.
 
 Options: C<Smooth> (on by default), C<Lines> (off by default),
 C<ShowNormals> (off by default, useful for debugging).

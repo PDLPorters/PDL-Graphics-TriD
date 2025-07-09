@@ -248,16 +248,17 @@ sub PDL::Graphics::TriD::Contours::gdraw {
 sub PDL::Graphics::TriD::Trigrid::gdraw {
   my($this,$points) = @_;
   my $faces = $points->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
+  my $colours = $this->{Colors}->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
   glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
   my $idx = [0,1,2,0]; # for lines, below
   if (!$this->{Options}{Shading}) {
-    PDL::gl_triangles(map $_->mv(1,-1)->dog, $faces, $this->{Colors});
+    PDL::gl_triangles(map $_->mv(1,-1)->dog, $faces, $colours);
   } elsif ($this->{Options}{Smooth}) {
     my $tmpn=$this->{Normals}->dice_axis(1,$this->{Faceidx}->flat)
                     ->splitdim(1,$this->{Faceidx}->dim(0));
-    PDL::gl_triangles_wn_mat(map $_->mv(1,-1)->dog, $faces, $tmpn, $this->{Colors});
+    PDL::gl_triangles_wn_mat(map $_->mv(1,-1)->dog, $faces, $tmpn, $colours);
   } else {
-    PDL::gl_triangles_n_mat(map $_->mv(1,-1)->dog, $faces, $this->{Colors});
+    PDL::gl_triangles_n_mat(map $_->mv(1,-1)->dog, $faces, $colours);
   }
   if ($this->{Options}{ShowNormals}) {
     my $arrows = $points->append($points + $this->{Normals}*0.1)->splitdim(0,3);

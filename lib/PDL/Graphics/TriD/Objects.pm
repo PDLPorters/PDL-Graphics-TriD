@@ -148,16 +148,14 @@ sub new {
   if(!defined $options and ref $colors eq "HASH") {
     $options = $colors;undef $colors; } 
   $points = PDL::Graphics::TriD::realcoords($type->r_type,$points);
-  my $faces = $points->dice_axis(1,$faceidx->flat)->splitdim(1,3);
-  # faces is 3D pdl slices of points, giving cart coords of face verts
   if(!defined $colors) { $colors = PDL->pdl(PDL::float(),0.8,0.8,0.8);
-    $colors = $type->cdummies($colors,$faces);
+    $colors = $type->cdummies($colors,$points);
     $options->{ UseDefcols } = 1; } # for VRML efficiency
   else { $colors = PDL::Graphics::TriD::realcoords("COLOR",$colors); }
   my $this = bless { Points => $points, Faceidx => $faceidx,
                      Colors => $colors, Options => $options},$type;
   $this->check_options;
-  $this->{Normals} = $this->smoothn($faces) if $this->{Options}{Smooth};
+  $this->{Normals} = $this->smoothn($points->dice_axis(1,$faceidx->flat)->splitdim(1,3)) if $this->{Options}{Smooth};
   $this;
 }
 sub get_valid_options { +{
@@ -168,10 +166,11 @@ sub get_valid_options { +{
   ShowNormals => 0,
   Lighting => 1,
 }}
-sub cdummies { # called with (type,colors,faces)
-  return $_[1]->dummy(1,$_[2]->getdim(2))->dummy(1,$_[2]->getdim(1)); }
+sub cdummies { # called with (type,colors,points)
+  return $_[1]->dummy(1,$_[2]->getdim(1)); }
 sub smoothn { my ($this, $faces) = @_;
   my ($points, $faceidx) = @$this{qw(Points Faceidx)};
+  # faces is 3D pdl slices of points, giving cart coords of face verts
   my @p = $faces->mv(1,-1)->dog;
   my $fn = ($p[1]-$p[0])->crossp($p[2]-$p[1])->norm; # flat faces, >= 3 points
   $this->{FaceNormals} = $fn if $this->{Options}{ShowNormals};
