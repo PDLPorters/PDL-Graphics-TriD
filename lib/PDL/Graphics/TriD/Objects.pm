@@ -45,26 +45,22 @@ use fields qw/Points Colors Options/;
 $PDL::Graphics::TriD::verbose //= 0;
 
 sub new {
-	my($type,$points,$colors,$options) = @_;
-	print "GObject new.. calling SUPER::new...\n" if($PDL::Graphics::TriD::verbose);
-	my $this = $type->SUPER::new();
-	print "GObject new - back (SUPER::new returned $this)\n" if($PDL::Graphics::TriD::verbose);
-	if(!defined $options and ref $colors eq "HASH") {
-		$options = $colors;
-		undef $colors;
-	}
-	$options = { $options ? %$options : () };
-	$options->{UseDefcols} = 1 if !defined $colors; # for VRML efficiency
-	$this->{Options} = $options;
-	$this->check_options;
-	print "GObject new - calling realcoords\n" if($PDL::Graphics::TriD::verbose);
-	$this->{Points} = $points = PDL::Graphics::TriD::realcoords($type->r_type,$points);
-	print "GObject new - back from  realcoords\n" if($PDL::Graphics::TriD::verbose);
-	$this->{Colors} = defined $colors
-	  ? PDL::Graphics::TriD::realcoords("COLOR",$colors)
-	  : $this->cdummies(PDL->pdl(PDL::float(),1,1,1),$points);
-	print "GObject new - returning\n" if($PDL::Graphics::TriD::verbose);
-	return $this;
+  my $options = ref($_[-1]) eq 'HASH' ? pop : {};
+  my ($type,$points,$colors) = @_;
+  print "GObject new.. calling SUPER::new...\n" if $PDL::Graphics::TriD::verbose;
+  my $this = $type->SUPER::new();
+  print "GObject new - back (SUPER::new returned $this)\n" if $PDL::Graphics::TriD::verbose;
+  $options->{UseDefcols} = 1 if !defined $colors; # for VRML efficiency
+  $this->{Options} = $options;
+  $this->check_options;
+  print "GObject new - calling realcoords\n" if($PDL::Graphics::TriD::verbose);
+  $this->{Points} = $points = PDL::Graphics::TriD::realcoords($type->r_type,$points);
+  print "GObject new - back from  realcoords\n" if($PDL::Graphics::TriD::verbose);
+  $this->{Colors} = defined $colors
+    ? PDL::Graphics::TriD::realcoords("COLOR",$colors)
+    : $this->cdummies(PDL->pdl(PDL::float(),1,1,1),$points);
+  print "GObject new - returning\n" if($PDL::Graphics::TriD::verbose);
+  return $this;
 }
 
 sub check_options {
@@ -142,11 +138,10 @@ sub get_valid_options { +{
 package PDL::Graphics::TriD::Trigrid;
 use base qw/PDL::Graphics::TriD::GObject/;
 sub new {
-  my($type,$points,$faceidx,$colors,$options) = @_;
+  my $options = ref($_[-1]) eq 'HASH' ? pop : {};
+  my($type,$points,$faceidx,$colors) = @_;
   # faceidx is 2D pdl of indices into points for each face
   $faceidx = $faceidx->ulong;
-  if(!defined $options and ref $colors eq "HASH") {
-    $options = $colors;undef $colors; } 
   $points = PDL::Graphics::TriD::realcoords($type->r_type,$points);
   if(!defined $colors) { $colors = PDL->pdl(PDL::float(),0.8,0.8,0.8);
     $colors = $type->cdummies($colors,$points);
