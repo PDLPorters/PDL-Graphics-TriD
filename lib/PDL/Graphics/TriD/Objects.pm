@@ -137,19 +137,13 @@ sub get_valid_options { +{
 
 package PDL::Graphics::TriD::Trigrid;
 use base qw/PDL::Graphics::TriD::GObject/;
+use fields qw/Faceidx FaceNormals Normals/;
 sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : {};
   my($type,$points,$faceidx,$colors) = @_;
+  my $this = $type->SUPER::new($points,$colors,$options);
   # faceidx is 2D pdl of indices into points for each face
-  $faceidx = $faceidx->ulong;
-  $points = PDL::Graphics::TriD::realcoords($type->r_type,$points);
-  if(!defined $colors) { $colors = PDL->pdl(PDL::float(),0.8,0.8,0.8);
-    $colors = $type->cdummies($colors,$points);
-    $options->{ UseDefcols } = 1; } # for VRML efficiency
-  else { $colors = PDL::Graphics::TriD::realcoords("COLOR",$colors); }
-  my $this = bless { Points => $points, Faceidx => $faceidx,
-                     Colors => $colors, Options => $options},$type;
-  $this->check_options;
+  $this->{Faceidx} = $faceidx->ulong;
   $this->{Normals} = $this->smoothn($points->dice_axis(1,$faceidx->flat)->splitdim(1,3)) if $this->{Options}{Smooth};
   $this;
 }
