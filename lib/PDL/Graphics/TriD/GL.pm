@@ -261,14 +261,20 @@ sub PDL::Graphics::TriD::Trigrid::gdraw {
     PDL::gl_triangles_n_mat(map $_->mv(1,-1)->dog, $faces, $colours);
   }
   if ($this->{Options}{ShowNormals}) {
-    my $arrows = $points->append($points + $this->{Normals}*0.1)->splitdim(0,3);
-    glDisable(GL_LIGHTING);
-    glColor3d(1,1,1);
-    PDL::Graphics::OpenGLQ::gl_arrows($arrows, 0, 1, 0.5, 0.02);
-    my $facecentres = $faces->transpose->avgover;
-    my $facearrows = $facecentres->append($facecentres + $this->{FaceNormals}*0.1)->splitdim(0,3);
-    glColor3d(0.5,0.5,0.5);
-    PDL::Graphics::OpenGLQ::gl_arrows($facearrows, 0, 1, 0.5, 0.02);
+    die "No normals to show!" if !grep defined $this->{$_}, qw(FaceNormals Normals);
+    if (defined $this->{Normals}) {
+      my $arrows = $points->append($points + $this->{Normals}*0.1)->splitdim(0,3);
+      glDisable(GL_LIGHTING);
+      glColor3d(1,1,1);
+      PDL::Graphics::OpenGLQ::gl_arrows($arrows, 0, 1, 0.5, 0.02);
+    }
+    if (defined $this->{FaceNormals}) {
+      my $facecentres = $faces->transpose->avgover;
+      my $facearrows = $facecentres->append($facecentres + $this->{FaceNormals}*0.1)->splitdim(0,3);
+      glDisable(GL_LIGHTING);
+      glColor3d(0.5,0.5,0.5);
+      PDL::Graphics::OpenGLQ::gl_arrows($facearrows, 0, 1, 0.5, 0.02);
+    }
   }
   if ($this->{Options}{Lines}) {
     glColor3f(0,0,0);
