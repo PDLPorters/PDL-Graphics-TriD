@@ -23,11 +23,11 @@ only for internal use - see source
 
 =head1 AUTHOR
 
-Copyright (C) 1997,1998 Tuomas J. Lukka.  
+Copyright (C) 1997,1998 Tuomas J. Lukka.
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain
-conditions. For details, see the file COPYING in the PDL 
-distribution. If this file is separated from the PDL distribution, 
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
 =cut
@@ -188,7 +188,7 @@ pp_def('gl_arrows',
 		float tmp2[3] = { 0.000001, -0.0001, 1 };
 		broadcastloop %{
 			PDL_Indx a = $indsa(), b = $indsb();
-			float tmp1[3]; 
+			float tmp1[3];
 			float norm[3];
 			float norm2[3];
 			float normlen,origlen,norm2len;
@@ -274,6 +274,21 @@ pp_def('gl_arrows',
 		%}
 	',
 	@internal
+);
+
+pp_def('vertex_normals',
+  Pars => 'vertices(tri=3,v); facenormals(tri,f); uint faceidx(trivert=3,f); [o] vertnorm(tri,v)',
+  GenericTypes => $F,
+  Code => <<'EOF',
+loop(v,tri) %{ $vertnorm() = 0.0f; %}
+loop(f,trivert) %{
+  PDL_ULong vertidx = $faceidx();
+  if (vertidx >= $SIZE(v))
+    $CROAK("faceidx number %"IND_FLAG",%"IND_FLAG" out of range: %"IND_FLAG" > %"IND_FLAG, f, trivert, vertidx, $SIZE(v)-1);
+  loop(tri) %{ $vertnorm(v=>vertidx) += $facenormals(); %}
+%}
+EOF
+  @internal,
 );
 
 pp_done();

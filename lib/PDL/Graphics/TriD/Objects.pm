@@ -136,6 +136,7 @@ sub get_valid_options { +{
 }}
 
 package PDL::Graphics::TriD::Trigrid;
+use PDL::Graphics::OpenGLQ;
 use base qw/PDL::Graphics::TriD::GObject/;
 use fields qw/Faceidx FaceNormals Normals/;
 sub new {
@@ -155,17 +156,14 @@ sub get_valid_options { +{
   ShowNormals => 0,
   Lighting => 1,
 }}
-sub cdummies { # called with (type,colors,points)
-  return $_[1]->dummy(1,$_[2]->getdim(1)); }
+sub cdummies { $_[1]->dummy(1,$_[2]->getdim(1)); }
 sub smoothn { my ($this, $faces) = @_;
   my ($points, $faceidx) = @$this{qw(Points Faceidx)};
   # faces is 3D pdl slices of points, giving cart coords of face verts
   my @p = $faces->mv(1,-1)->dog;
   my $fn = ($p[1]-$p[0])->crossp($p[2]-$p[1])->norm; # flat faces, >= 3 points
   $this->{FaceNormals} = $fn if $this->{Options}{ShowNormals};
-  PDL::cat(
-    map $fn->dice_axis(1,($faceidx==$_)->whichND->slice('(1)'))->mv(1,0)->sumover->norm,
-        0..($points->dim(1)-1) );
+  vertex_normals($this->{Points}, $fn, $faceidx)->norm;
 }
 
 package PDL::Graphics::TriD::Lattice;
