@@ -140,7 +140,7 @@ for(
         tmp3[0] = tmp1[1]*tmp2[2] - tmp2[1]*tmp1[2];
         tmp3[1] = -(tmp1[0]*tmp2[2] - tmp2[0]*tmp1[2]);
         tmp3[2] = tmp1[0]*tmp2[1] - tmp2[0]*tmp1[1];
-        magn = sqrt(tmp3[0]*tmp3[0] + tmp3[1]*tmp3[1] + tmp3[2]*tmp3[2]);
+        magn = sqrtf(tmp3[0]*tmp3[0] + tmp3[1]*tmp3[1] + tmp3[2]*tmp3[2]);
         tmp3[0] = tmp3[0] / magn;
         tmp3[1] = tmp3[1] / magn;
         tmp3[2] = tmp3[2] / magn;',
@@ -208,11 +208,11 @@ pp_def('gl_arrows',
 			norm2[0] = tmp1[1]*norm[2] - norm[1]*tmp1[2];
 			norm2[1] = -(tmp1[0]*norm[2] - norm[0]*tmp1[2]);
 			norm2[2] = tmp1[0]*norm[1] - norm[0]*tmp1[1];
-			normlen = sqrt(norm[0] * norm[0] +
+			normlen = sqrtf(norm[0] * norm[0] +
 				norm[1] * norm[1] + norm[2] * norm[2]);
-			norm2len = sqrt(norm2[0] * norm2[0] +
+			norm2len = sqrtf(norm2[0] * norm2[0] +
 				norm2[1] * norm2[1] + norm2[2] * norm2[2]);
-			origlen = sqrt(tmp1[0] * tmp1[0] +
+			origlen = sqrtf(tmp1[0] * tmp1[0] +
 				tmp1[1] * tmp1[1] + tmp1[2] * tmp1[2]);
 			norm[0] *= w/normlen;
 			norm[1] *= w/normlen;
