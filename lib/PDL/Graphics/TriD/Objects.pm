@@ -138,14 +138,14 @@ sub get_valid_options { +{
 package PDL::Graphics::TriD::Trigrid;
 use PDL::Graphics::OpenGLQ;
 use base qw/PDL::Graphics::TriD::GObject/;
-use fields qw/Faceidx FaceNormals Normals/;
+use fields qw/Faceidx FaceNormals VertexNormals/;
 sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : {};
   my($type,$points,$faceidx,$colors) = @_;
   my $this = $type->SUPER::new($points,$colors,$options);
   # faceidx is 2D pdl of indices into points for each face
   $this->{Faceidx} = $faceidx->ulong;
-  $this->{Normals} = $this->smoothn($points->dice_axis(1,$faceidx->flat)->splitdim(1,3)) if $this->{Options}{Smooth};
+  $this->{VertexNormals} = $this->smoothn($points->dice_axis(1,$faceidx->flat)->splitdim(1,3)) if $this->{Options}{Smooth};
   $this;
 }
 sub get_valid_options { +{
@@ -168,7 +168,7 @@ sub smoothn { my ($this, $faces) = @_;
 
 package PDL::Graphics::TriD::Lattice;
 use base qw/PDL::Graphics::TriD::GObject/;
-use fields qw/Normals/;
+use fields qw/VertexNormals/;
 sub cdummies {
   my $shading = $_[0]{Options}{Shading};
   !$shading ? $_[1]->dummy(1)->dummy(1) :
@@ -187,7 +187,7 @@ sub get_valid_options { +{
 sub new {
   my ($class,$points,$colors,$options) = @_;
   my $this = $class->SUPER::new($points,$colors,$options);
-  $this->{Normals} //= $this->smoothn($this->{Points}) if $this->{Options}{Smooth};
+  $this->{VertexNormals} //= $this->smoothn($this->{Points}) if $this->{Options}{Smooth};
   $this;
 }
 # calculate smooth normals

@@ -200,12 +200,12 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
     my $f = 'PDL::gl_triangles';
     $f .= '_' . ($this->{Options}{Smooth} ? 'w' : '') . 'n_mat' if $shading > 2;
     { no strict 'refs'; $f = \&$f; }
-    _lattice_slice($f, $points, $this->{Options}{Smooth} ? $this->{Normals} : (), $this->{Colors});
+    _lattice_slice($f, $points, $this->{Options}{Smooth} ? $this->{VertexNormals} : (), $this->{Colors});
     $this->_lattice_lines($points) if $this->{Options}{Lines};
   }
   if ($this->{Options}{ShowNormals}) {
-    die "No normals to show!" if !defined $this->{Normals};
-    my $arrows = $points->append($points + $this->{Normals}*0.1)->splitdim(0,3);
+    die "No normals to show!" if !defined $this->{VertexNormals};
+    my $arrows = $points->append($points + $this->{VertexNormals}*0.1)->splitdim(0,3);
     glDisable(GL_LIGHTING);
     glColor3d(1,1,1);
     PDL::Graphics::OpenGLQ::gl_arrows($arrows, 0, 1, 0.5, 0.02);
@@ -254,16 +254,16 @@ sub PDL::Graphics::TriD::Trigrid::gdraw {
   if (!$this->{Options}{Shading}) {
     PDL::gl_triangles(map $_->mv(1,-1)->dog, $faces, $colours);
   } elsif ($this->{Options}{Smooth}) {
-    my $tmpn=$this->{Normals}->dice_axis(1,$this->{Faceidx}->flat)
+    my $tmpn=$this->{VertexNormals}->dice_axis(1,$this->{Faceidx}->flat)
                     ->splitdim(1,$this->{Faceidx}->dim(0));
     PDL::gl_triangles_wn_mat(map $_->mv(1,-1)->dog, $faces, $tmpn, $colours);
   } else {
     PDL::gl_triangles_n_mat(map $_->mv(1,-1)->dog, $faces, $colours);
   }
   if ($this->{Options}{ShowNormals}) {
-    die "No normals to show!" if !grep defined $this->{$_}, qw(FaceNormals Normals);
-    if (defined $this->{Normals}) {
-      my $arrows = $points->append($points + $this->{Normals}*0.1)->splitdim(0,3);
+    die "No normals to show!" if !grep defined $this->{$_}, qw(FaceNormals VertexNormals);
+    if (defined $this->{VertexNormals}) {
+      my $arrows = $points->append($points + $this->{VertexNormals}*0.1)->splitdim(0,3);
       glDisable(GL_LIGHTING);
       glColor3d(1,1,1);
       PDL::Graphics::OpenGLQ::gl_arrows($arrows, 0, 1, 0.5, 0.02);
