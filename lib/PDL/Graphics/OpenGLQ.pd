@@ -276,16 +276,32 @@ pp_def('gl_arrows',
 	@internal
 );
 
-pp_def('vertex_normals',
-  Pars => 'vertices(tri=3,v); facenormals(tri,f); uint faceidx(trivert=3,f); [o] vertnorm(tri,v)',
+pp_def('triangle_normals',
+  Pars => 'vertices(tri=3,v); uint faceidx(trivert=3,f); [o] facenorm(tri,f); [o] vertnorm(tri,v)',
   GenericTypes => $F,
   Code => <<'EOF',
 loop(v,tri) %{ $vertnorm() = 0.0f; %}
-loop(f,trivert) %{
-  PDL_ULong vertidx = $faceidx();
-  if (vertidx >= $SIZE(v))
-    $CROAK("faceidx number %"IND_FLAG",%"IND_FLAG" out of range: %"IND_FLAG" > %"IND_FLAG, f, trivert, vertidx, $SIZE(v)-1);
-  loop(tri) %{ $vertnorm(v=>vertidx) += $facenormals(); %}
+loop(f) %{
+  float tmp0_1[3], tmp0_2[3], tmpcross[3], magn;
+  PDL_ULong vertidx[3];
+  loop(trivert) %{
+    if ((vertidx[trivert] = $faceidx()) >= $SIZE(v))
+      $CROAK("faceidx number %"IND_FLAG",%"IND_FLAG" out of range: %"IND_FLAG" > %"IND_FLAG, f, trivert, vertidx[trivert], $SIZE(v)-1);
+  %}
+  loop(tri) %{
+    tmp0_1[tri] = $vertices(v => vertidx[1]) - $vertices(v => vertidx[0]);
+    tmp0_2[tri] = $vertices(v => vertidx[2]) - $vertices(v => vertidx[0]);
+  %}
+  tmpcross[0] = tmp0_1[1]*tmp0_2[2] - tmp0_2[1]*tmp0_1[2];
+  tmpcross[1] = -(tmp0_1[0]*tmp0_2[2] - tmp0_2[0]*tmp0_1[2]);
+  tmpcross[2] = tmp0_1[0]*tmp0_2[1] - tmp0_2[0]*tmp0_1[1];
+  magn = sqrtf(tmpcross[0]*tmpcross[0] + tmpcross[1]*tmpcross[1] + tmpcross[2]*tmpcross[2]);
+  loop(tri) %{ $facenorm() = tmpcross[tri] / magn; %}
+  loop(trivert,tri) %{ $vertnorm(v=>vertidx[trivert]) += $facenorm(); %}
+%}
+loop(v) %{
+  float magn = sqrtf($vertnorm(tri=>0)*$vertnorm(tri=>0) + $vertnorm(tri=>1)*$vertnorm(tri=>1) + $vertnorm(tri=>2)*$vertnorm(tri=>2));
+  loop(tri) %{ $vertnorm() /= magn; %}
 %}
 EOF
   @internal,

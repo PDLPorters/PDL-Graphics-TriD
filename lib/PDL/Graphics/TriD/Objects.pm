@@ -159,11 +159,9 @@ sub get_valid_options { +{
 sub cdummies { $_[1]->dummy(1,$_[2]->getdim(1)); }
 sub smoothn { my ($this, $faces) = @_;
   my ($points, $faceidx) = @$this{qw(Points Faceidx)};
-  # faces is 3D pdl slices of points, giving cart coords of face verts
-  my @p = $faces->mv(1,-1)->dog;
-  my $fn = ($p[1]-$p[0])->crossp($p[2]-$p[1])->norm; # flat faces, >= 3 points
+  my ($fn, $vn) = triangle_normals($this->{Points}, $faceidx);
   $this->{FaceNormals} = $fn if $this->{Options}{ShowNormals};
-  vertex_normals($this->{Points}, $fn, $faceidx)->norm;
+  $vn;
 }
 
 package PDL::Graphics::TriD::Lattice;
