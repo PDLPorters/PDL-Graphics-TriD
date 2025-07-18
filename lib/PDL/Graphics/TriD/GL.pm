@@ -253,12 +253,14 @@ sub PDL::Graphics::TriD::Trigrid::gdraw {
   my $idx = [0,1,2,0]; # for lines, below
   if (!$this->{Options}{Shading}) {
     PDL::gl_triangles(map $_->mv(1,-1)->dog, $faces, $colours);
-  } elsif ($this->{Options}{Smooth}) {
-    my $tmpn=$this->{VertexNormals}->dice_axis(1,$this->{Faceidx}->flat)
-                    ->splitdim(1,$this->{Faceidx}->dim(0));
-    PDL::gl_triangles_wn_mat(map $_->mv(1,-1)->dog, $faces, $tmpn, $colours);
   } else {
-    PDL::gl_triangles_n_mat(map $_->mv(1,-1)->dog, $faces, $colours);
+    my $f = 'PDL::gl_triangles';
+    $f .= '_' . ($this->{Options}{Smooth} ? 'w' : '') . 'n_mat';
+    { no strict 'refs'; $f = \&$f; }
+    my $tmpn = $this->{Options}{Smooth}
+      ? $this->{VertexNormals}->dice_axis(1,$this->{Faceidx}->flat)
+                    ->splitdim(1,$this->{Faceidx}->dim(0)) : undef;
+    $f->(map $_->mv(1,-1)->dog, $faces, $this->{Options}{Smooth} ? $tmpn : (), $colours);
   }
   if ($this->{Options}{ShowNormals}) {
     die "No normals to show!" if !grep defined $this->{$_}, qw(FaceNormals VertexNormals);
