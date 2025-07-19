@@ -250,18 +250,14 @@ sub PDL::Graphics::TriD::Trigrid::gdraw {
   my $faces = $points->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
   my $colours = $this->{Colors}->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
   glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
-  my $idx = [0,1,2,0]; # for lines, below
-  if (!$this->{Options}{Shading}) {
-    PDL::gl_triangles(map $_->mv(1,-1)->dog, $faces, $colours);
-  } else {
-    my $f = 'PDL::gl_triangles';
-    $f .= '_' . ($this->{Options}{Smooth} ? 'w' : '') . 'n_mat';
-    { no strict 'refs'; $f = \&$f; }
-    my $tmpn = $this->{Options}{Smooth}
-      ? $this->{VertexNormals}->dice_axis(1,$this->{Faceidx}->flat)
-                    ->splitdim(1,$this->{Faceidx}->dim(0)) : undef;
-    $f->(map $_->mv(1,-1)->dog, $faces, $this->{Options}{Smooth} ? $tmpn : (), $colours);
-  }
+  my $f = 'PDL::gl_triangles';
+  my $send_normals = $this->{Options}{Smooth} && $this->{Options}{Shading};
+  $f .= '_' . ($send_normals ? 'w' : '') . 'n_mat' if $this->{Options}{Shading};
+  { no strict 'refs'; $f = \&$f; }
+  my $tmpn = $send_normals
+    ? $this->{VertexNormals}->dice_axis(1,$this->{Faceidx}->flat)
+                  ->splitdim(1,$this->{Faceidx}->dim(0)) : undef;
+  $f->(map $_->mv(1,-1)->dog, $faces, $send_normals ? $tmpn : (), $colours);
   if ($this->{Options}{ShowNormals}) {
     die "No normals to show!" if !grep defined $this->{$_}, qw(FaceNormals VertexNormals);
     if (defined $this->{VertexNormals}) {
@@ -280,7 +276,7 @@ sub PDL::Graphics::TriD::Trigrid::gdraw {
   }
   if ($this->{Options}{Lines}) {
     glColor3f(0,0,0);
-    PDL::gl_lines_nc($faces->dice_axis(1,$idx));
+    PDL::gl_lines_nc($faces->dice_axis(1,[0,1,2,0]));
   }
 }
 
