@@ -74,12 +74,6 @@ sub COLOR { make_tri("glColor3f",'$colors',@_) }
 sub VERTEX { make_tri("glVertex3f",'$coords',@_) }
 sub NORMAL { make_tri("glNormal3f",'$norm',@_) }
 sub RPOS { make_tri("glRasterPos3f",'$coords',@_) }
-sub ADCOLOR { "
-  {
-    GLfloat ad[] = { ".TRI('$colors'.$_[0]).",1.0 };
-    glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE, ad);
-  }
-" }
 
 sub make_func {
   my ($name) = @_;
@@ -121,12 +115,6 @@ pp_def(
   @internal
 );
 
-for my $m (
-{Suf => '_mat',
- Func => \&ADCOLOR},
-{Suf => '',
- Func => \&COLOR},
-) {
 for(
 {Name => 'gl_triangles'},
 {Name => 'gl_triangles_n',
@@ -155,7 +143,7 @@ for(
 # This may be suboptimal but should still be fast enough..
 # We only do triangles with this.
 pp_def(
-	$_->{Name}.$m->{Suf},
+	$_->{Name},
 	GenericTypes => $F,
 	Pars => 'coordsa(tri=3); coordsb(tri); coordsc(tri);'.
 		 ($_->{NormalArgs}//'').
@@ -166,17 +154,16 @@ pp_def(
 		broadcastloop %{'.
 			($_->{NormalInit}//"\n").
 			($_->{NormalCodeA}//'').
-			$m->{Func}->("a").VERTEX("a").
+			COLOR("a").VERTEX("a").
 			($_->{NormalCodeB}//'').
-			$m->{Func}->("b").VERTEX("b").
+			COLOR("b").VERTEX("b").
 			($_->{NormalCodeC}//'').
-			$m->{Func}->("c").VERTEX("c").'
+			COLOR("c").VERTEX("c").'
 		%}
 		glEnd();
 		',
 		@internal
 );
-}
 }
 
 pp_def('gl_arrows',

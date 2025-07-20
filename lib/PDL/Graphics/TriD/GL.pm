@@ -198,9 +198,11 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
   } else {
     glShadeModel($shading == 1 ? GL_FLAT : GL_SMOOTH);
     my $f = 'PDL::gl_triangles';
-    $f .= '_' . ($this->{Options}{Smooth} ? 'w' : '') . 'n_mat' if $shading > 2;
+    $f .= '_' . ($this->{Options}{Smooth} ? 'w' : '') . 'n' if $shading > 2;
     { no strict 'refs'; $f = \&$f; }
+    if ($shading > 2) { glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE); glEnable(GL_COLOR_MATERIAL); }
     _lattice_slice($f, $points, $this->{Options}{Smooth} ? $this->{VertexNormals} : (), $this->{Colors});
+    if ($shading > 2) { glDisable(GL_COLOR_MATERIAL); }
     $this->_lattice_lines($points) if $this->{Options}{Lines};
   }
   if ($this->{Options}{ShowNormals}) {
@@ -252,12 +254,14 @@ sub PDL::Graphics::TriD::Trigrid::gdraw {
   glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
   my $f = 'PDL::gl_triangles';
   my $send_normals = $this->{Options}{Smooth} && $this->{Options}{Shading};
-  $f .= '_' . ($send_normals ? 'w' : '') . 'n_mat' if $this->{Options}{Shading};
+  $f .= '_' . ($send_normals ? 'w' : '') . 'n' if $this->{Options}{Shading};
   { no strict 'refs'; $f = \&$f; }
   my $tmpn = $send_normals
     ? $this->{VertexNormals}->dice_axis(1,$this->{Faceidx}->flat)
                   ->splitdim(1,$this->{Faceidx}->dim(0)) : undef;
+  if ($this->{Options}{Shading}) { glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE); glEnable(GL_COLOR_MATERIAL); }
   $f->(map $_->mv(1,-1)->dog, $faces, $send_normals ? $tmpn : (), $colours);
+  if ($this->{Options}{Shading}) { glDisable(GL_COLOR_MATERIAL); }
   if ($this->{Options}{ShowNormals}) {
     die "No normals to show!" if !grep defined $this->{$_}, qw(FaceNormals VertexNormals);
     if (defined $this->{VertexNormals}) {
