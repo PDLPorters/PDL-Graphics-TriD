@@ -145,7 +145,12 @@ sub new {
   my $this = $type->SUPER::new($points,$colors,$options);
   # faceidx is 2D pdl of indices into points for each face
   $this->{Faceidx} = $faceidx->ulong;
-  $this->{VertexNormals} = $this->smoothn($points->dice_axis(1,$faceidx->flat)->splitdim(1,3)) if $this->{Options}{Smooth};
+  $options = $this->{Options};
+  if ($options->{Shading} or $options->{ShowNormals}) {
+    my ($fn, $vn) = triangle_normals($this->{Points}, $faceidx);
+    $this->{VertexNormals} = $vn if $options->{Smooth} or $options->{ShowNormals};
+    $this->{FaceNormals} = $fn if !$options->{Smooth} or $options->{ShowNormals};
+  }
   $this;
 }
 sub get_valid_options { +{
@@ -157,12 +162,6 @@ sub get_valid_options { +{
   Lighting => 1,
 }}
 sub cdummies { $_[1]->dummy(1,$_[2]->getdim(1)); }
-sub smoothn { my ($this, $faces) = @_;
-  my ($points, $faceidx) = @$this{qw(Points Faceidx)};
-  my ($fn, $vn) = triangle_normals($this->{Points}, $faceidx);
-  $this->{FaceNormals} = $fn if $this->{Options}{ShowNormals};
-  $vn;
-}
 
 package PDL::Graphics::TriD::Lattice;
 use base qw/PDL::Graphics::TriD::GObject/;
