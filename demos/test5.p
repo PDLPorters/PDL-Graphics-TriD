@@ -22,15 +22,15 @@ my @objs = (
   ['Lattice', {Shading=>3, Lighting => 1, Smooth=>1}],
 );
 my $i = 0;
-@objs = map [$i++, @$_], @objs;
-my ($below_obj, $above_obj) = map [$_, 'Lines'], -1, 0+@objs;
+@objs = map mk_trid($i++, @$_), @objs;
+my ($below_obj, $above_obj) = map mk_trid($_, 'Lines'), -1, 0+@objs;
 
 sub mk_trid { "PDL::Graphics::TriD::$_[1]"->new($y+pdl(0,0,$_[0]),$c,$_[2]) }
 
 my $win = PDL::Graphics::TriD::get_current_window();
 my $g = PDL::Graphics::TriD::Graph->new;
-my @all = [map mk_trid(@$_), $below_obj, @objs, $above_obj];
-push @all, map [map mk_trid(@$_), $below_obj, $_, $above_obj], @objs;
+my @all = [$below_obj, @objs, $above_obj];
+push @all, map [$below_obj, $_, $above_obj], @objs;
 for my $these (@all) {
   $g->clear_data;
   $win->clear_viewport;
