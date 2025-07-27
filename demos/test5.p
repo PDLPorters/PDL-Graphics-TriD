@@ -19,7 +19,7 @@ my @objs = (
   ['Lattice', {Shading=>1}],
   ['Lattice', {Shading=>2}],
   ['Lattice', {Shading=>3, Lighting => 1}],
-  ['Lattice', {Shading=>3, Lighting => 1, Smooth=>1}],
+  ['Lattice', {Shading=>3, Lighting => 1, ShowNormals => 1, Smooth=>1}],
 );
 my $i = 0;
 @objs = map mk_trid($i++, @$_), @objs;
