@@ -192,7 +192,8 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
   my($this,$points) = @_;
   barf "Need 3D points AND colours"
     if grep $_->ndims < 3, $points, $this->{Colors};
-  my $shading = $_[0]{Options}{Shading};
+  my $options = $this->{Options};
+  my $shading = $options->{Shading};
   if ($shading == 0) {
     $this->_lattice_lines($points,$this->{Colors});
   } else {
@@ -205,7 +206,7 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
     if ($shading > 2) { glDisable(GL_COLOR_MATERIAL); }
     $this->_lattice_lines($points) if $this->{Options}{Lines};
   }
-  if ($this->{Options}{ShowNormals}) {
+  if ($options->{ShowNormals}) {
     die "No normals to show!" if !defined $this->{VertexNormals};
     my $arrows = $points->append($points + $this->{VertexNormals}*0.1)->splitdim(0,3);
     glDisable(GL_LIGHTING);
