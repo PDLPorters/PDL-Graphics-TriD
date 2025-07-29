@@ -119,21 +119,17 @@ for(
 {Name => 'gl_triangles'},
 {Name => 'gl_triangles_n',
  NormalInit => '
-	tmp1[0] = $coordsb(tri => 0) - $coordsa(tri => 0);
-	tmp1[1] = $coordsb(tri => 1) - $coordsa(tri => 1);
-	tmp1[2] = $coordsb(tri => 2) - $coordsa(tri => 2);
-	tmp2[0] = $coordsc(tri => 0) - $coordsa(tri => 0);
-	tmp2[1] = $coordsc(tri => 1) - $coordsa(tri => 1);
-	tmp2[2] = $coordsc(tri => 2) - $coordsa(tri => 2);
-        tmp3[0] = tmp1[1]*tmp2[2] - tmp2[1]*tmp1[2];
-        tmp3[1] = -(tmp1[0]*tmp2[2] - tmp2[0]*tmp1[2]);
-        tmp3[2] = tmp1[0]*tmp2[1] - tmp2[0]*tmp1[1];
-        magn = sqrtf(tmp3[0]*tmp3[0] + tmp3[1]*tmp3[1] + tmp3[2]*tmp3[2]);
-        tmp3[0] = tmp3[0] / magn;
-        tmp3[1] = tmp3[1] / magn;
-        tmp3[2] = tmp3[2] / magn;',
+  loop(tri) %{
+    tmp0_1[tri] = $coordsb() - $coordsa();
+    tmp0_2[tri] = $coordsc() - $coordsa();
+  %}
+  tmpcross[0] = tmp0_1[1]*tmp0_2[2] - tmp0_2[1]*tmp0_1[2];
+  tmpcross[1] = -(tmp0_1[0]*tmp0_2[2] - tmp0_2[0]*tmp0_1[2]);
+  tmpcross[2] = tmp0_1[0]*tmp0_2[1] - tmp0_2[0]*tmp0_1[1];
+  magn = sqrtf(tmpcross[0]*tmpcross[0] + tmpcross[1]*tmpcross[1] + tmpcross[2]*tmpcross[2]);
+  loop(tri) %{ tmpcross[tri] /= magn; %}',
  NormalCodeA => '
-	glNormal3f(tmp3[0], tmp3[1], tmp3[2]);
+  glNormal3f(tmpcross[0], tmpcross[1], tmpcross[2]);
  '
 },
 {Name => 'gl_triangles_wn',
@@ -143,26 +139,25 @@ for(
 # This may be suboptimal but should still be fast enough..
 # We only do triangles with this.
 pp_def(
-	$_->{Name},
-	GenericTypes => $F,
-	Pars => 'coordsa(tri=3); coordsb(tri); coordsc(tri);'.
-		 ($_->{NormalArgs}//'').
-		'colorsa(tri); colorsb(tri); colorsc(tri);',
-	Code => '
-		float tmp1[3], tmp2[3], tmp3[3], magn;
-		glBegin(GL_TRIANGLES);
-		broadcastloop %{'.
-			($_->{NormalInit}//"\n").
-			($_->{NormalCodeA}//'').
-			COLOR("a").VERTEX("a").
-			($_->{NormalCodeB}//'').
-			COLOR("b").VERTEX("b").
-			($_->{NormalCodeC}//'').
-			COLOR("c").VERTEX("c").'
-		%}
-		glEnd();
-		',
-		@internal
+  $_->{Name},
+  GenericTypes => $F,
+  Pars => 'coordsa(tri=3); coordsb(tri); coordsc(tri);'.
+           ($_->{NormalArgs}//'').
+          'colorsa(tri); colorsb(tri); colorsc(tri);',
+  Code => '
+float tmp0_1[3], tmp0_2[3], tmpcross[3], magn;
+glBegin(GL_TRIANGLES);
+broadcastloop %{'.
+  ($_->{NormalInit}//"\n").
+  ($_->{NormalCodeA}//'').
+  COLOR("a").VERTEX("a").
+  ($_->{NormalCodeB}//'').
+  COLOR("b").VERTEX("b").
+  ($_->{NormalCodeC}//'').
+  COLOR("c").VERTEX("c").'
+%}
+glEnd();',
+  @internal
 );
 }
 
