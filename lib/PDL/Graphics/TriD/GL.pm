@@ -194,24 +194,39 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
     if grep $_->ndims < 3, $points, $this->{Colors};
   my $options = $this->{Options};
   my $shading = $options->{Shading};
+  my $faces = !defined $this->{Faceidx} ? undef : $points->clump(1..$points->ndims-1)->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
+  my $colours = !defined $this->{Faceidx} ? undef : $this->{Colors}->clump(1..$this->{Colors}->ndims-1)->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
   if ($shading == 0) {
     $this->_lattice_lines($points,$this->{Colors});
   } else {
     glShadeModel($shading == 1 ? GL_FLAT : GL_SMOOTH);
     my $f = 'PDL::gl_triangles';
-    $f .= '_' . ($this->{Options}{Smooth} ? 'w' : '') . 'n' if $shading > 2;
+    $f .= '_wn' if $shading > 2;
     { no strict 'refs'; $f = \&$f; }
     if ($shading > 2) { glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE); glEnable(GL_COLOR_MATERIAL); }
-    _lattice_slice($f, $points, $this->{Options}{Smooth} ? $this->{VertexNormals} : (), $this->{Colors});
+    my $tmpn = $shading <= 2 ? undef : $options->{Smooth}
+      ? $this->{VertexNormals}->dice_axis(1,$this->{Faceidx}->flat)
+                    ->splitdim(1,$this->{Faceidx}->dim(0)) : $this->{FaceNormals}->dummy(1,3);
+    $f->(map $_->mv(1,-1)->dog, $faces, $shading > 2 ? $tmpn : (), $colours);
     if ($shading > 2) { glDisable(GL_COLOR_MATERIAL); }
-    $this->_lattice_lines($points) if $this->{Options}{Lines};
+    $this->_lattice_lines($points) if $options->{Lines};
   }
   if ($options->{ShowNormals}) {
-    die "No normals to show!" if !defined $this->{VertexNormals};
-    my $arrows = $points->append($points + $this->{VertexNormals}*0.1)->splitdim(0,3);
-    glDisable(GL_LIGHTING);
-    glColor3d(1,1,1);
-    PDL::Graphics::OpenGLQ::gl_arrows($arrows, 0, 1, 0.5, 0.02);
+    die "No normals to show!" if !grep defined $this->{$_}, qw(FaceNormals VertexNormals);
+    if (defined $this->{VertexNormals}) {
+      my $points_clumped = $points->clump(1..$points->ndims-1);
+      my $arrows = $points_clumped->append($points_clumped + $this->{VertexNormals}*0.1)->splitdim(0,3);
+      glDisable(GL_LIGHTING);
+      glColor3d(1,1,1);
+      PDL::Graphics::OpenGLQ::gl_arrows($arrows, 0, 1, 0.5, 0.02);
+    }
+    if (defined $this->{FaceNormals}) {
+      my $facecentres = $faces->transpose->avgover;
+      my $facearrows = $facecentres->append($facecentres + $this->{FaceNormals}*0.1)->splitdim(0,3);
+      glDisable(GL_LIGHTING);
+      glColor3d(0.5,0.5,0.5);
+      PDL::Graphics::OpenGLQ::gl_arrows($facearrows, 0, 1, 0.5, 0.02);
+    }
   }
 }
 

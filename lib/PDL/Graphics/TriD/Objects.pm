@@ -163,9 +163,13 @@ sub get_valid_options { +{
 }}
 sub cdummies { $_[1]->dummy(1,$_[2]->getdim(1)); }
 
+# lattice -> triangle vertices:
+# 4  5  6  7  ->  formula: origin coords + sequence of orig size minus top+right
+# 0  1  2  3      4,0,1,1,5,4  5,1,2,2,6,5    6,2,3,3,7,6
 package PDL::Graphics::TriD::Lattice;
+use PDL::Graphics::OpenGLQ;
 use base qw/PDL::Graphics::TriD::GObject/;
-use fields qw/VertexNormals/;
+use fields qw/VertexNormals Faceidx FaceNormals/;
 sub cdummies {
   my $shading = $_[0]{Options}{Shading};
   !$shading ? $_[1]->dummy(1)->dummy(1) :
@@ -184,34 +188,18 @@ sub get_valid_options { +{
 sub new {
   my ($class,$points,$colors,$options) = @_;
   my $this = $class->SUPER::new($points,$colors,$options);
-  $this->{VertexNormals} //= $this->smoothn($this->{Points}) if $this->{Options}{Smooth};
+  ($points, $options) = @$this{qw(Points Options)};
+  if ($options->{Shading} or $options->{ShowNormals}) {
+    my (undef, $x, $y, @extradims) = $points->dims;
+    my $inds = PDL::ulong(0,1,$x,$x+1,$x,1)->slice(',*'.($x-1).',*'.($y-1));
+    $inds = $inds->dupN(1,1,@extradims) if @extradims;
+    my $indadd = PDL->sequence($x,$y,@extradims)->slice('*1,:-2,:-2');
+    my $faceidx = $this->{Faceidx} = ($inds + $indadd)->splitdim(0,3)->clump(1..3+@extradims);
+    my ($fn, $vn) = triangle_normals($points->clump(1..2+@extradims), $faceidx);
+    $this->{VertexNormals} = $vn if $options->{Smooth} or $options->{ShowNormals};
+    $this->{FaceNormals} = $fn if !$options->{Smooth} or $options->{ShowNormals};
+  }
   $this;
-}
-# calculate smooth normals
-sub smoothn {
-  my ($this,$p) = @_;
-  # coords of parallel sides (left and right via 'lags')
-  my $trip = $p->lags(1,1,2)->slice(':,:,:,1:-1') -
-		$p->lags(1,1,2)->slice(':,:,:,0:-2');
-  # coords of diagonals with dim 2 having original and reflected diags
-  my $trid = ($p->slice(':,0:-2,1:-1')-$p->slice(':,1:-1,0:-2'))
-		    ->dummy(2,2);
-  # $ortho is a (3D,x-1,left/right triangle,y-1) array that enumerates
-  # all triangles
-  my $ortho = $trip->crossp($trid);
-  $ortho->norm($ortho); # normalise inplace
-  # now add to vertices to smooth
-  my $aver = ref($p)->zeroes(PDL::float(), $p->dims);
-  # step 1, upper right tri0, upper left tri1
-  $aver->lags(1,1,2)->slice(':,:,:,1:-1') += $ortho;
-  # step 2, lower right tri0, lower left tri1
-  $aver->lags(1,1,2)->slice(':,:,:,0:-2') += $ortho;
-  # step 3, upper left tri0
-  $aver->slice(':,0:-2,1:-1') += $ortho->slice(':,:,(0)');
-  # step 4, lower right tri1
-  $aver->slice(':,1:-1,0:-2') += $ortho->slice(':,:,(1)');
-  $aver->norm($aver);
-  return $aver;
 }
 
 1;
