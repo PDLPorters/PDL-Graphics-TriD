@@ -117,21 +117,6 @@ pp_def(
 
 for(
 {Name => 'gl_triangles'},
-{Name => 'gl_triangles_n',
- NormalInit => '
-  loop(tri) %{
-    tmp0_1[tri] = $coordsb() - $coordsa();
-    tmp0_2[tri] = $coordsc() - $coordsa();
-  %}
-  tmpcross[0] = tmp0_1[1]*tmp0_2[2] - tmp0_2[1]*tmp0_1[2];
-  tmpcross[1] = -(tmp0_1[0]*tmp0_2[2] - tmp0_2[0]*tmp0_1[2]);
-  tmpcross[2] = tmp0_1[0]*tmp0_2[1] - tmp0_2[0]*tmp0_1[1];
-  magn = sqrtf(tmpcross[0]*tmpcross[0] + tmpcross[1]*tmpcross[1] + tmpcross[2]*tmpcross[2]);
-  loop(tri) %{ tmpcross[tri] /= magn; %}',
- NormalCodeA => '
-  glNormal3f(tmpcross[0], tmpcross[1], tmpcross[2]);
- '
-},
 {Name => 'gl_triangles_wn',
  NormalArgs => 'norma(tri); normb(tri); normc(tri);',
  (map +("NormalCode$_"=>NORMAL(lc $_)), 'A'..'C'),
