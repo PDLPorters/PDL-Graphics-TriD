@@ -77,7 +77,7 @@ sub RPOS { make_tri("glRasterPos3f",'$coords',@_) }
 
 sub make_func {
   my ($name) = @_;
-  for (['_col', ' colors(tri,n);', COLOR().VERTEX()], ['_nc', '', VERTEX()]) {
+  for (['_col', ' colors(tri=3,n);', COLOR().VERTEX()], ['_nc', '', VERTEX()]) {
     pp_def(lc($name).$_->[0],
       GenericTypes => $F,
       Pars => 'coords(tri=3,n);'.$_->[1],
@@ -96,7 +96,7 @@ make_func($_) for qw(gl_line_strip gl_lines gl_points);
 pp_def(
   'gl_texts',
   GenericTypes => $F,
-  Pars => 'coords(tri,x); ',
+  Pars => 'coords(tri=3,x); ',
   OtherPars => 'SV *arr',
   CHeader => "void pdl_3d_bitmapString( const unsigned char *string );\n",
   Code => '
