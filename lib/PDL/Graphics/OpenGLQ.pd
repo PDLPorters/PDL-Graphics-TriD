@@ -130,7 +130,6 @@ pp_def(
            ($_->{NormalArgs}//'').
           'colorsa(tri); colorsb(tri); colorsc(tri);',
   Code => '
-float tmp0_1[3], tmp0_2[3], tmpcross[3], magn;
 glBegin(GL_TRIANGLES);
 broadcastloop %{'.
   ($_->{NormalInit}//"\n").
