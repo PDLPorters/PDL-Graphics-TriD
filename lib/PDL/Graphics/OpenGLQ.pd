@@ -68,7 +68,12 @@ pp_def(
   @internal
 );
 
-sub TRI { my $par = join '', @_; join ',', map "$par(tri => $_)", 0..2 }
+sub TRI {
+  my ($par, $suffix) = @_;
+  $par .= $suffix if $suffix && !ref $suffix;
+  my $extra_arg = ref $suffix ? "trivert => $$suffix," : '';
+  join ',', map "$par(${extra_arg}tri => $_)", 0..2;
+}
 sub make_tri { shift()."(".TRI(@_).");\n" }
 sub COLOR { make_tri("glColor3f",'$colors',@_) }
 sub VERTEX { make_tri("glVertex3f",'$coords',@_) }
@@ -128,17 +133,17 @@ pp_def(
   GenericTypes => $F,
   Pars => 'coordsa(tri=3); coordsb(tri); coordsc(tri);'.
            ($_->{NormalArgs}//'').
-          'colorsa(tri); colorsb(tri); colorsc(tri);',
+          'colors(tri,trivert=3)',
   Code => '
 glBegin(GL_TRIANGLES);
 broadcastloop %{'.
   ($_->{NormalInit}//"\n").
   ($_->{NormalCodeA}//'').
-  COLOR("a").VERTEX("a").
+  COLOR(\0).VERTEX("a").
   ($_->{NormalCodeB}//'').
-  COLOR("b").VERTEX("b").
+  COLOR(\1).VERTEX("b").
   ($_->{NormalCodeC}//'').
-  COLOR("c").VERTEX("c").'
+  COLOR(\2).VERTEX("c").'
 %}
 glEnd();',
   @internal
