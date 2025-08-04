@@ -123,8 +123,8 @@ pp_def(
 for(
 {Name => 'gl_triangles'},
 {Name => 'gl_triangles_wn',
- NormalArgs => 'norma(tri); normb(tri); normc(tri);',
- (map +("NormalCode$_"=>NORMAL(lc $_)), 'A'..'C'),
+ NormalArgs => 'norm(tri,trivert=3); ',
+ (map +("NormalCode$_"=>NORMAL(\$_)), 0..2),
 }) {
 # This may be suboptimal but should still be fast enough..
 # We only do triangles with this.
@@ -137,12 +137,11 @@ pp_def(
   Code => '
 glBegin(GL_TRIANGLES);
 broadcastloop %{'.
-  ($_->{NormalInit}//"\n").
-  ($_->{NormalCodeA}//'').
+  ($_->{NormalCode0}//'').
   COLOR(\0).VERTEX("a").
-  ($_->{NormalCodeB}//'').
+  ($_->{NormalCode1}//'').
   COLOR(\1).VERTEX("b").
-  ($_->{NormalCodeC}//'').
+  ($_->{NormalCode2}//'').
   COLOR(\2).VERTEX("c").'
 %}
 glEnd();',

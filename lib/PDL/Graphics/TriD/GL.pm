@@ -207,7 +207,7 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
     my $tmpn = $shading <= 2 ? undef : $options->{Smooth}
       ? $this->{VertexNormals}->dice_axis(1,$this->{Faceidx}->flat)
                     ->splitdim(1,$this->{Faceidx}->dim(0)) : $this->{FaceNormals}->dummy(1,3);
-    $f->((map $_->mv(1,-1)->dog, $faces, $shading > 2 ? $tmpn : ()), $colours);
+    $f->((map $_->mv(1,-1)->dog, $faces), $shading > 2 ? $tmpn : (), $colours);
     if ($shading > 2) { glDisable(GL_COLOR_MATERIAL); }
     $this->_lattice_lines($points) if $options->{Lines};
   }
@@ -276,7 +276,7 @@ sub PDL::Graphics::TriD::Trigrid::gdraw {
     ? $this->{VertexNormals}->dice_axis(1,$this->{Faceidx}->flat)
                   ->splitdim(1,$this->{Faceidx}->dim(0)) : $this->{FaceNormals}->dummy(1,3);
   if ($options->{Shading}) { glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE); glEnable(GL_COLOR_MATERIAL); }
-  $f->((map $_->mv(1,-1)->dog, $faces, $options->{Shading} ? $tmpn : ()), $colours);
+  $f->((map $_->mv(1,-1)->dog, $faces), $options->{Shading} ? $tmpn : (), $colours);
   if ($options->{Shading}) { glDisable(GL_COLOR_MATERIAL); }
   if ($options->{ShowNormals}) {
     die "No normals to show!" if !grep defined $this->{$_}, qw(FaceNormals VertexNormals);
