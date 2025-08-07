@@ -40,6 +40,19 @@ pp_addhdr('
 #else
 #include <GL/gl.h>
 #endif
+
+#define PDL_3D_CROSS(to, v1, v2) \
+  { \
+    to[0] = v1[1]*v2[2] - v2[1]*v1[2]; \
+    to[1] = -(v1[0]*v2[2] - v2[0]*v1[2]); \
+    to[2] = v1[0]*v2[1] - v2[0]*v1[1]; \
+  }
+#define PDL_3D_UNITISE(v, factor) \
+  { \
+    float len = sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]); \
+    int i; \
+    for (i = 0; i < 3; i++) v[i] *= factor/len; \
+  }
 ');
 
 my @internal = (Doc => 'internal', NoPthread => 1);
@@ -161,26 +174,16 @@ broadcastloop %{
   float tmp1[3];
   float norm[3];
   float norm2[3];
-  float normlen,origlen,norm2len;
   float partback[3];
   loop(tri) %{
     tmp1[tri] = $coords(n => a) - $coords(n => b);
     partback[tri] = $coords(n => b) + hl*tmp1[tri];
   %}
-  norm[0] = tmp1[1]*tmp2[2] - tmp2[1]*tmp1[2];
-  norm[1] = -(tmp1[0]*tmp2[2] - tmp2[0]*tmp1[2]);
-  norm[2] = tmp1[0]*tmp2[1] - tmp2[0]*tmp1[1];
-  norm2[0] = tmp1[1]*norm[2] - norm[1]*tmp1[2];
-  norm2[1] = -(tmp1[0]*norm[2] - norm[0]*tmp1[2]);
-  norm2[2] = tmp1[0]*norm[1] - norm[0]*tmp1[1];
-  normlen = sqrtf(norm[0] * norm[0] + norm[1] * norm[1] + norm[2] * norm[2]);
-  norm2len = sqrtf(norm2[0] * norm2[0] + norm2[1] * norm2[1] + norm2[2] * norm2[2]);
-  origlen = sqrtf(tmp1[0] * tmp1[0] + tmp1[1] * tmp1[1] + tmp1[2] * tmp1[2]);
-  loop(tri) %{
-    norm[tri] *= w/normlen;
-    norm2[tri] *= w/norm2len;
-    tmp1[tri] /= origlen;
-  %}
+  PDL_3D_CROSS(norm, tmp1, tmp2);
+  PDL_3D_CROSS(norm2, tmp1, norm);
+  PDL_3D_UNITISE(norm, w);
+  PDL_3D_UNITISE(norm2, w);
+  PDL_3D_UNITISE(tmp1, 1);
   glBegin(GL_LINES);
   glVertex3d( $coords(tri => 0, n => a) ,
               $coords(tri => 1, n => a) ,
@@ -240,7 +243,7 @@ pp_def('triangle_normals',
   Code => <<'EOF',
 loop(v,tri) %{ $vertnorm() = 0.0f; %}
 loop(f) %{
-  float tmp0_1[3], tmp0_2[3], tmpcross[3], magn;
+  float tmp0_1[3], tmp0_2[3], tmpcross[3];
   PDL_ULong vertidx[3];
   loop(trivert) %{
     if ((vertidx[trivert] = $faceidx()) >= $SIZE(v))
@@ -250,11 +253,9 @@ loop(f) %{
     tmp0_1[tri] = $vertices(v => vertidx[1]) - $vertices(v => vertidx[0]);
     tmp0_2[tri] = $vertices(v => vertidx[2]) - $vertices(v => vertidx[0]);
   %}
-  tmpcross[0] = tmp0_1[1]*tmp0_2[2] - tmp0_2[1]*tmp0_1[2];
-  tmpcross[1] = -(tmp0_1[0]*tmp0_2[2] - tmp0_2[0]*tmp0_1[2]);
-  tmpcross[2] = tmp0_1[0]*tmp0_2[1] - tmp0_2[0]*tmp0_1[1];
-  magn = sqrtf(tmpcross[0]*tmpcross[0] + tmpcross[1]*tmpcross[1] + tmpcross[2]*tmpcross[2]);
-  loop(tri) %{ $facenorm() = tmpcross[tri] / magn; %}
+  PDL_3D_CROSS(tmpcross, tmp0_1, tmp0_2);
+  PDL_3D_UNITISE(tmpcross, 1);
+  loop(tri) %{ $facenorm() = tmpcross[tri]; %}
   loop(trivert,tri) %{ $vertnorm(v=>vertidx[trivert]) += $facenorm(); %}
 %}
 loop(v) %{
