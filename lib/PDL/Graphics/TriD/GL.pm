@@ -160,24 +160,6 @@ sub PDL::Graphics::TriD::Spheres::gdraw {
    PDL::gl_spheres($points, 0.025, 15, 15);
 }
 
-my @sls1 = (
-  ":,0:-2,0:-2",
-  ":,1:-1,0:-2",
-  ":,0:-2,1:-1");
-my @sls2 = (
-  ":,1:-1,1:-1",
-  ":,0:-2,1:-1",
-  ":,1:-1,0:-2");
-sub _lattice_slice {
-  my ($f, @pdls) = @_;
-  for my $s (\@sls1, \@sls2) {
-    my @args;
-    for my $p (@pdls) {
-      push @args, map $p->slice($_), @$s;
-    }
-    &$f(@args);
-  }
-}
 sub PDL::Graphics::TriD::GObject::_lattice_lines {
   my ($this, $points, $colors) = @_;
   glDisable(GL_LIGHTING);
