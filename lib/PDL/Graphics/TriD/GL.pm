@@ -163,11 +163,8 @@ sub PDL::Graphics::TriD::Spheres::gdraw {
 sub PDL::Graphics::TriD::GObject::_lattice_lines {
   my ($this, $points, $colors) = @_;
   glDisable(GL_LIGHTING);
-  glColor3f(0,0,0);
-  my $f = 'PDL::gl_line_strip_' . (!defined $colors ? 'nc' : 'col');
-  { no strict 'refs'; $f = \&$f; }
-  $f->($points, !defined $colors ? () : $colors);
-  $f->($points->xchg(1,2), !defined $colors ? () : $colors->xchg(1,2));
+  PDL::gl_line_strip_col($points, !defined $colors ? [0,0,0] : $colors);
+  PDL::gl_line_strip_col($points->xchg(1,2), !defined $colors ? [0,0,0] : $colors->xchg(1,2));
 }
 
 sub PDL::Graphics::TriD::Lattice::gdraw {
