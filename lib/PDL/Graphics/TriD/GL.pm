@@ -160,13 +160,6 @@ sub PDL::Graphics::TriD::Spheres::gdraw {
    PDL::gl_spheres($points, 0.025, 15, 15);
 }
 
-sub PDL::Graphics::TriD::GObject::_lattice_lines {
-  my ($this, $points, $colors) = @_;
-  glDisable(GL_LIGHTING);
-  PDL::gl_line_strip_col($points, !defined $colors ? [0,0,0] : $colors);
-  PDL::gl_line_strip_col($points->xchg(1,2), !defined $colors ? [0,0,0] : $colors->xchg(1,2));
-}
-
 sub PDL::Graphics::TriD::Lattice::gdraw {
   my($this,$points) = @_;
   barf "Need 3D points AND colours"
@@ -175,9 +168,7 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
   my $shading = $options->{Shading};
   my $faces = !defined $this->{Faceidx} ? undef : $points->clump(1..$points->ndims-1)->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
   my $colours = !defined $this->{Faceidx} ? undef : $this->{Colors}->clump(1..$this->{Colors}->ndims-1)->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
-  if ($shading == 0) {
-    $this->_lattice_lines($points,$this->{Colors});
-  } else {
+  if ($shading) {
     glShadeModel($shading == 1 ? GL_FLAT : GL_SMOOTH);
     my $f = 'PDL::gl_triangles';
     $f .= '_wn' if $shading > 2;
@@ -188,7 +179,11 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
                     ->splitdim(1,$this->{Faceidx}->dim(0)) : $this->{FaceNormals}->dummy(1,3);
     $f->($faces, $shading > 2 ? $tmpn : (), $colours);
     if ($shading > 2) { glDisable(GL_COLOR_MATERIAL); }
-    $this->_lattice_lines($points) if $options->{Lines};
+  }
+  if ($shading == 0 or $options->{Lines}) {
+    glDisable(GL_LIGHTING);
+    PDL::gl_line_strip_col($points, $shading ? [0,0,0] : $this->{Colors});
+    PDL::gl_line_strip_col($points->xchg(1,2), $shading ? [0,0,0] : $this->{Colors}->xchg(1,2));
   }
   if ($options->{ShowNormals}) {
     die "No normals to show!" if !grep defined $this->{$_}, qw(FaceNormals VertexNormals);
