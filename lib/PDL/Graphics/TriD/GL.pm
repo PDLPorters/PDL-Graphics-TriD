@@ -111,7 +111,7 @@ sub PDL::Graphics::TriD::EuclidAxes::gdraw {
   push @label, @{$this->{Names}};
   glColor3d(1,1,1);
   PDL::Graphics::OpenGLQ::gl_texts($this->{EndsPlus}, \@label);
-  PDL::gl_lines_nc($points);
+  PDL::gl_line_strip_col($points, [1,1,1]);
 }
 
 use POSIX qw//;
@@ -269,8 +269,7 @@ sub PDL::Graphics::TriD::Trigrid::gdraw {
     }
   }
   if ($options->{Lines}) {
-    glColor3f(0,0,0);
-    PDL::gl_lines_nc($faces->dice_axis(1,[0,1,2,0]));
+    PDL::gl_lines_col($faces->dice_axis(1,[0,1,2,0]), [0,0,0]);
   }
 }
 
@@ -571,8 +570,7 @@ sub highlight {
   glLoadIdentity();
   glOrtho(0,$vp->{W},0,$vp->{H},-1,1);
   glLineWidth(4);
-  glColor3f(1,1,1);
-  gl_line_strip_nc($pts);
+  gl_line_strip_col($pts, [1,1,1]);
   glLineWidth(1);
   glEnable(GL_LIGHTING);
 }
