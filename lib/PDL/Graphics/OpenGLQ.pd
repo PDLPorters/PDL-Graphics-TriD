@@ -95,7 +95,7 @@ sub RPOS { make_tri("glRasterPos3f",'$coords',@_) }
 
 sub make_func {
   my ($name) = @_;
-  for (['_col', ' colors(tri=3,n);', COLOR().VERTEX()], ['_nc', '', VERTEX()]) {
+  for (['_col', ' colors(tri=3,n);', COLOR().VERTEX()]) {
     pp_def(lc($name).$_->[0],
       GenericTypes => $F,
       Pars => 'coords(tri=3,n);'.$_->[1],
