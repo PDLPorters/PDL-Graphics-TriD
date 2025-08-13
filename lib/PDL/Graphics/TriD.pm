@@ -635,14 +635,13 @@ your own risk.
 The syntax C<PDL::Graphics::TriD::Quaternion(c,x,y,z)> here means that you create
 an object like
 
-	$c = PDL::Graphics::TriD::QuaternionScale->new($c,$x,$y,$z);
+	$c = PDL::Graphics::TriD::Quaternion->new($c,$x,$y,$z);
 
 =head2 PDL::Graphics::TriD::LineStrip
 
 This is just a line or a set of lines. The arguments are 3 1-or-more-D
 ndarrays which describe the vertices of a continuous line and an
-optional color ndarray (which is 1-D also and simply
-defines the color between red and blue. This will probably change).
+optional color ndarray.
 
 =head2 PDL::Graphics::TriD::Lines
 
