@@ -111,7 +111,7 @@ sub PDL::Graphics::TriD::EuclidAxes::gdraw {
   push @label, @{$this->{Names}};
   glColor3d(1,1,1);
   PDL::Graphics::OpenGLQ::gl_texts($this->{EndsPlus}, \@label);
-  PDL::gl_line_strip_col($points, [1,1,1]);
+  PDL::gl_lines_col($points, [1,1,1]);
 }
 
 use POSIX qw//;
