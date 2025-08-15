@@ -35,14 +35,6 @@ use PDL::Graphics::OpenGLQ;
 use PDL::Graphics::TriD::Objects;
 use base qw/PDL::Graphics::TriD::GObject/;
 
-sub gdraw {
-	my ($this,$points) = @_;
-	glDisable(&GL_LIGHTING);
-	glColor3d(1,1,1);
-	PDL::Graphics::OpenGLQ::gl_texts($points,@{$this->{Options}}{qw(Strings)});
-	glEnable(&GL_LIGHTING);
-}
-
 sub get_valid_options {
   return {UseDefcols => 0, Strings => []}
 }

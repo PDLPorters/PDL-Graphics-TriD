@@ -35,15 +35,6 @@ use PDL::Graphics::TriD::Objects;
 use base qw/PDL::Graphics::TriD::GObject/;
 use OpenGL qw(:all);
 
-sub gdraw {
-	my($this,$points) = @_;
-	glDisable(&GL_LIGHTING);
-	glColor3d(@{$this->{Options}{Color}});
-	PDL::Graphics::OpenGLQ::gl_arrows($points,@{$this->{Options}}{qw(From To
-		ArrowLen ArrowWidth)});
-	glEnable(&GL_LIGHTING);
-}
-
 sub get_valid_options {
 	return {UseDefcols => 0,From => [],To => [],Color => [1,1,1],
 		ArrowWidth => 0.02, ArrowLen => 0.1}

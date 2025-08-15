@@ -114,6 +114,14 @@ sub PDL::Graphics::TriD::EuclidAxes::gdraw {
   PDL::gl_lines_col($points, [1,1,1]);
 }
 
+sub PDL::Graphics::TriD::Labels::gdraw {
+  my ($this,$points) = @_;
+  glDisable(GL_LIGHTING);
+  glColor3d(1,1,1);
+  PDL::Graphics::OpenGLQ::gl_texts($points,@{$this->{Options}}{qw(Strings)});
+  glEnable(GL_LIGHTING);
+}
+
 use POSIX qw//;
 sub PDL::Graphics::TriD::Quaternion::togl {
   my($this) = @_;
@@ -202,6 +210,15 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
       PDL::Graphics::OpenGLQ::gl_arrows($facearrows, 0, 1, 0.5, 0.02);
     }
   }
+}
+
+sub PDL::Graphics::TriD::MathGraph::gdraw {
+  my($this,$points) = @_;
+  glDisable(GL_LIGHTING);
+  glColor3d(@{$this->{Options}{Color}});
+  PDL::Graphics::OpenGLQ::gl_arrows($points,@{$this->{Options}}{qw(From To
+          ArrowLen ArrowWidth)});
+  glEnable(GL_LIGHTING);
 }
 
 sub PDL::Graphics::TriD::LineStrip::gdraw {
