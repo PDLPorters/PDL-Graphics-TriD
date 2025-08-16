@@ -118,7 +118,7 @@ sub changed {}
 
 package PDL::Graphics::TriD::EuclidAxes;
 our @ISA = qw/PDL::Graphics::TriD::GObject/;
-use fields qw/NDiv Names Scale EndsPlus/;
+use fields qw/NDiv Names Scale EndsPlus AxisVals AxisLabels/;
 use PDL;
 
 sub get_valid_options { +{
@@ -170,6 +170,8 @@ sub finish_scale {
   my ($min_big, $max_big, $shift) = map $_->dice_axis(0, $got_bigdiff), $min, $max, $diff;
   $shift = $shift * 0.05; # don't mutate
   $min_big -= $shift, $max_big += $shift;
+  my $axisvals = $this->{AxisVals} = zeroes(PDL::float(),3,$this->{NDiv}+1)->ylinvals($this->{Scale}->dog)->t->flat->t;
+  @{$this->{AxisLabels} ||= []} = map sprintf("%.3f", $_), @{ $axisvals->flat->unpdl };
 }
 
 # Add 0..1 to each axis.
