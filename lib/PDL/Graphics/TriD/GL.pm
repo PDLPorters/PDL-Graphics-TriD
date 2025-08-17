@@ -113,10 +113,8 @@ sub PDL::Graphics::TriD::EuclidAxes::gdraw {
 
 sub PDL::Graphics::TriD::Labels::gdraw {
   my ($this,$points) = @_;
-  glDisable(GL_LIGHTING);
   glColor3d(1,1,1);
   PDL::Graphics::OpenGLQ::gl_texts($points,@{$this->{Options}}{qw(Strings)});
-  glEnable(GL_LIGHTING);
 }
 
 use POSIX qw//;

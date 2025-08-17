@@ -202,4 +202,12 @@ sub new {
   $this;
 }
 
+package PDL::Graphics::TriD::Labels;
+use base qw/PDL::Graphics::TriD::GObject/;
+sub get_valid_options { +{
+  UseDefcols => 0,
+  Strings => [],
+  Lighting => 0,
+}}
+
 1;

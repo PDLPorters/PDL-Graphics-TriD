@@ -22,7 +22,6 @@ lib/PDL/Graphics/TriD/GL/GLUT.pm
 lib/PDL/Graphics/TriD/GL/GLX.pm
 lib/PDL/Graphics/TriD/Graph.pm
 lib/PDL/Graphics/TriD/Image.pm
-lib/PDL/Graphics/TriD/Labels.pm
 lib/PDL/Graphics/TriD/Logo.pm
 lib/PDL/Graphics/TriD/MathGraph.pm
 lib/PDL/Graphics/TriD/Object.pm
