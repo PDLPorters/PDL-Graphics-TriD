@@ -699,8 +699,24 @@ use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/X0 Y0 W H Transformer EHandler Active ResizeCommands 
               DefMaterial AspectRatio Graphs/;
 
+sub PDL::Graphics::TriD::Object::vrml_update {
+  my ($this) = @_;
+  require PDL::Graphics::VRML;
+  $this->{VRML} = PDL::Graphics::VRMLNode->new('Transform',
+                                   'translation' => "-1 -1 -1",
+                                   'scale' => "2 2 2");
+  $this->{ValidList} = 1;
+}
 
-
+sub PDL::Graphics::TriD::Object::tovrml {
+  my($this) = @_;
+  print ref($this)," valid=",$this->{ValidList}," tovrml\n";
+  if (!$this->{ValidList}) {
+    $this->vrml_update();
+  }
+  $this->{VRML}->add('children',
+    [map {$_->tovrml()} @{$this->{Objects}}]);
+}
 
 1;
 

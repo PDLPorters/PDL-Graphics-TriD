@@ -3,14 +3,13 @@ package PDL::Graphics::TriD::Object;
 use strict;
 use warnings;
 
-use fields qw(Objects ValidList ChangedSub List VRML);
+use fields qw(Objects ValidList ChangedSub List);
 
 $PDL::Graphics::TriD::verbose //= 0;
 
 sub new{
   my $class = shift;
   my $self = fields::new($class);
-
   $self;
 }
 
@@ -75,28 +74,5 @@ sub changed {
 	$this->{ValidList} = 0;
 	$_->($this) for @{$this->{ChangedSub}};
 }
-
-sub vrml_update {
-  my ($this) = @_;
-  use PDL::Graphics::VRML;
-
-  $this->{VRML} = PDL::Graphics::VRMLNode->new('Transform',
-				   'translation' => "-1 -1 -1",
-				   'scale' => "2 2 2");
-  $this->{ValidList} = 1;
-}
-
-sub tovrml {
-	my($this) = @_;
-
-   print ref($this)," valid=",$this->{ValidList}," tovrml\n";
-
-	if (!$this->{ValidList}) {
-	  $this->vrml_update();
-	}
-	$this->{VRML}->add('children',
-			   [map {$_->tovrml()} @{$this->{Objects}}]);
-}
-
 
 1;
