@@ -209,5 +209,9 @@ sub get_valid_options { +{
   Strings => [],
   Lighting => 0,
 }}
+sub set_labels {
+  my ($this, $array) = @_;
+  $this->{Options}{Strings} = $array;
+}
 
 1;
