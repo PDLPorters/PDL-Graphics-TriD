@@ -718,6 +718,22 @@ sub PDL::Graphics::TriD::Object::tovrml {
     [map {$_->tovrml()} @{$this->{Objects}}]);
 }
 
+sub PDL::Graphics::TriD::Quaternion::new_vrmlrot {
+  my($type,$x,$y,$z,$c) = @_;
+  my $l = sqrt($x**2+$y**2+$z**2);
+  my $this = bless [cos($c/2),map {sin($c/2)*$_/$l} $x,$y,$z],$type;
+  $this->normalise;
+}
+
+sub PDL::Graphics::TriD::Quaternion::to_vrmlrot {
+  my($this) = @_;
+  my $d = POSIX::acos($this->[0]);
+  if (abs($d) < 0.0000001) {
+    return [0,0,1,0];
+  }
+  return [(map {$_/sin($d)} @{$this}[1..3]),2*$d];
+}
+
 1;
 
 =head1 BUGS
