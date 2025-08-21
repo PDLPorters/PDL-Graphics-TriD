@@ -3,22 +3,39 @@ package PDL::Graphics::TriD::Object;
 use strict;
 use warnings;
 
-use fields qw(Objects ValidList ChangedSub List);
+use fields qw(Objects ValidList ChangedSub List Options);
 
 $PDL::Graphics::TriD::verbose //= 0;
 
-sub new{
+sub new {
+  my $options = ref($_[-1]) eq 'HASH' ? pop : {};
   my $class = shift;
   my $self = fields::new($class);
+  $self->{Options} = $options;
+  $self->check_options;
   $self;
 }
+
+sub check_options {
+  my ($this) = @_;
+  my $opts = $this->get_valid_options();
+  $this->{Options} = $opts, return if !$this->{Options};
+  print "FETCHOPT: $this ".(join ',',%$opts)."\n" if $PDL::Graphics::TriD::verbose;
+  my %newopts = (%$opts, %{$this->{Options}});
+  my @invalid = grep !exists $opts->{$_}, keys %newopts;
+  die "$this: invalid options left: @invalid" if @invalid;
+  $this->{Options} = \%newopts;
+}
+
+sub get_valid_options { +{
+  UseDefcols => 0,
+}}
 
 sub clear_objects {
 	my($this) = @_;
 	$this->{Objects} = [];
 	$this->{ValidList} = 0;
 }
-
 
 sub delete_object {
   my($this,$object) = @_;

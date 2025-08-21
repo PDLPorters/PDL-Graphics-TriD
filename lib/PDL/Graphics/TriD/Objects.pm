@@ -32,7 +32,8 @@ properly.  All the points used by the object must be in the member
 =head2 PDL::Graphics::TriD::GObject
 
 Inherits from base PDL::Graphics::TriD::Object and adds fields Points,
-Colors and Options.
+and Colors.
+It is for primitive objects rather than containers.
 
 =cut
 
@@ -40,38 +41,20 @@ package PDL::Graphics::TriD::GObject;
 use strict;
 use warnings;
 use base qw/PDL::Graphics::TriD::Object/;
-use fields qw/Points Colors Options/;
+use fields qw/Points Colors/;
 
 $PDL::Graphics::TriD::verbose //= 0;
 
 sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : {};
   my ($type,$points,$colors) = @_;
-  print "GObject new.. calling SUPER::new...\n" if $PDL::Graphics::TriD::verbose;
-  my $this = $type->SUPER::new();
-  print "GObject new - back (SUPER::new returned $this)\n" if $PDL::Graphics::TriD::verbose;
-  $options->{UseDefcols} = 1 if !defined $colors; # for VRML efficiency
-  $this->{Options} = $options;
-  $this->check_options;
-  print "GObject new - calling realcoords\n" if($PDL::Graphics::TriD::verbose);
+  my $this = $type->SUPER::new($options);
   $this->{Points} = $points = PDL::Graphics::TriD::realcoords($type->r_type,$points);
-  print "GObject new - back from  realcoords\n" if($PDL::Graphics::TriD::verbose);
+  $this->{Options}{UseDefcols} = 1 if !defined $colors; # for VRML efficiency
   $this->{Colors} = defined $colors
     ? PDL::Graphics::TriD::realcoords("COLOR",$colors)
     : $this->cdummies(PDL->pdl(PDL::float(),1,1,1),$points);
-  print "GObject new - returning\n" if($PDL::Graphics::TriD::verbose);
-  return $this;
-}
-
-sub check_options {
-	my($this) = @_;
-	my $opts = $this->get_valid_options();
-	$this->{Options} = $opts, return if !$this->{Options};
-	print "FETCHOPT: $this ".(join ',',%$opts)."\n" if $PDL::Graphics::TriD::verbose;
-	my %newopts = (%$opts, %{$this->{Options}});
-	my @invalid = grep !exists $opts->{$_}, keys %newopts;
-	die "$this: invalid options left: @invalid" if @invalid;
-	$this->{Options} = \%newopts;
+  $this;
 }
 
 sub set_colors {
