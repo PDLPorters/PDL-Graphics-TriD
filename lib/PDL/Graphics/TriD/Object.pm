@@ -2,6 +2,7 @@ package PDL::Graphics::TriD::Object;
 
 use strict;
 use warnings;
+use Scalar::Util qw(weaken);
 
 use fields qw(Objects ValidList ChangedSub List Options);
 
@@ -48,9 +49,9 @@ sub delete_object {
   }
 }
 
-# XXXXXXXXX sub {} makes all these objects and this window immortal!
 sub add_object {
-  my($this,$object) = @_;
+  my ($this,$object) = @_;
+  weaken $this;
   push @{$this->{Objects}},$object;
   $this->{ValidList} = 0;
   for(@{$this->{ChangedSub}}) {
