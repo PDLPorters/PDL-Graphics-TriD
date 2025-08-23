@@ -103,14 +103,6 @@ sub PDL::Graphics::TriD::CylindricalEquidistantAxes::togl {
   glEnable(GL_LIGHTING);
 }
 
-sub PDL::Graphics::TriD::EuclidAxes::gdraw {
-  my ($this, $points) = @_;
-  print "gdraw: got object type " . ref($this) . "\n" if $PDL::Graphics::TriD::verbose;
-  glColor3d(1,1,1);
-  PDL::Graphics::OpenGLQ::gl_texts($this->{EndsPlus}, [map @{$this->{$_}}, qw(AxisLabels Names)]);
-  PDL::gl_lines_col($points, [1,1,1]);
-}
-
 sub PDL::Graphics::TriD::Labels::gdraw {
   my ($this,$points) = @_;
   glColor3d(1,1,1);

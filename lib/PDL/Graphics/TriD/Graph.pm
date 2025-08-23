@@ -117,12 +117,11 @@ sub set_default_axis {
 sub changed {}
 
 package PDL::Graphics::TriD::EuclidAxes;
-our @ISA = qw/PDL::Graphics::TriD::GObject/;
-use fields qw/NDiv Names Scale EndsPlus AxisVals AxisLabels/;
+use base qw/PDL::Graphics::TriD::Object/;
+use fields qw/NDiv Scale AxisLabelsObj/;
 use PDL;
 
 sub get_valid_options { +{
-  UseDefcols => 0,
   NDiv => 4,
   Names => [qw(X Y Z)],
   LineWidth => 1,
@@ -132,6 +131,8 @@ sub get_valid_options { +{
 sub new {
   my $class = $_[0];
   my $options = ref($_[-1]) eq 'HASH' ? pop : $class->get_valid_options;
+  my $this = $class->SUPER::new($options);
+  $options = $this->{Options};
   my $ndiv = $options->{NDiv};
   my $points = zeroes(PDL::float(),3,3)->append(my $id3 = identity(3));
   my $starts = zeroes(PDL::float(),1,$ndiv+1)->ylinvals(0,1)->append(zeroes(PDL::float(),2,$ndiv+1));
@@ -139,10 +140,10 @@ sub new {
   my $dupseq = yvals($ndiv+1,3)->flat;
   $_ = $_->dup(1,3)->rotate($dupseq) for $starts, $ends;
   $points = $points->glue(1, $starts->append($ends))->splitdim(0,3)->clump(1,2);
-  my $this = $class->SUPER::new($points, $options);
-  $this->{EndsPlus} = $ends->glue(1, $id3);
-  $this->{Names} = $options->{Names};
   $this->{NDiv} = $ndiv;
+  $this->add_object(PDL::Graphics::TriD::Lines->new($points, float(1,1,1)));
+  $this->add_object(PDL::Graphics::TriD::Labels->new($id3, float(1,1,1), {Strings=>$options->{Names}}));
+  $this->add_object($this->{AxisLabelsObj} = PDL::Graphics::TriD::Labels->new($ends, float(1,1,1), {Strings=>$options->{Names}}));
   $this;
 }
 
@@ -170,8 +171,8 @@ sub finish_scale {
   my ($min_big, $max_big, $shift) = map $_->dice_axis(0, $got_bigdiff), $min, $max, $diff;
   $shift = $shift * 0.05; # don't mutate
   $min_big -= $shift, $max_big += $shift;
-  my $axisvals = $this->{AxisVals} = zeroes(PDL::float(),3,$this->{NDiv}+1)->ylinvals($this->{Scale}->dog)->t->flat->t;
-  @{$this->{AxisLabels} ||= []} = map sprintf("%.3f", $_), @{ $axisvals->flat->unpdl };
+  my $axisvals = zeroes(PDL::float(),3,$this->{NDiv}+1)->ylinvals($this->{Scale}->dog)->t->flat->t;
+  $this->{AxisLabelsObj}->set_labels([map sprintf("%.3f", $_), @{ $axisvals->flat->unpdl }]);
 }
 
 # Add 0..1 to each axis.
