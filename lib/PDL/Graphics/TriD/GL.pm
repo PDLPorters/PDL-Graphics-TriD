@@ -86,15 +86,12 @@ sub PDL::Graphics::TriD::CylindricalEquidistantAxes::togl {
   glColor3d(1,1,1);
   for(my $j=0;$j<$tverts->getdim(2)-1;$j++){
     my $j1=$j+1;
-    glBegin(GL_LINES);
+    glBegin(GL_LINE_STRIP);
     for(my $i=0;$i<$tverts->getdim(1)-1;$i++){
       my $i1=$i+1;
       glVertex2f($tverts->at(0,$i,$j),$tverts->at(1,$i,$j));
       glVertex2f($tverts->at(0,$i1,$j),$tverts->at(1,$i1,$j));
-      glVertex2f($tverts->at(0,$i1,$j),$tverts->at(1,$i1,$j));
       glVertex2f($tverts->at(0,$i1,$j1),$tverts->at(1,$i1,$j1));
-      glVertex2f($tverts->at(0,$i1,$j1),$tverts->at(1,$i1,$j1));
-      glVertex2f($tverts->at(0,$i,$j1),$tverts->at(1,$i,$j1));
       glVertex2f($tverts->at(0,$i,$j1),$tverts->at(1,$i,$j1));
       glVertex2f($tverts->at(0,$i,$j),$tverts->at(1,$i,$j));
     }
