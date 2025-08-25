@@ -28,18 +28,6 @@ the copyright notice should be included in the file.
 
 =cut
 
-package PDL::Graphics::TriD::MathGraph;
-use strict;
-use warnings;
-use PDL::Graphics::TriD::Objects;
-use base qw/PDL::Graphics::TriD::GObject/;
-use OpenGL qw(:all);
-
-sub get_valid_options {
-	return {UseDefcols => 0,From => [],To => [],Color => [1,1,1],
-		ArrowWidth => 0.02, ArrowLen => 0.1}
-}
-
 package PDL::GraphEvolver;
 use PDL::Lite;
 use PDL::ImageND ":Func";

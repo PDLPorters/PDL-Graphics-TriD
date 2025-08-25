@@ -209,7 +209,7 @@ my @demo = (
   PDL::Graphics::TriD::graph_object(
     my $lab = PDL::Graphics::TriD::Labels->new($c,{Strings => \@names}));
   PDL::Graphics::TriD::graph_object(
-          my $lin = PDL::Graphics::TriD::MathGraph->new(
+          my $lin = PDL::Graphics::TriD::Arrows->new(
           $c, {From => $from, To => $to}));
   PDL::Graphics::TriD::graph_object(
           my $sph = PDL::Graphics::TriD::Spheres->new($c));

@@ -196,13 +196,11 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
   }
 }
 
-sub PDL::Graphics::TriD::MathGraph::gdraw {
+sub PDL::Graphics::TriD::Arrows::gdraw {
   my($this,$points) = @_;
-  glDisable(GL_LIGHTING);
   glColor3d(@{$this->{Options}{Color}});
   PDL::Graphics::OpenGLQ::gl_arrows($points,@{$this->{Options}}{qw(From To
           ArrowLen ArrowWidth)});
-  glEnable(GL_LIGHTING);
 }
 
 sub PDL::Graphics::TriD::LineStrip::gdraw {

@@ -197,4 +197,16 @@ sub set_labels {
   $this->{Options}{Strings} = $array;
 }
 
+package PDL::Graphics::TriD::Arrows;
+use base qw/PDL::Graphics::TriD::GObject/;
+sub get_valid_options { +{
+  UseDefcols => 0,
+  From => [],
+  To => [],
+  ArrowWidth => 0.02,
+  ArrowLen => 0.1,
+  Lighting => 0,
+  Color => [1,1,1],
+}}
+
 1;
