@@ -75,7 +75,7 @@ sub PDL::Graphics::TriD::Logo::tovrml {
               'scale'    => vrml3v([map {$this->{Size}} (0..2)]));
 }
 
-sub PDL::Graphics::TriD::Description::tovrml {
+sub PDL::Graphics::TriD::Labels::tovrml {
 	my($this) = @_;
 #	print "DESCRTIPTION : TOVRML\n";
 	return vrn('Transform',

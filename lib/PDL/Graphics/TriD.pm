@@ -853,16 +853,6 @@ sub graph_object {
 
 # Plotting routines that use the whole viewport
 
-*describe3d=*describe3d=\&PDL::describe3d;
-sub PDL::describe3d {
-	require PDL::Graphics::TriD::TextObjects;
-	my ($text) = @_;
-	my $win = PDL::Graphics::TriD::get_current_window();
-	my $imag = PDL::Graphics::TriD::Description->new($text);
-	$win->add_object($imag);
-#	$win->twiddle();
-}
-
 *imagrgb=*imagrgb=\&PDL::imagrgb;
 sub PDL::imagrgb {
   require PDL::Graphics::TriD::Image;
