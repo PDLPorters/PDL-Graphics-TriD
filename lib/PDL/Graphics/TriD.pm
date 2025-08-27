@@ -361,7 +361,7 @@ Example:
  - mesh of surface
 
 Note: a mesh is defined by two sets of lines at
-right-angles (i.e. this is how is differs from
+right-angles (i.e. this is how it differs from
 line3d).
 
 See module documentation for more information on
@@ -525,6 +525,25 @@ a list of options documented below.  Contours can also be coloured by
 value using the set_color_table function.
 
 Implemented by L<PDL::Graphics::TriD::Contours>.
+
+=head2 labels3d
+
+=for ref
+
+Labels at specified 3D coordinates.
+
+Implemented by L<PDL::Graphics::TriD::Labels>.
+
+=for usage
+
+ labels3d ndarray(3,x), {OPTIONS}
+ labels3d [CONTEXT], {OPTIONS}
+
+=for example
+
+Example:
+
+ pdl> $coords = yvals(3)->append(zeroes 2); labels3d $coords, {Strings=>[0..2]}
 
 =head2 hold3d, release3d
 
@@ -709,7 +728,7 @@ use PDL::Exporter;
 use PDL::Core '';  # barf
 our @ISA = qw/PDL::Exporter/;
 our @EXPORT_OK = qw/imag3d_ns imag3d line3d mesh3d lattice3d points3d
-  trigrid3d trigrid3d_ns line3d_segs
+  trigrid3d trigrid3d_ns line3d_segs labels3d
   contour3d spheres3d describe3d imagrgb imagrgb3d hold3d release3d
   keeptwiddling3d nokeeptwiddling3d close3d
   twiddle3d grabpic3d tridsettings/;
@@ -868,13 +887,21 @@ sub PDL::imagrgb {
 
 # Plotting routines that use the 3D graph
 
+*labels3d=*labels3d=\&PDL::labels3d;
+sub PDL::labels3d {
+  &checkargs;
+  my $obj = PDL::Graphics::TriD::Labels->new(@_);
+  print "labels3d: object is $obj\n" if $PDL::Graphics::TriD::verbose;
+  graph_object($obj);
+}
+
 # Call: line3d([$x,$y,$z],[$color]);
 *line3d=*line3d=\&PDL::line3d;
 sub PDL::line3d {
-    &checkargs;
-    my $obj = PDL::Graphics::TriD::LineStrip->new(@_);
-    print "line3d: object is $obj\n" if($PDL::Graphics::TriD::verbose);
-    graph_object($obj);
+  &checkargs;
+  my $obj = PDL::Graphics::TriD::LineStrip->new(@_);
+  print "line3d: object is $obj\n" if($PDL::Graphics::TriD::verbose);
+  graph_object($obj);
 }
 
 *line3d_segs=*line3d_segs=\&PDL::line3d_segs;

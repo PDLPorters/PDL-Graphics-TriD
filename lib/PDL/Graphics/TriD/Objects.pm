@@ -16,7 +16,9 @@ This provides the following class hierarchy:
   ├ PDL::Graphics::TriD::Lines           separate lines
   ├ PDL::Graphics::TriD::LineStrip       continuous paths
   ├ PDL::Graphics::TriD::Trigrid         polygons
-  └ PDL::Graphics::TriD::Lattice         colored lattice, maybe filled/shaded
+  ├ PDL::Graphics::TriD::Lattice         colored lattice, maybe filled/shaded
+  ├ PDL::Graphics::TriD::Arrows          lines with arrowheads
+  └ PDL::Graphics::TriD::Labels          text labels
 
 =head1 DESCRIPTION
 

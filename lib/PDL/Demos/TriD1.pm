@@ -206,8 +206,7 @@ my @demo = (
   my $graph = PDL::Graphics::TriD::get_new_graph(); # also clears
   hold3d();
   nokeeptwiddling3d();
-  PDL::Graphics::TriD::graph_object(
-    my $lab = PDL::Graphics::TriD::Labels->new($c,{Strings => \@names}));
+  my $lab = labels3d($c,{Strings => \@names});
   PDL::Graphics::TriD::graph_object(
           my $lin = PDL::Graphics::TriD::Arrows->new(
           $c, {From => $from, To => $to}));
