@@ -545,6 +545,25 @@ Example:
 
  pdl> $coords = yvals(3)->append(zeroes 2); labels3d $coords, {Strings=>[0..2]}
 
+=head2 arrows3d
+
+=for ref
+
+Lines from and to specified 3D coordinates, with arrowheads.
+
+Implemented by L<PDL::Graphics::TriD::Arrows>.
+
+=for usage
+
+ arrows3d ndarray(3,x), {OPTIONS}
+ arrows3d [CONTEXT], {OPTIONS}
+
+=for example
+
+Example:
+
+ pdl> arrows3d random(3,5), {From=>[0..4], To=>[reverse 0..4]}
+
 =head2 hold3d, release3d
 
 =for ref
@@ -728,7 +747,7 @@ use PDL::Exporter;
 use PDL::Core '';  # barf
 our @ISA = qw/PDL::Exporter/;
 our @EXPORT_OK = qw/imag3d_ns imag3d line3d mesh3d lattice3d points3d
-  trigrid3d trigrid3d_ns line3d_segs labels3d
+  trigrid3d trigrid3d_ns line3d_segs labels3d arrows3d
   contour3d spheres3d describe3d imagrgb imagrgb3d hold3d release3d
   keeptwiddling3d nokeeptwiddling3d close3d
   twiddle3d grabpic3d tridsettings/;
@@ -886,6 +905,14 @@ sub PDL::imagrgb {
 }
 
 # Plotting routines that use the 3D graph
+
+*arrows3d=*arrows3d=\&PDL::arrows3d;
+sub PDL::arrows3d {
+  &checkargs;
+  my $obj = PDL::Graphics::TriD::Arrows->new(@_);
+  print "arrows3d: object is $obj\n" if $PDL::Graphics::TriD::verbose;
+  graph_object($obj);
+}
 
 *labels3d=*labels3d=\&PDL::labels3d;
 sub PDL::labels3d {

@@ -206,12 +206,9 @@ my @demo = (
   my $graph = PDL::Graphics::TriD::get_new_graph(); # also clears
   hold3d();
   nokeeptwiddling3d();
-  my $lab = labels3d($c,{Strings => \@names});
-  PDL::Graphics::TriD::graph_object(
-          my $lin = PDL::Graphics::TriD::Arrows->new(
-          $c, {From => $from, To => $to}));
-  PDL::Graphics::TriD::graph_object(
-          my $sph = PDL::Graphics::TriD::Spheres->new($c));
+  my $lab = labels3d($c, {Strings => \@names});
+  my $lin = arrows3d($c, {From => $from, To => $to});
+  my $sph = spheres3d($c);
   my $ind = 0;
   while(1) {
           $e->step();

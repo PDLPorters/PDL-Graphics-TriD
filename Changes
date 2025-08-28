@@ -3,7 +3,7 @@
 - rationalise/unify ::Objects classes
 - trigrid3d $colours is now per-vertex
 - coordinate inputs now converted to float, so pass right type if want flow
-- add labels3d
+- add labels3d, arrows3d
 
 2.102 2025-04-11
 - fix scrolling out with mousewheel/double-touch-scroll in GLUT
