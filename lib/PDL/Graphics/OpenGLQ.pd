@@ -263,7 +263,11 @@ loop(v) %{
   loop(tri) %{ $vertnorm() /= magn; %}
 %}
 EOF
-  @internal,
+  Doc => <<'EOF',
+=for ref
+
+Generate normals for faces and vertices in a single scan.
+EOF
 );
 
 pp_done();
