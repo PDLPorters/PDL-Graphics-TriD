@@ -184,14 +184,6 @@ broadcastloop %{
   PDL_3D_SETVECLEN(norm, w);
   PDL_3D_SETVECLEN(norm2, w);
   PDL_3D_SETVECLEN(tmp1, 1);
-  glBegin(GL_LINES);
-  glVertex3d( $coords(tri => 0, n => a) ,
-              $coords(tri => 1, n => a) ,
-              $coords(tri => 2, n => a) );
-  glVertex3d( $coords(tri => 0, n => b) ,
-              $coords(tri => 1, n => b) ,
-              $coords(tri => 2, n => b) );
-  glEnd();
   if(w!=0) {
   glBegin(GL_TRIANGLES);
   glVertex3d( $coords(tri => 0, n => b) ,

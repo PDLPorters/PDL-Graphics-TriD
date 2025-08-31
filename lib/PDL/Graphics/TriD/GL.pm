@@ -185,6 +185,7 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
       glDisable(GL_LIGHTING);
       glColor3d(1,1,1);
       PDL::Graphics::OpenGLQ::gl_arrows($arrows, 0, 1, 0.5, 0.02);
+      PDL::gl_lines_col($arrows,[1,1,1]);
     }
     if (defined $this->{FaceNormals}) {
       my $facecentres = $faces->transpose->avgover;
@@ -192,15 +193,20 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
       glDisable(GL_LIGHTING);
       glColor3d(0.5,0.5,0.5);
       PDL::Graphics::OpenGLQ::gl_arrows($facearrows, 0, 1, 0.5, 0.02);
+      PDL::gl_lines_col($facearrows,[0.5,0.5,0.5]);
     }
   }
 }
 
 sub PDL::Graphics::TriD::Arrows::gdraw {
   my($this,$points) = @_;
-  glColor3d(@{$this->{Options}{Color}});
-  PDL::Graphics::OpenGLQ::gl_arrows($points,@{$this->{Options}}{qw(From To
+  my $opts = $this->{Options};
+  glColor3d(@{$opts->{Color}});
+  my ($from, $to) = @$opts{qw(From To)};
+  PDL::Graphics::OpenGLQ::gl_arrows($points,$from,$to,@$opts{qw(
           ArrowLen ArrowWidth)});
+  my $lines = $points->dice_axis(1,$from)->append($points->dice_axis(1,$to))->splitdim(0,3);
+  PDL::gl_lines_col($lines,$opts->{Color});
 }
 
 sub PDL::Graphics::TriD::LineStrip::gdraw {
@@ -258,6 +264,7 @@ sub PDL::Graphics::TriD::Trigrid::gdraw {
       glDisable(GL_LIGHTING);
       glColor3d(1,1,1);
       PDL::Graphics::OpenGLQ::gl_arrows($arrows, 0, 1, 0.5, 0.02);
+      PDL::gl_lines_col($arrows,[1,1,1]);
     }
     if (defined $this->{FaceNormals}) {
       my $facecentres = $faces->transpose->avgover;
@@ -265,6 +272,7 @@ sub PDL::Graphics::TriD::Trigrid::gdraw {
       glDisable(GL_LIGHTING);
       glColor3d(0.5,0.5,0.5);
       PDL::Graphics::OpenGLQ::gl_arrows($facearrows, 0, 1, 0.5, 0.02);
+      PDL::gl_lines_col($facearrows,[0.5,0.5,0.5]);
     }
   }
   if ($options->{Lines}) {
