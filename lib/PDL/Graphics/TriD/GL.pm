@@ -183,16 +183,18 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
       my $points_clumped = $points->clump(1..$points->ndims-1);
       my $arrows = $points_clumped->append($points_clumped + $this->{VertexNormals}*0.1)->splitdim(0,3);
       glDisable(GL_LIGHTING);
-      glColor3d(1,1,1);
-      PDL::Graphics::OpenGLQ::gl_arrows($arrows, 0, 1, 0.5, 0.02);
+      my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($arrows,0,1,
+        0.5, 0.02);
+      PDL::gl_triangles($tv->clump(1,2)->dice_axis(1,($ti+$ti->yvals*$tv->dim(1))->flat)->splitdim(1,3), [1,1,1]);
       PDL::gl_lines_col($arrows,[1,1,1]);
     }
     if (defined $this->{FaceNormals}) {
       my $facecentres = $faces->transpose->avgover;
       my $facearrows = $facecentres->append($facecentres + $this->{FaceNormals}*0.1)->splitdim(0,3);
       glDisable(GL_LIGHTING);
-      glColor3d(0.5,0.5,0.5);
-      PDL::Graphics::OpenGLQ::gl_arrows($facearrows, 0, 1, 0.5, 0.02);
+      my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($facearrows,0,1,
+        0.5, 0.02);
+      PDL::gl_triangles($tv->clump(1,2)->dice_axis(1,($ti+$ti->yvals*$tv->dim(1))->flat)->splitdim(1,3), [0.5,0.5,0.5]);
       PDL::gl_lines_col($facearrows,[0.5,0.5,0.5]);
     }
   }
@@ -203,8 +205,9 @@ sub PDL::Graphics::TriD::Arrows::gdraw {
   my $opts = $this->{Options};
   glColor3d(@{$opts->{Color}});
   my ($from, $to) = @$opts{qw(From To)};
-  PDL::Graphics::OpenGLQ::gl_arrows($points,$from,$to,@$opts{qw(
-          ArrowLen ArrowWidth)});
+  my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($points,$from,$to,
+    @$opts{qw(ArrowLen ArrowWidth)});
+  PDL::gl_triangles($tv->dice_axis(1,$ti)->splitdim(1,3), $opts->{Color});
   my $lines = $points->dice_axis(1,$from)->append($points->dice_axis(1,$to))->splitdim(0,3);
   PDL::gl_lines_col($lines,$opts->{Color});
 }
@@ -262,16 +265,18 @@ sub PDL::Graphics::TriD::Trigrid::gdraw {
     if (defined $this->{VertexNormals}) {
       my $arrows = $points->append($points + $this->{VertexNormals}*0.1)->splitdim(0,3);
       glDisable(GL_LIGHTING);
-      glColor3d(1,1,1);
-      PDL::Graphics::OpenGLQ::gl_arrows($arrows, 0, 1, 0.5, 0.02);
+      my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($arrows,0,1,
+        0.5, 0.02);
+      PDL::gl_triangles($tv->clump(1,2)->dice_axis(1,($ti+$ti->yvals*$tv->dim(1))->flat)->splitdim(1,3), [1,1,1]);
       PDL::gl_lines_col($arrows,[1,1,1]);
     }
     if (defined $this->{FaceNormals}) {
       my $facecentres = $faces->transpose->avgover;
       my $facearrows = $facecentres->append($facecentres + $this->{FaceNormals}*0.1)->splitdim(0,3);
       glDisable(GL_LIGHTING);
-      glColor3d(0.5,0.5,0.5);
-      PDL::Graphics::OpenGLQ::gl_arrows($facearrows, 0, 1, 0.5, 0.02);
+      my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($facearrows,0,1,
+        0.5, 0.02);
+      PDL::gl_triangles($tv->clump(1,2)->dice_axis(1,($ti+$ti->yvals*$tv->dim(1))->flat)->splitdim(1,3), [0.5,0.5,0.5]);
       PDL::gl_lines_col($facearrows,[0.5,0.5,0.5]);
     }
   }

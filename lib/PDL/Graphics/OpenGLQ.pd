@@ -162,71 +162,58 @@ glEnd();',
 );
 }
 
-pp_def('gl_arrows',
-	Pars => 'coords(tri=3,n); indx indsa(); indx indsb();',
-	OtherPars => 'float headlen; float width;',
-	Code => <<'EOF',
+pp_def('gen_arrowheads',
+  Pars => 'coords(tri=3,v); uint indsa(n); uint indsb(n); [o] trivertices(tri,nv=CALC(5*$SIZE(n))); uint [o] triindices(ni=CALC(12*$SIZE(n)))',
+  OtherPars => 'float headlen; float width;',
+  GenericTypes => $F,
+  Code => <<'EOF',
 float hl = $COMP(headlen);
 float w = $COMP(width);
+if (w == 0)
+  $CROAK("width invalid: cannot be 0");
 float tmp2[3] = { 0.000001, -0.0001, 1 };
 broadcastloop %{
-  PDL_Indx a = $indsa(), b = $indsb();
-  float tmp1[3];
-  float norm[3];
-  float norm2[3];
-  float partback[3];
+loop(n) %{
+  PDL_ULong a = $indsa(), b = $indsb(), nvbase = n * 5, nibase = n * 12;
+  if (a >= $SIZE(v))
+    $CROAK("indsa number %"IND_FLAG" out of range: %"IND_FLAG" > %"IND_FLAG, n, a, $SIZE(v)-1);
+  if (b >= $SIZE(v))
+    $CROAK("indsb number %"IND_FLAG" out of range: %"IND_FLAG" > %"IND_FLAG, n, b, $SIZE(v)-1);
+  float tmp1[3], norm[3], norm2[3], partback[3];
   loop(tri) %{
-    tmp1[tri] = $coords(n => a) - $coords(n => b);
-    partback[tri] = $coords(n => b) + hl*tmp1[tri];
+    tmp1[tri] = $coords(v => a) - $coords(v => b);
+    partback[tri] = $coords(v => b) + hl*tmp1[tri];
   %}
   PDL_3D_CROSS(norm, tmp1, tmp2);
   PDL_3D_CROSS(norm2, tmp1, norm);
   PDL_3D_SETVECLEN(norm, w);
   PDL_3D_SETVECLEN(norm2, w);
   PDL_3D_SETVECLEN(tmp1, 1);
-  if(w!=0) {
-  glBegin(GL_TRIANGLES);
-  glVertex3d( $coords(tri => 0, n => b) ,
-              $coords(tri => 1, n => b) ,
-              $coords(tri => 2, n => b) );
-  glVertex3d( partback[0] + norm[0],
-              partback[1] + norm[1],
-              partback[2] + norm[2]);
-  glVertex3d( partback[0] + norm2[0],
-              partback[1] + norm2[1],
-              partback[2] + norm2[2]);
-  glVertex3d( $coords(tri => 0, n => b) ,
-              $coords(tri => 1, n => b) ,
-              $coords(tri => 2, n => b) );
-  glVertex3d( partback[0] - norm[0],
-              partback[1] - norm[1],
-              partback[2] - norm[2]);
-  glVertex3d( partback[0] - norm2[0],
-              partback[1] - norm2[1],
-              partback[2] - norm2[2]);
-  glVertex3d( $coords(tri => 0, n => b) ,
-              $coords(tri => 1, n => b) ,
-              $coords(tri => 2, n => b) );
-  glVertex3d( partback[0] + norm2[0],
-              partback[1] + norm2[1],
-              partback[2] + norm2[2]);
-  glVertex3d( partback[0] - norm[0],
-              partback[1] - norm[1],
-              partback[2] - norm[2]);
-  glVertex3d( $coords(tri => 0, n => b) ,
-              $coords(tri => 1, n => b) ,
-              $coords(tri => 2, n => b) );
-  glVertex3d( partback[0] - norm2[0],
-              partback[1] - norm2[1],
-              partback[2] - norm2[2]);
-  glVertex3d( partback[0] + norm[0],
-              partback[1] + norm[1],
-              partback[2] + norm[2]);
-  glEnd();
-  }
+  loop(tri) %{ $trivertices(nv=>nvbase+0) = $coords(v => b); %}
+  loop(tri) %{ $trivertices(nv=>nvbase+1) = partback[tri] + norm[tri]; %}
+  loop(tri) %{ $trivertices(nv=>nvbase+2) = partback[tri] + norm2[tri]; %}
+  loop(tri) %{ $trivertices(nv=>nvbase+3) = partback[tri] - norm[tri]; %}
+  loop(tri) %{ $trivertices(nv=>nvbase+4) = partback[tri] - norm2[tri]; %}
+  $triindices(ni=>nibase+0) =   nvbase+0;
+  $triindices(ni=>nibase+1) =   nvbase+1;
+  $triindices(ni=>nibase+2) =   nvbase+2;
+  $triindices(ni=>nibase+3) =   nvbase+0;
+  $triindices(ni=>nibase+4) =   nvbase+3;
+  $triindices(ni=>nibase+5) =   nvbase+4;
+  $triindices(ni=>nibase+6) =   nvbase+0;
+  $triindices(ni=>nibase+7) =   nvbase+2;
+  $triindices(ni=>nibase+8) =   nvbase+3;
+  $triindices(ni=>nibase+9) =   nvbase+0;
+  $triindices(ni=>nibase+10) =  nvbase+4;
+  $triindices(ni=>nibase+11) =  nvbase+1;
+%}
 %}
 EOF
-	@internal
+  Doc => <<'EOF',
+=for ref
+
+Generate vertices and indices, for triangles, implementing arrowheads.
+EOF
 );
 
 pp_def('triangle_normals',
