@@ -181,20 +181,20 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
     die "No normals to show!" if !grep defined $this->{$_}, qw(FaceNormals VertexNormals);
     if (defined $this->{VertexNormals}) {
       my $points_clumped = $points->clump(1..$points->ndims-1);
-      my $arrows = $points_clumped->append($points_clumped + $this->{VertexNormals}*0.1)->splitdim(0,3);
+      my $arrows = $points_clumped->append($points_clumped + $this->{VertexNormals}*0.1)->splitdim(0,3)->clump(1,2);
       glDisable(GL_LIGHTING);
-      my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($arrows,0,1,
+      my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($arrows,sequence(ulong,2,$points_clumped->dim(1))->t->dog,
         0.5, 0.02);
-      PDL::gl_triangles($tv->clump(1,2)->dice_axis(1,($ti+$ti->yvals*$tv->dim(1))->flat)->splitdim(1,3), [1,1,1]);
+      PDL::gl_triangles($tv->dice_axis(1,$ti)->splitdim(1,3), [1,1,1]);
       PDL::gl_lines_col($arrows,[1,1,1]);
     }
     if (defined $this->{FaceNormals}) {
       my $facecentres = $faces->transpose->avgover;
-      my $facearrows = $facecentres->append($facecentres + $this->{FaceNormals}*0.1)->splitdim(0,3);
+      my $facearrows = $facecentres->append($facecentres + $this->{FaceNormals}*0.1)->splitdim(0,3)->clump(1,2);
       glDisable(GL_LIGHTING);
-      my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($facearrows,0,1,
+      my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($facearrows,sequence(ulong,2,$facecentres->dim(1))->t->dog,
         0.5, 0.02);
-      PDL::gl_triangles($tv->clump(1,2)->dice_axis(1,($ti+$ti->yvals*$tv->dim(1))->flat)->splitdim(1,3), [0.5,0.5,0.5]);
+      PDL::gl_triangles($tv->dice_axis(1,$ti)->splitdim(1,3), [0.5,0.5,0.5]);
       PDL::gl_lines_col($facearrows,[0.5,0.5,0.5]);
     }
   }
@@ -263,20 +263,20 @@ sub PDL::Graphics::TriD::Trigrid::gdraw {
   if ($options->{ShowNormals}) {
     die "No normals to show!" if !grep defined $this->{$_}, qw(FaceNormals VertexNormals);
     if (defined $this->{VertexNormals}) {
-      my $arrows = $points->append($points + $this->{VertexNormals}*0.1)->splitdim(0,3);
+      my $arrows = $points->append($points + $this->{VertexNormals}*0.1)->splitdim(0,3)->clump(1,2);
       glDisable(GL_LIGHTING);
-      my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($arrows,0,1,
+      my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($arrows,sequence(ulong,2,$points->dim(1))->t->dog,
         0.5, 0.02);
-      PDL::gl_triangles($tv->clump(1,2)->dice_axis(1,($ti+$ti->yvals*$tv->dim(1))->flat)->splitdim(1,3), [1,1,1]);
+      PDL::gl_triangles($tv->dice_axis(1,$ti)->splitdim(1,3), [1,1,1]);
       PDL::gl_lines_col($arrows,[1,1,1]);
     }
     if (defined $this->{FaceNormals}) {
       my $facecentres = $faces->transpose->avgover;
-      my $facearrows = $facecentres->append($facecentres + $this->{FaceNormals}*0.1)->splitdim(0,3);
+      my $facearrows = $facecentres->append($facecentres + $this->{FaceNormals}*0.1)->splitdim(0,3)->clump(1,2);
       glDisable(GL_LIGHTING);
-      my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($facearrows,0,1,
+      my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($facearrows,sequence(ulong,2,$facecentres->dim(1))->t->dog,
         0.5, 0.02);
-      PDL::gl_triangles($tv->clump(1,2)->dice_axis(1,($ti+$ti->yvals*$tv->dim(1))->flat)->splitdim(1,3), [0.5,0.5,0.5]);
+      PDL::gl_triangles($tv->dice_axis(1,$ti)->splitdim(1,3), [0.5,0.5,0.5]);
       PDL::gl_lines_col($facearrows,[0.5,0.5,0.5]);
     }
   }
