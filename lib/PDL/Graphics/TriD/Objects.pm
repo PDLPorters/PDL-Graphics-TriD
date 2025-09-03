@@ -10,7 +10,10 @@ PDL::Graphics::TriD::Objects - Simple Graph Objects for TriD
 
 This provides the following class hierarchy:
 
-  PDL::Graphics::TriD::GObject           (abstract) base class
+  PDL::Graphics::TriD::Object            base class
+  └ PDL::Graphics::TriD::GObject         (abstract) base class
+
+  PDL::Graphics::TriD::GObject           (abstract) base class for drawables
   ├ PDL::Graphics::TriD::Points          individual points
   ├ PDL::Graphics::TriD::Spheres         fat 3D points :)
   ├ PDL::Graphics::TriD::Lines           separate lines
