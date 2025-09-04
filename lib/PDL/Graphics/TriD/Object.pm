@@ -87,10 +87,16 @@ sub clear {
 }
 
 sub changed {
-	my($this) = @_;
-	print "VALID0 $this\n" if $PDL::Graphics::TriD::verbose;
-	$this->{ValidList} = 0;
-	$_->($this) for @{$this->{ChangedSub}};
+  my($this) = @_;
+  print "VALID0 $this\n" if $PDL::Graphics::TriD::verbose;
+  $this->{ValidList} = 0;
+  $_->($this) for @{$this->{ChangedSub}};
+}
+
+# In the future, have this happen automatically by the ndarrays.
+sub data_changed {
+  my($this) = @_;
+  $this->changed;
 }
 
 1;

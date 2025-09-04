@@ -80,12 +80,6 @@ sub cdummies { $_[1] }
 sub r_type { "" }
 sub defcols { $_[0]{Options}{UseDefcols} }
 
-# In the future, have this happen automatically by the ndarrays.
-sub data_changed {
-	my($this) = @_;
-	$this->changed;
-}
-
 package PDL::Graphics::TriD::Points;
 use base qw/PDL::Graphics::TriD::GObject/;
 sub get_valid_options { +{
