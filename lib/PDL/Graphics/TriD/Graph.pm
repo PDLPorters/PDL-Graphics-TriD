@@ -51,10 +51,11 @@ sub bind_data {
 }
 
 sub bind_default {
-	my($this,$dser,$axes) = @_;
-	$axes //= $this->{DefaultAxes};
-	$this->{DataBind}{$dser} = [['Default',$axes]];
-	delete $this->{UnBound}{$dser};
+  my ($this,$dser,$axes) = @_;
+  barf "called with undef \$dser" if !defined $dser;
+  $axes //= $this->{DefaultAxes};
+  $this->{DataBind}{$dser} = [['Default',$axes]];
+  delete $this->{UnBound}{$dser};
 }
 
 sub set_axis {
