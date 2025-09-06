@@ -60,6 +60,11 @@ sub add_object {
   $object->add_changedsub(sub {$this->changed_from_above()});
 }
 
+sub contained_objects {
+  my ($this) = @_;
+  $this->{Objects} ? @{$this->{Objects}} : ();
+}
+
 sub changed_from_above {
 	my($this) = @_;
 	print "CHANGED_FROM_ABOVE\n" if $PDL::Graphics::TriD::verbose;
