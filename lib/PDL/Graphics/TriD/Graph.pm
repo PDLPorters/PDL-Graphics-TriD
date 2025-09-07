@@ -30,16 +30,21 @@ use PDL::LiteF; # XXX F needed?
 use fields qw(Data DataBind UnBound DefaultAxes Axis );
 
 sub add_dataseries {
-  my($this,$data,$name) = @_;
-  if(!defined $name) {
+  my ($this, $data, $name, $no_changed) = @_;
+  if (!defined $name) {
     $name = "Data0";
-    while(defined $this->{Data}{$name}) {$name++;}
+    while (defined $this->{Data}{$name}) {$name++;}
+    $this->{DataBind}{$name} = [];
+    $this->{UnBound}{$name} = 1;
   }
-  $this->{Data}{$name} = $data;
-  $this->{DataBind}{$name} = [];
-  $this->{UnBound}{$name} = 1;
-  $this->add_object($data);
-  $this->changed();
+  if ($data->can('contained_objects')) {
+    $this->add_dataseries($_, $name, 1) for $data->contained_objects;
+  }
+  if ($data->can('get_points')) {
+    $this->{Data}{$name} = $data;
+    $this->add_object($data);
+  }
+  $this->changed if !$no_changed;
   return $name;
 }
 
