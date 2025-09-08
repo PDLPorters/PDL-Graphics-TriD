@@ -102,6 +102,7 @@ sub changed {
 sub data_changed {
   my($this) = @_;
   $this->changed;
+  $_->changed for $this->contained_objects;
 }
 
 1;
