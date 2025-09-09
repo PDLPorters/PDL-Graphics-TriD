@@ -58,6 +58,7 @@ sub add_object {
     $object->add_changedsub($_);
   }
   $object->add_changedsub(sub {$this->changed_from_above()});
+  $object;
 }
 
 sub contained_objects {
