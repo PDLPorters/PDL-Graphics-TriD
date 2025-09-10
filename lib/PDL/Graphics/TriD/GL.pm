@@ -49,12 +49,16 @@ sub PDL::Graphics::TriD::Object::delete_displist {
 	delete @$this{qw(List ValidList)};
 }
 
-sub PDL::Graphics::TriD::Object::togl { $_->togl for @{$_[0]->{Objects}} }
+sub PDL::Graphics::TriD::Object::togl { $_->togl for $_[0]->contained_objects }
 
 sub PDL::Graphics::TriD::Graph::togl {
-	my($this) = @_;
-	$this->{Axis}{$_}->togl for grep $_ ne "Default", keys %{$this->{Axis}};
-	$this->{Data}{$_}->togl($this->get_points($_)) for keys %{$this->{Data}};
+  my ($this) = @_;
+  $this->{Axis}{$_}->togl for grep $_ ne "Default", keys %{$this->{Axis}};
+  while (my ($series,$h) = each %{ $this->{Data} }) {
+    for my $data (values %$h) {
+      $data->togl($this->get_points($series, $data));
+    }
+  }
 }
 
 use PDL;

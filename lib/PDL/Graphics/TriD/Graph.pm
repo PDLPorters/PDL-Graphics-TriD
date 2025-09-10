@@ -41,7 +41,7 @@ sub add_dataseries {
     $this->add_dataseries($_, $name, 1) for $data->contained_objects;
   }
   if ($data->can('get_points')) {
-    $this->{Data}{$name} = $data;
+    $this->{Data}{$name}{$data} = $data;
     $this->add_object($data);
   }
   $this->changed if !$no_changed;
@@ -71,31 +71,32 @@ sub set_axis {
 
 # Bind all unbound things here...
 sub scalethings {
-  my($this) = @_;
+  my ($this) = @_;
   $this->bind_default($_) for keys %{$this->{UnBound}};
   $_->init_scale() for values %{$this->{Axis}};
-  while(my ($series_name,$v) = each %{$this->{DataBind}}) {
+  while (my ($series_name,$v) = each %{$this->{DataBind}}) {
     for my $bound (@$v) {
       my ($axis, $axes) = @$bound;
-      $this->{Axis}{$axis}->add_scale($this->{Data}{$series_name}->get_points(), $axes);
+      for my $data (values %{ $this->{Data}{$series_name} }) {
+        $this->{Axis}{$axis}->add_scale($data->get_points, $axes);
+      }
     }
   }
   $_->finish_scale() for values %{$this->{Axis}};
 }
 
 sub get_points {
-	my($this,$name) = @_;
-# 	print Dumper($this->{Axis});
-	my $d = $this->{Data}{$name}->get_points();
-	my @ddims = $d->dims; shift @ddims;
-	my $p = PDL->zeroes(PDL::float(),3,@ddims);
-	my $pnew;
-	for(@{$this->{DataBind}{$name}}) {
-		defined($this->{Axis}{$_->[0]}) or die("Axis not defined: $_->[0]");
+  my ($this,$name,$data) = @_;
+  my $d = $data->get_points;
+  my @ddims = $d->dims; shift @ddims;
+  my $p = PDL->zeroes(PDL::float(),3,@ddims);
+  my $pnew;
+  for (@{$this->{DataBind}{$name}}) {
+    defined($this->{Axis}{$_->[0]}) or die("Axis not defined: $_->[0]");
 # Transform can return the same or a different ndarray.
-		$p = $pnew = $this->{Axis}{$_->[0]}->transform($p,$d,$_->[1]);
-	}
-	return $pnew;
+    $p = $pnew = $this->{Axis}{$_->[0]}->transform($p,$d,$_->[1]);
+  }
+  $pnew;
 }
 
 sub clear_data {
