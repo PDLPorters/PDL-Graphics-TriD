@@ -71,14 +71,16 @@ sub set_axis {
 
 # Bind all unbound things here...
 sub scalethings {
-	my($this) = @_;
-	$this->bind_default($_) for keys %{$this->{UnBound}};
-	$_->init_scale() for values %{$this->{Axis}};
-	my ($k,$v);
-	while(($k,$v) = each %{$this->{DataBind}}) {
-		$this->{Axis}{$_->[0]}->add_scale($this->{Data}{$k}->get_points(), $_->[1]) for @$v;
-	}
-	$_->finish_scale() for values %{$this->{Axis}};
+  my($this) = @_;
+  $this->bind_default($_) for keys %{$this->{UnBound}};
+  $_->init_scale() for values %{$this->{Axis}};
+  while(my ($series_name,$v) = each %{$this->{DataBind}}) {
+    for my $bound (@$v) {
+      my ($axis, $axes) = @$bound;
+      $this->{Axis}{$axis}->add_scale($this->{Data}{$series_name}->get_points(), $axes);
+    }
+  }
+  $_->finish_scale() for values %{$this->{Axis}};
 }
 
 sub get_points {
