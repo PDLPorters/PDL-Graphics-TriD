@@ -47,9 +47,11 @@ pp_addhdr('
     to[1] = -(v1[0]*v2[2] - v2[0]*v1[2]); \
     to[2] = v1[0]*v2[1] - v2[0]*v1[1]; \
   }
+#define PDL_3D_VECLEN(v) \
+  sqrtf(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])
 #define PDL_3D_SETVECLEN(v, newlen) \
   { \
-    float len = sqrtf(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]), fac = newlen/len; \
+    float len = PDL_3D_VECLEN(v), fac = newlen/len; \
     int i; \
     for (i = 0; i < 3; i++) v[i] *= fac; \
   }
@@ -186,8 +188,9 @@ loop(n) %{
   %}
   PDL_3D_CROSS(norm, tmp1, tmp2);
   PDL_3D_CROSS(norm2, tmp1, norm);
-  PDL_3D_SETVECLEN(norm, w);
-  PDL_3D_SETVECLEN(norm2, w);
+  float wthis = w*PDL_3D_VECLEN(tmp1);
+  PDL_3D_SETVECLEN(norm, wthis);
+  PDL_3D_SETVECLEN(norm2, wthis);
   PDL_3D_SETVECLEN(tmp1, 1);
   loop(tri) %{ $trivertices(nv=>nvbase+0) = $coords(v => b); %}
   loop(tri) %{ $trivertices(nv=>nvbase+1) = partback[tri] + norm[tri]; %}
