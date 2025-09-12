@@ -188,7 +188,7 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
       my $arrows = $points_clumped->append($points_clumped + $this->{VertexNormals}*0.1)->splitdim(0,3)->clump(1,2);
       glDisable(GL_LIGHTING);
       my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($arrows,sequence(ulong,2,$points_clumped->dim(1))->t->dog,
-        0.5, 0.02);
+        0.5, 0.2);
       PDL::gl_triangles($tv->dice_axis(1,$ti)->splitdim(1,3), [1,1,1]);
       PDL::gl_lines_col($arrows,[1,1,1]);
     }
@@ -197,23 +197,28 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
       my $facearrows = $facecentres->append($facecentres + $this->{FaceNormals}*0.1)->splitdim(0,3)->clump(1,2);
       glDisable(GL_LIGHTING);
       my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($facearrows,sequence(ulong,2,$facecentres->dim(1))->t->dog,
-        0.5, 0.02);
+        0.5, 0.2);
       PDL::gl_triangles($tv->dice_axis(1,$ti)->splitdim(1,3), [0.5,0.5,0.5]);
       PDL::gl_lines_col($facearrows,[0.5,0.5,0.5]);
     }
   }
 }
 
-sub PDL::Graphics::TriD::Arrows::gdraw {
-  my($this,$points) = @_;
-  my $opts = $this->{Options};
-  glColor3d(@{$opts->{Color}});
-  my ($from, $to) = @$opts{qw(From To)};
-  my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($points,$from,$to,
-    @$opts{qw(ArrowLen ArrowWidth)});
-  PDL::gl_triangles($tv->dice_axis(1,$ti)->splitdim(1,3), $opts->{Color});
-  my $lines = $points->dice_axis(1,$from)->append($points->dice_axis(1,$to))->splitdim(0,3);
-  PDL::gl_lines_col($lines,$opts->{Color});
+sub PDL::Graphics::TriD::Triangles::gdraw {
+  my ($this,$points) = @_;
+  my $options = $this->{Options};
+  my $shading = $options->{Shading};
+  my $colours = $this->{Colors}->clump(1..$this->{Colors}->ndims-1)->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
+  glShadeModel($shading == 1 ? GL_FLAT : GL_SMOOTH) if $shading;
+  my $f = 'PDL::gl_triangles';
+  $f .= '_wn' if $shading > 2;
+  { no strict 'refs'; $f = \&$f; }
+  if ($shading > 2) { glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE); glEnable(GL_COLOR_MATERIAL); }
+  my $tmpn = $shading <= 2 ? undef : $options->{Smooth}
+    ? $this->{VertexNormals}->dice_axis(1,$this->{Faceidx}->flat)
+                  ->splitdim(1,$this->{Faceidx}->dim(0)) : $this->{FaceNormals}->dummy(1,3);
+  $f->($points->dice_axis(1,$this->{Faceidx})->splitdim(1,3), $shading > 2 ? $tmpn : (), $colours);
+  if ($shading > 2) { glDisable(GL_COLOR_MATERIAL); }
 }
 
 sub PDL::Graphics::TriD::LineStrip::gdraw {
@@ -270,7 +275,7 @@ sub PDL::Graphics::TriD::Trigrid::gdraw {
       my $arrows = $points->append($points + $this->{VertexNormals}*0.1)->splitdim(0,3)->clump(1,2);
       glDisable(GL_LIGHTING);
       my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($arrows,sequence(ulong,2,$points->dim(1))->t->dog,
-        0.5, 0.02);
+        0.5, 0.2);
       PDL::gl_triangles($tv->dice_axis(1,$ti)->splitdim(1,3), [1,1,1]);
       PDL::gl_lines_col($arrows,[1,1,1]);
     }
@@ -279,7 +284,7 @@ sub PDL::Graphics::TriD::Trigrid::gdraw {
       my $facearrows = $facecentres->append($facecentres + $this->{FaceNormals}*0.1)->splitdim(0,3)->clump(1,2);
       glDisable(GL_LIGHTING);
       my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($facearrows,sequence(ulong,2,$facecentres->dim(1))->t->dog,
-        0.5, 0.02);
+        0.5, 0.2);
       PDL::gl_triangles($tv->dice_axis(1,$ti)->splitdim(1,3), [0.5,0.5,0.5]);
       PDL::gl_lines_col($facearrows,[0.5,0.5,0.5]);
     }

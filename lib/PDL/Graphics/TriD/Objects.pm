@@ -10,8 +10,9 @@ PDL::Graphics::TriD::Objects - Simple Graph Objects for TriD
 
 This provides the following class hierarchy:
 
-  PDL::Graphics::TriD::Object            base class
-  └ PDL::Graphics::TriD::GObject         (abstract) base class
+  PDL::Graphics::TriD::Object            base class for containers
+  ├ PDL::Graphics::TriD::Arrows          lines with arrowheads
+  └ PDL::Graphics::TriD::GObject         (abstract) base class for drawables
 
   PDL::Graphics::TriD::GObject           (abstract) base class for drawables
   ├ PDL::Graphics::TriD::Points          individual points
@@ -19,8 +20,8 @@ This provides the following class hierarchy:
   ├ PDL::Graphics::TriD::Lines           separate lines
   ├ PDL::Graphics::TriD::LineStrip       continuous paths
   ├ PDL::Graphics::TriD::Trigrid         polygons
+  ├ PDL::Graphics::TriD::Triangles       just polygons
   ├ PDL::Graphics::TriD::Lattice         colored lattice, maybe filled/shaded
-  ├ PDL::Graphics::TriD::Arrows          lines with arrowheads
   └ PDL::Graphics::TriD::Labels          text labels
 
 =head1 DESCRIPTION
@@ -145,6 +146,31 @@ sub get_valid_options { +{
 }}
 sub cdummies { $_[1]->dummy(1,$_[2]->getdim(1)); }
 
+package PDL::Graphics::TriD::Triangles;
+use base qw/PDL::Graphics::TriD::GObject/;
+use fields qw/Faceidx FaceNormals VertexNormals/;
+use PDL::Graphics::OpenGLQ;
+sub new {
+  my $options = ref($_[-1]) eq 'HASH' ? pop : {};
+  my ($type,$points,$faceidx,$colors) = @_;
+  my $this = $type->SUPER::new($points,$colors,$options);
+  $faceidx = $this->{Faceidx} = $faceidx->ulong; # (3,nfaces) indices
+  $options = $this->{Options};
+  if ($options->{Shading}) {
+    my ($fn, $vn) = triangle_normals($this->{Points}, $faceidx);
+    $this->{VertexNormals} = $vn if $options->{Smooth};
+    $this->{FaceNormals} = $fn if !$options->{Smooth};
+  }
+  $this;
+}
+sub get_valid_options { +{
+  UseDefcols => 0,
+  Shading => 1, # 0=no shading, 1=flat colour per triangle, 2=smooth colour per vertex, 3=colors associated with vertices
+  Smooth => 0,
+  Lighting => 0,
+}}
+sub cdummies { $_[1]->dummy(1,$_[2]->getdim(1)); }
+
 # lattice -> triangle vertices:
 # 4  5  6  7  ->  formula: origin coords + sequence of orig size minus top+right
 # 0  1  2  3      4,0,1,1,5,4  5,1,2,2,6,5    6,2,3,3,7,6
@@ -197,7 +223,8 @@ sub set_labels {
 }
 
 package PDL::Graphics::TriD::Arrows;
-use base qw/PDL::Graphics::TriD::GObject/;
+use base qw/PDL::Graphics::TriD::Object/;
+sub r_type { return "";}
 sub get_valid_options { +{
   UseDefcols => 0,
   From => [],
@@ -205,7 +232,22 @@ sub get_valid_options { +{
   ArrowWidth => 0.02,
   ArrowLen => 0.1,
   Lighting => 0,
-  Color => [1,1,1],
 }}
+sub new {
+  my $options = ref($_[-1]) eq 'HASH' ? pop : $_[0]->get_valid_options;
+  my ($class, $points, $colors) = @_;
+  my $this = $class->SUPER::new($options);
+  $options = $this->{Options};
+  my ($from, $to, $w, $hl) = delete @$options{qw(From To ArrowWidth ArrowLen)};
+  $points = PDL::Graphics::TriD::realcoords($class->r_type,$points);
+  $this->add_object(PDL::Graphics::TriD::Lines->new(
+    $points->dice_axis(1,$from)->flowing->append($points->dice_axis(1,$to))->splitdim(0,3),
+    $colors, $options
+  ));
+  my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($points->flowing,$from,$to,
+    $hl, $w);
+  $this->add_object(PDL::Graphics::TriD::Triangles->new($tv, $ti, $colors, { %$options, Shading=>0 }));
+  $this;
+}
 
 1;
