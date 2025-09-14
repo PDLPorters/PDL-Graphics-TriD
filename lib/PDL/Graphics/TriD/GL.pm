@@ -217,7 +217,7 @@ sub PDL::Graphics::TriD::Triangles::gdraw {
   my $tmpn = $shading <= 2 ? undef : $options->{Smooth}
     ? $this->{VertexNormals}->dice_axis(1,$this->{Faceidx}->flat)
                   ->splitdim(1,$this->{Faceidx}->dim(0)) : $this->{FaceNormals}->dummy(1,3);
-  $f->($points->dice_axis(1,$this->{Faceidx})->splitdim(1,3), $shading > 2 ? $tmpn : (), $colours);
+  $f->($points->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3), $shading > 2 ? $tmpn : (), $colours);
   if ($shading > 2) { glDisable(GL_COLOR_MATERIAL); }
 }
 
@@ -259,16 +259,6 @@ sub PDL::Graphics::TriD::Trigrid::gdraw {
   my $faces = $points->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
   my $colours = $this->{Colors}->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
   my $options = $this->{Options};
-  glShadeModel(GL_SMOOTH); # By-vertex doesn't make sense otherwise.
-  my $f = 'PDL::gl_triangles';
-  $f .= '_wn' if $options->{Shading};
-  { no strict 'refs'; $f = \&$f; }
-  my $tmpn = !$options->{Shading} ? undef : $options->{Smooth}
-    ? $this->{VertexNormals}->dice_axis(1,$this->{Faceidx}->flat)
-                  ->splitdim(1,$this->{Faceidx}->dim(0)) : $this->{FaceNormals}->dummy(1,3);
-  if ($options->{Shading}) { glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE); glEnable(GL_COLOR_MATERIAL); }
-  $f->($faces, $options->{Shading} ? $tmpn : (), $colours);
-  if ($options->{Shading}) { glDisable(GL_COLOR_MATERIAL); }
   if ($options->{ShowNormals}) {
     die "No normals to show!" if !grep defined $this->{$_}, qw(FaceNormals VertexNormals);
     if (defined $this->{VertexNormals}) {

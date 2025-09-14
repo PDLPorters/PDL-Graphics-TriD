@@ -134,6 +134,9 @@ sub new {
     $this->{VertexNormals} = $vn if $options->{Smooth} or $options->{ShowNormals};
     $this->{FaceNormals} = $fn if !$options->{Smooth} or $options->{ShowNormals};
   }
+  my %less = %$options; delete @less{qw(ShowNormals Lines)};
+  $less{Shading} = 3 if $options->{Shading};
+  $this->add_object(PDL::Graphics::TriD::Triangles->new($points, $faceidx->clump(1..$faceidx->ndims-1), $colors, \%less));
   $this;
 }
 sub get_valid_options { +{
