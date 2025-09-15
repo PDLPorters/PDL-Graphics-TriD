@@ -124,12 +124,12 @@ use base qw/PDL::Graphics::TriD::GObject/;
 use fields qw/Faceidx FaceNormals VertexNormals/;
 sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : {};
-  my($type,$points,$faceidx,$colors) = @_;
+  my ($type,$points,$faceidx,$colors) = @_;
   my $this = $type->SUPER::new($points,$colors,$options);
   # faceidx is 2D pdl of indices into points for each face
-  $this->{Faceidx} = $faceidx->ulong;
+  $faceidx = $this->{Faceidx} = $faceidx->ulong;
   $options = $this->{Options};
-  if ($options->{Shading} or $options->{ShowNormals}) {
+  if ($options->{ShowNormals}) {
     my ($fn, $vn) = triangle_normals($this->{Points}, $faceidx);
     $this->{VertexNormals} = $vn if $options->{Smooth} or $options->{ShowNormals};
     $this->{FaceNormals} = $fn if !$options->{Smooth} or $options->{ShowNormals};
@@ -137,8 +137,14 @@ sub new {
   my %less = %$options; delete @less{qw(ShowNormals Lines)};
   $less{Shading} = 3 if $options->{Shading};
   $this->add_object(PDL::Graphics::TriD::Triangles->new($points, $faceidx->clump(1..$faceidx->ndims-1), $colors, \%less));
+  if ($options->{Lines}) {
+    $points = PDL::Graphics::TriD::realcoords($type->r_type,$points);
+    my $faces = $points->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
+    $this->add_object(PDL::Graphics::TriD::Lines->new($faces->dice_axis(1,[0,1,2,0]), PDL::float(0,0,0)));
+  }
   $this;
 }
+sub r_type { return "";}
 sub get_valid_options { +{
   UseDefcols => 0,
   Lines => 0,

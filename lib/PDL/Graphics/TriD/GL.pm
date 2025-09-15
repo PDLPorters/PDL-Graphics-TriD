@@ -279,9 +279,6 @@ sub PDL::Graphics::TriD::Trigrid::gdraw {
       PDL::gl_lines_col($facearrows,[0.5,0.5,0.5]);
     }
   }
-  if ($options->{Lines}) {
-    PDL::gl_lines_col($faces->dice_axis(1,[0,1,2,0]), [0,0,0]);
-  }
 }
 
 # A special construct which always faces the display and takes the entire window
