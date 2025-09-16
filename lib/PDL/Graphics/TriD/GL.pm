@@ -208,7 +208,8 @@ sub PDL::Graphics::TriD::Triangles::gdraw {
   my ($this,$points) = @_;
   my $options = $this->{Options};
   my $shading = $options->{Shading};
-  my $colours = $this->{Colors}->clump(1..$this->{Colors}->ndims-1)->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
+  my $colours = $this->{Colors};
+  $colours = $colours->clump(1..$this->{Colors}->ndims-1)->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3) if $colours->ndims > 1;
   glShadeModel($shading == 1 ? GL_FLAT : GL_SMOOTH) if $shading;
   my $f = 'PDL::gl_triangles';
   $f .= '_wn' if $shading > 2;
@@ -251,33 +252,6 @@ sub PDL::Graphics::TriD::Contours::gdraw {
          my $seg = sprintf ":,%d:%d",$this->{Labels}[0],$this->{Labels}[1];
          PDL::Graphics::OpenGLQ::gl_texts($points->slice($seg),
                  $this->{LabelStrings});
-  }
-}
-
-sub PDL::Graphics::TriD::Trigrid::gdraw {
-  my($this,$points) = @_;
-  my $faces = $points->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
-  my $colours = $this->{Colors}->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
-  my $options = $this->{Options};
-  if ($options->{ShowNormals}) {
-    die "No normals to show!" if !grep defined $this->{$_}, qw(FaceNormals VertexNormals);
-    if (defined $this->{VertexNormals}) {
-      my $arrows = $points->append($points + $this->{VertexNormals}*0.1)->splitdim(0,3)->clump(1,2);
-      glDisable(GL_LIGHTING);
-      my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($arrows,sequence(ulong,2,$points->dim(1))->t->dog,
-        0.5, 0.2);
-      PDL::gl_triangles($tv->dice_axis(1,$ti)->splitdim(1,3), [1,1,1]);
-      PDL::gl_lines_col($arrows,[1,1,1]);
-    }
-    if (defined $this->{FaceNormals}) {
-      my $facecentres = $faces->transpose->avgover;
-      my $facearrows = $facecentres->append($facecentres + $this->{FaceNormals}*0.1)->splitdim(0,3)->clump(1,2);
-      glDisable(GL_LIGHTING);
-      my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($facearrows,sequence(ulong,2,$facecentres->dim(1))->t->dog,
-        0.5, 0.2);
-      PDL::gl_triangles($tv->dice_axis(1,$ti)->splitdim(1,3), [0.5,0.5,0.5]);
-      PDL::gl_lines_col($facearrows,[0.5,0.5,0.5]);
-    }
   }
 }
 

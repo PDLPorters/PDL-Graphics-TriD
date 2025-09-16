@@ -12,6 +12,7 @@ This provides the following class hierarchy:
 
   PDL::Graphics::TriD::Object            base class for containers
   ├ PDL::Graphics::TriD::Arrows          lines with arrowheads
+  ├ PDL::Graphics::TriD::Trigrid         polygons
   └ PDL::Graphics::TriD::GObject         (abstract) base class for drawables
 
   PDL::Graphics::TriD::GObject           (abstract) base class for drawables
@@ -19,7 +20,6 @@ This provides the following class hierarchy:
   ├ PDL::Graphics::TriD::Spheres         fat 3D points :)
   ├ PDL::Graphics::TriD::Lines           separate lines
   ├ PDL::Graphics::TriD::LineStrip       continuous paths
-  ├ PDL::Graphics::TriD::Trigrid         polygons
   ├ PDL::Graphics::TriD::Triangles       just polygons
   ├ PDL::Graphics::TriD::Lattice         colored lattice, maybe filled/shaded
   └ PDL::Graphics::TriD::Labels          text labels
@@ -120,27 +120,39 @@ sub get_valid_options { +{
 
 package PDL::Graphics::TriD::Trigrid;
 use PDL::Graphics::OpenGLQ;
-use base qw/PDL::Graphics::TriD::GObject/;
-use fields qw/Faceidx FaceNormals VertexNormals/;
+use base qw/PDL::Graphics::TriD::Object/;
 sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : {};
   my ($type,$points,$faceidx,$colors) = @_;
-  my $this = $type->SUPER::new($points,$colors,$options);
+  my $this = $type->SUPER::new($options);
   # faceidx is 2D pdl of indices into points for each face
-  $faceidx = $this->{Faceidx} = $faceidx->ulong;
+  $faceidx = $faceidx->ulong;
   $options = $this->{Options};
-  if ($options->{ShowNormals}) {
-    my ($fn, $vn) = triangle_normals($this->{Points}, $faceidx);
-    $this->{VertexNormals} = $vn if $options->{Smooth} or $options->{ShowNormals};
-    $this->{FaceNormals} = $fn if !$options->{Smooth} or $options->{ShowNormals};
-  }
   my %less = %$options; delete @less{qw(ShowNormals Lines)};
   $less{Shading} = 3 if $options->{Shading};
   $this->add_object(PDL::Graphics::TriD::Triangles->new($points, $faceidx->clump(1..$faceidx->ndims-1), $colors, \%less));
-  if ($options->{Lines}) {
+  if ($options->{Lines} or $options->{ShowNormals}) {
     $points = PDL::Graphics::TriD::realcoords($type->r_type,$points);
-    my $faces = $points->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
-    $this->add_object(PDL::Graphics::TriD::Lines->new($faces->dice_axis(1,[0,1,2,0]), PDL::float(0,0,0)));
+    my $faces = $points->dice_axis(1,$faceidx->flat)->splitdim(1,3);
+    if ($options->{Lines}) {
+      $this->add_object(PDL::Graphics::TriD::Lines->new($faces->dice_axis(1,[0,1,2,0]), PDL::float(0,0,0)));
+    }
+    if ($options->{ShowNormals}) {
+      my ($fn, $vn) = triangle_normals($points, $faceidx);
+      my $facecentres = $faces->transpose->avgover;
+      my $facearrows = $facecentres->append($facecentres + $fn*0.1)->splitdim(0,3)->clump(1,2);
+      my ($fromind, $toind) = PDL->sequence(PDL::ulong,2,$facecentres->dim(1))->t->dog;
+      $this->add_object(PDL::Graphics::TriD::Arrows->new(
+        $facearrows, PDL::float(0.5,0.5,0.5),
+        { From=>$fromind, To=>$toind, ArrowLen => 0.5, ArrowWidth => 0.2 },
+      ));
+      my $vertarrows = $points->append($points + $vn*0.1)->splitdim(0,3)->clump(1,2);
+      ($fromind, $toind) = PDL->sequence(PDL::ulong,2,$points->dim(1))->t->dog;
+      $this->add_object(PDL::Graphics::TriD::Arrows->new(
+        $vertarrows, PDL::float(1,1,1),
+        { From=>$fromind, To=>$toind, ArrowLen => 0.5, ArrowWidth => 0.2 },
+      ));
+    }
   }
   $this;
 }
