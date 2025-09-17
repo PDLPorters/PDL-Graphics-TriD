@@ -128,31 +128,13 @@ sub new {
   # faceidx is 2D pdl of indices into points for each face
   $faceidx = $faceidx->ulong;
   $options = $this->{Options};
-  my %less = %$options; delete @less{qw(ShowNormals Lines)};
+  my %less = %$options; delete @less{qw(Lines)};
   $less{Shading} = 3 if $options->{Shading};
   $this->add_object(PDL::Graphics::TriD::Triangles->new($points, $faceidx->clump(1..$faceidx->ndims-1), $colors, \%less));
-  if ($options->{Lines} or $options->{ShowNormals}) {
+  if ($options->{Lines}) {
     $points = PDL::Graphics::TriD::realcoords($type->r_type,$points);
     my $faces = $points->dice_axis(1,$faceidx->flat)->splitdim(1,3);
-    if ($options->{Lines}) {
-      $this->add_object(PDL::Graphics::TriD::Lines->new($faces->dice_axis(1,[0,1,2,0]), PDL::float(0,0,0)));
-    }
-    if ($options->{ShowNormals}) {
-      my ($fn, $vn) = triangle_normals($points, $faceidx);
-      my $facecentres = $faces->transpose->avgover;
-      my $facearrows = $facecentres->append($facecentres + $fn*0.1)->splitdim(0,3)->clump(1,2);
-      my ($fromind, $toind) = PDL->sequence(PDL::ulong,2,$facecentres->dim(1))->t->dog;
-      $this->add_object(PDL::Graphics::TriD::Arrows->new(
-        $facearrows, PDL::float(0.5,0.5,0.5),
-        { From=>$fromind, To=>$toind, ArrowLen => 0.5, ArrowWidth => 0.2 },
-      ));
-      my $vertarrows = $points->append($points + $vn*0.1)->splitdim(0,3)->clump(1,2);
-      ($fromind, $toind) = PDL->sequence(PDL::ulong,2,$points->dim(1))->t->dog;
-      $this->add_object(PDL::Graphics::TriD::Arrows->new(
-        $vertarrows, PDL::float(1,1,1),
-        { From=>$fromind, To=>$toind, ArrowLen => 0.5, ArrowWidth => 0.2 },
-      ));
-    }
+    $this->add_object(PDL::Graphics::TriD::Lines->new($faces->dice_axis(1,[0,1,2,0]), PDL::float(0,0,0)));
   }
   $this;
 }
@@ -177,10 +159,29 @@ sub new {
   my $this = $type->SUPER::new($points,$colors,$options);
   $faceidx = $this->{Faceidx} = $faceidx->ulong; # (3,nfaces) indices
   $options = $this->{Options};
-  if ($options->{Shading}) {
+  if ($options->{Shading} or $options->{ShowNormals}) {
     my ($fn, $vn) = triangle_normals($this->{Points}, $faceidx);
-    $this->{VertexNormals} = $vn if $options->{Smooth};
-    $this->{FaceNormals} = $fn if !$options->{Smooth};
+    if ($options->{Shading}) {
+      $this->{VertexNormals} = $vn if $options->{Smooth};
+      $this->{FaceNormals} = $fn if !$options->{Smooth};
+    }
+    if ($options->{ShowNormals}) {
+      $points = PDL::Graphics::TriD::realcoords($type->r_type,$points);
+      my $faces = $points->dice_axis(1,$faceidx->flat)->splitdim(1,3);
+      my $facecentres = $faces->transpose->avgover;
+      my $facearrows = $facecentres->append($facecentres + $fn*0.1)->splitdim(0,3)->clump(1,2);
+      my ($fromind, $toind) = PDL->sequence(PDL::ulong,2,$facecentres->dim(1))->t->dog;
+      $this->add_object(PDL::Graphics::TriD::Arrows->new(
+        $facearrows, PDL::float(0.5,0.5,0.5),
+        { From=>$fromind, To=>$toind, ArrowLen => 0.5, ArrowWidth => 0.2 },
+      ));
+      my $vertarrows = $points->append($points + $vn*0.1)->splitdim(0,3)->clump(1,2);
+      ($fromind, $toind) = PDL->sequence(PDL::ulong,2,$points->dim(1))->t->dog;
+      $this->add_object(PDL::Graphics::TriD::Arrows->new(
+        $vertarrows, PDL::float(1,1,1),
+        { From=>$fromind, To=>$toind, ArrowLen => 0.5, ArrowWidth => 0.2 },
+      ));
+    }
   }
   $this;
 }
@@ -189,6 +190,7 @@ sub get_valid_options { +{
   Shading => 1, # 0=no shading, 1=flat colour per triangle, 2=smooth colour per vertex, 3=colors associated with vertices
   Smooth => 0,
   Lighting => 0,
+  ShowNormals => 0,
 }}
 sub cdummies { $_[1]->dummy(1,$_[2]->getdim(1)); }
 
