@@ -200,7 +200,6 @@ sub cdummies { $_[1]->dummy(1,$_[2]->getdim(1)); }
 package PDL::Graphics::TriD::Lattice;
 use PDL::Graphics::OpenGLQ;
 use base qw/PDL::Graphics::TriD::GObject/;
-use fields qw/VertexNormals Faceidx FaceNormals/;
 sub cdummies {
   my $shading = $_[0]{Options}{Shading};
   !$shading ? $_[1]->dummy(1)->dummy(1) :
@@ -225,10 +224,9 @@ sub new {
     my $inds = PDL::ulong(0,1,$x,$x+1,$x,1)->slice(',*'.($x-1).',*'.($y-1));
     $inds = $inds->dupN(1,1,@extradims) if @extradims;
     my $indadd = PDL->sequence($x,$y,@extradims)->slice('*1,:-2,:-2');
-    my $faceidx = $this->{Faceidx} = ($inds + $indadd)->splitdim(0,3)->clump(1..3+@extradims);
-    my ($fn, $vn) = triangle_normals($points->clump(1..2+@extradims), $faceidx);
-    $this->{VertexNormals} = $vn if $options->{Smooth} or $options->{ShowNormals};
-    $this->{FaceNormals} = $fn if !$options->{Smooth} or $options->{ShowNormals};
+    my $faceidx = ($inds + $indadd)->splitdim(0,3)->clump(1..3+@extradims);
+    my %less = %$options; delete @less{qw(Lines)};
+    $this->add_object(PDL::Graphics::TriD::Triangles->new($points->clump(1..2+@extradims), $faceidx, $colors, \%less));
   }
   $this;
 }
