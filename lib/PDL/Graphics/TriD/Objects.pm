@@ -55,20 +55,16 @@ sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : {};
   my ($type,$points,$colors) = @_;
   my $this = $type->SUPER::new($options);
-  $this->{Points} = $points = PDL::Graphics::TriD::realcoords($type->r_type,$points);
+  $this->{Points} = $points = $this->normalise_as($type->r_type,$points);
   $this->{Options}{UseDefcols} = 1 if !defined $colors; # for VRML efficiency
-  $this->{Colors} = defined $colors
-    ? PDL::Graphics::TriD::realcoords("COLOR",$colors)
-    : $this->cdummies(PDL->pdl(PDL::float(),1,1,1),$points);
+  $this->{Colors} = $this->normalise_as("COLOR",$colors,$points);
   $this;
 }
 
 sub set_colors {
   my($this,$colors) = @_;
-  if(ref($colors) eq "ARRAY"){
-    $colors = PDL::Graphics::TriD::realcoords("COLOR",$colors);
-  }
-  $this->{Colors}=$colors;
+  $colors = $this->normalise_as("COLOR",$colors) if ref($colors) eq "ARRAY";
+  $this->{Colors} = $colors;
   $this->data_changed;
 }
 
@@ -132,7 +128,7 @@ sub new {
   $less{Shading} = 3 if $options->{Shading};
   $this->add_object(PDL::Graphics::TriD::Triangles->new($points, $faceidx->clump(1..$faceidx->ndims-1), $colors, \%less));
   if ($options->{Lines}) {
-    $points = PDL::Graphics::TriD::realcoords($type->r_type,$points);
+    $points = $this->normalise_as($type->r_type,$points);
     my $faces = $points->dice_axis(1,$faceidx->flat)->splitdim(1,3);
     $this->add_object(PDL::Graphics::TriD::Lines->new($faces->dice_axis(1,[0,1,2,0]), PDL::float(0,0,0)));
   }
@@ -166,7 +162,7 @@ sub new {
       $this->{FaceNormals} = $fn if !$options->{Smooth};
     }
     if ($options->{ShowNormals}) {
-      $points = PDL::Graphics::TriD::realcoords($type->r_type,$points);
+      $points = $this->normalise_as($type->r_type,$points);
       my $faces = $points->dice_axis(1,$faceidx->flat)->splitdim(1,3);
       my $facecentres = $faces->transpose->avgover;
       my $facearrows = $facecentres->append($facecentres + $fn*0.1)->splitdim(0,3)->clump(1,2);
@@ -260,7 +256,7 @@ sub new {
   my $this = $class->SUPER::new($options);
   $options = $this->{Options};
   my ($from, $to, $w, $hl) = delete @$options{qw(From To ArrowWidth ArrowLen)};
-  $points = PDL::Graphics::TriD::realcoords($class->r_type,$points);
+  $points = $this->normalise_as($class->r_type,$points);
   $this->add_object(PDL::Graphics::TriD::Lines->new(
     $points->dice_axis(1,$from)->flowing->append($points->dice_axis(1,$to))->splitdim(0,3),
     $colors, $options

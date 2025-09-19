@@ -17,6 +17,12 @@ sub new {
   $self;
 }
 
+sub normalise_as {
+  my ($this, $as, $what, $points) = @_;
+  return PDL::Graphics::TriD::realcoords($as, $what) if !defined $points or defined $what;
+  $this->cdummies(PDL->pdl(PDL::float(),1,1,1),$points);
+}
+
 sub check_options {
   my ($this) = @_;
   my $opts = $this->get_valid_options();
