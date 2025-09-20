@@ -13,6 +13,7 @@ This provides the following class hierarchy:
   PDL::Graphics::TriD::Object            base class for containers
   ├ PDL::Graphics::TriD::Arrows          lines with arrowheads
   ├ PDL::Graphics::TriD::Trigrid         polygons
+  ├ PDL::Graphics::TriD::Lattice         colored lattice, maybe filled/shaded
   └ PDL::Graphics::TriD::GObject         (abstract) base class for drawables
 
   PDL::Graphics::TriD::GObject           (abstract) base class for drawables
@@ -21,7 +22,6 @@ This provides the following class hierarchy:
   ├ PDL::Graphics::TriD::Lines           separate lines
   ├ PDL::Graphics::TriD::LineStrip       continuous paths
   ├ PDL::Graphics::TriD::Triangles       just polygons
-  ├ PDL::Graphics::TriD::Lattice         colored lattice, maybe filled/shaded
   └ PDL::Graphics::TriD::Labels          text labels
 
 =head1 DESCRIPTION
@@ -195,11 +195,10 @@ sub cdummies { $_[1]->dummy(1,$_[2]->getdim(1)); }
 # 0  1  2  3      4,0,1,1,5,4  5,1,2,2,6,5    6,2,3,3,7,6
 package PDL::Graphics::TriD::Lattice;
 use PDL::Graphics::OpenGLQ;
-use base qw/PDL::Graphics::TriD::GObject/;
+use base qw/PDL::Graphics::TriD::Object/;
 sub cdummies {
   my $shading = $_[0]{Options}{Shading};
   !$shading ? $_[1]->dummy(1)->dummy(1) :
-  $shading == 1 ? $_[1]->dummy(1,$_[2]->getdim(2)-1)->dummy(1,$_[2]->getdim(1)-1) :
   $_[1]->slice(":," . join ',', map "*$_", ($_[2]->dims)[1,2])
 }
 sub r_type {return "SURF2D";}
@@ -212,10 +211,14 @@ sub get_valid_options { +{
   ShowNormals => 0,
 }}
 sub new {
-  my ($class,$points,$colors,$options) = @_;
-  my $this = $class->SUPER::new($points,$colors,$options);
-  ($points, $options) = @$this{qw(Points Options)};
-  if ($options->{Shading} or $options->{ShowNormals}) {
+  my $options = ref($_[-1]) eq 'HASH' ? pop : {};
+  my ($class,$points,$colors) = @_;
+  my $this = $class->SUPER::new($options);
+  $points = $this->normalise_as($class->r_type,$points);
+  $colors = $this->normalise_as("COLOR",$colors,$points);
+  $options = $this->{Options};
+  my $shading = $options->{Shading};
+  if ($shading) {
     my (undef, $x, $y, @extradims) = $points->dims;
     my $inds = PDL::ulong(0,1,$x,$x+1,$x,1)->slice(',*'.($x-1).',*'.($y-1));
     $inds = $inds->dupN(1,1,@extradims) if @extradims;
@@ -223,6 +226,11 @@ sub new {
     my $faceidx = ($inds + $indadd)->splitdim(0,3)->clump(1..3+@extradims);
     my %less = %$options; delete @less{qw(Lines)};
     $this->add_object(PDL::Graphics::TriD::Triangles->new($points->clump(1..2+@extradims), $faceidx, $colors, \%less));
+  }
+  if ($shading == 0 or $options->{Lines}) {
+    my $lcolors = $shading ? $this->cdummies(PDL::float(0,0,0),$points) : $colors;
+    $this->add_object(PDL::Graphics::TriD::LineStrip->new($points, $lcolors));
+    $this->add_object(PDL::Graphics::TriD::LineStrip->new($points->xchg(1,2), $lcolors->xchg(1,2)));
   }
   $this;
 }

@@ -156,19 +156,6 @@ sub PDL::Graphics::TriD::Spheres::gdraw {
    PDL::gl_spheres($points, 0.025, 15, 15);
 }
 
-sub PDL::Graphics::TriD::Lattice::gdraw {
-  my($this,$points) = @_;
-  barf "Need 3D points AND colours"
-    if grep $_->ndims < 3, $points, $this->{Colors};
-  my $options = $this->{Options};
-  my $shading = $options->{Shading};
-  if ($shading == 0 or $options->{Lines}) {
-    glDisable(GL_LIGHTING);
-    PDL::gl_line_strip_col($points, $shading ? [0,0,0] : $this->{Colors});
-    PDL::gl_line_strip_col($points->xchg(1,2), $shading ? [0,0,0] : $this->{Colors}->xchg(1,2));
-  }
-}
-
 sub PDL::Graphics::TriD::Triangles::gdraw {
   my ($this,$points) = @_;
   my $options = $this->{Options};
