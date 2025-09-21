@@ -68,7 +68,7 @@ my @demo = (
 
 	# Lighten it up a bit so you see the background,
 	# black on black is confusing
-	$l = 0.3;
+	$l = float(0.3); # so the type stays right
 	sub lighten { $_[0] = ($_[0] + $l) / (1 + $l) }
 	lighten($pic);
 
