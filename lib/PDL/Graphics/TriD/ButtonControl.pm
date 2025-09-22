@@ -93,7 +93,7 @@ sub ButtonPress{
 #
 # GL (0,0) point is Lower left X and Tk is upper left.
 #
-  $y = $PDL::Graphics::TriD::current_window->{Height}-$y;
+  $y = $PDL::Graphics::TriD::current_window->{Height}-($y//0);
 
 #  print "$x $y ",$this->{Win}{X0}," ",$this->{Win}{Y0}," ",$this->{Win}{W}," ",$this->{Win}{H},"\n";
 
