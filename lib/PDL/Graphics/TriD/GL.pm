@@ -210,9 +210,9 @@ sub PDL::Graphics::TriD::Contours::gdraw {
 # A special construct which always faces the display and takes the entire window
 # The quick method is to use texturing for the good effect.
 sub PDL::Graphics::TriD::Image::gdraw {
-  my($this,$vert) = @_;
+  my ($this,$vert) = @_;
   my ($p,$xd,$yd,$txd,$tyd) = $this->flatten(1); # do binary alignment
-  if(!defined $vert) {$vert = $this->{Points}}
+  $vert //= $this->{Points};
   barf "Need 3,4 vert"
     if grep $_->dim(1) < 4 || $_->dim(0) != 3, $vert;
   if ($this->{Options}{FullScreen}) {

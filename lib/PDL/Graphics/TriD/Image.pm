@@ -9,13 +9,9 @@
 package PDL::Graphics::TriD::Image;
 use strict;
 use warnings;
-our @ISA=qw/PDL::Graphics::TriD::GObject/;
+use PDL::Graphics::TriD::Objects;
+use base qw/PDL::Graphics::TriD::GObject/;
 use PDL::Lite;
-
-sub get_valid_options { +{
-  UseDefcols => 0,
-  Lighting => 0,
-}}
 
 my $defaultvert = PDL->pdl([
 	[0,0,0],
@@ -23,39 +19,25 @@ my $defaultvert = PDL->pdl([
 	[1,1,0],
 	[0,1,0]
 ]);
+sub get_valid_options { +{
+  UseDefcols => 0,
+  Lighting => 0,
+  FullScreen => 0,
+  Points => $defaultvert,
+}}
 
 # r,g,b = 0..1
 sub new {
-	my($type,$color,$opts) = @_;
-	my $im = PDL::Graphics::TriD::realcoords('COLOR',$color);
-	my $this = {
-		Im => $im,
-		Options => $opts,
-		Points => $defaultvert,
-	};
-	if(defined $opts->{Points}) {
-		$this->{Points} = $opts->{Points};
-		if("ARRAY" eq ref $this->{Points}) {
-			$this->{Points} = PDL->pdl($this->{Points});
-		}
-	}
-	bless $this,$type;
-}
-
-sub get_points {
-	return $_[0]->{Points};
-}
-
-# In the future, have this happen automatically by the ndarrays.
-sub data_changed {
-	my($this) = @_;
-	$this->changed;
+  my $opts = ref($_[-1]) eq 'HASH' ? pop : $_[0]->get_valid_options;
+  my ($type,$color) = @_;
+  my $points = PDL->topdl($opts->{Points} // $defaultvert);
+  $type->SUPER::new($points, $color, $opts);
 }
 
 # ND ndarray -> 2D
 sub flatten {
         my ($this,$bin_align) = @_;
-	my @dims = $this->{Im}->dims;
+	my @dims = $this->{Colors}->dims;
 	shift @dims; # get rid of the '3'
 	my $xd = $dims[0]; my $yd = $dims[1];
 	my $xdr = $xd; my $ydr = $yd;
@@ -93,7 +75,7 @@ sub flatten {
 
 	  if($#dims > 1) {
 #		print "XALL: $xd $yd $xdr $ydr $txd $tyd\n";
-#		print "DIMS: ",(join ',',$this->{Im}->dims),"\n";
+#		print "DIMS: ",(join ',',$this->{Colors}->dims),"\n";
 	  }
 
 #	$PDL::debug=1;
@@ -131,7 +113,7 @@ sub flatten {
 #	$foop->dump;
 	print "ASSGNFOOP!\n" if $PDL::debug;
 
-	$foop .= $this->{Im};
+	$foop .= $this->{Colors};
 #	print "P: $p\n";
         return wantarray() ? ($p,$xd,$yd,$txd,$tyd) : $p;
 }
