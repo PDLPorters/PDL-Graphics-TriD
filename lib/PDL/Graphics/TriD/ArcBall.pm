@@ -115,6 +115,7 @@ BEGIN { *PI = \&PDL::Graphics::TriD::QuaterController::PI; }
 # this is different from the OpenGL Z axis which is towards the viewer
 sub mouse_moved {
   my($this,$x0,$y0,$x1,$y1) = @_;
+  $_ //= 0 for $x0, $y0, $x1, $y1;
   $this->SUPER::mouse_moved($x0,$y0,$x1,$y1);
   my ($dx, $dy) = ($x1-$x0, $y1-$y0);
   $dx /= $this->{W}/2; $dy /= $this->{H}/2; # scale to whole window not SC

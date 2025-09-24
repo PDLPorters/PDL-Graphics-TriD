@@ -89,11 +89,12 @@ $PDL::Graphics::TriD::current_window = $PDL::Graphics::TriD::current_window; # w
 
 sub ButtonPress{
   my ($this,$x,$y) = @_;
+  $_ //= 0 for $x, $y;
   print "ButtonPress @_ ",ref($this->{Win}),"\n" if $PDL::Graphics::TriD::verbose;
 #
 # GL (0,0) point is Lower left X and Tk is upper left.
 #
-  $y = $PDL::Graphics::TriD::current_window->{Height}-($y//0);
+  $y = $PDL::Graphics::TriD::current_window->{Height}-$y;
 
 #  print "$x $y ",$this->{Win}{X0}," ",$this->{Win}{Y0}," ",$this->{Win}{W}," ",$this->{Win}{H},"\n";
 
