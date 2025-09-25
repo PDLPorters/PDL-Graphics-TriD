@@ -199,11 +199,10 @@ sub PDL::Graphics::TriD::Contours::gdraw {
     $i++;
     $pcnt=$ie+1;
   }
-  if (defined $this->{Labels}){
-         glColor3d(1,1,1);
-         my $seg = sprintf ":,%d:%d",$this->{Labels}[0],$this->{Labels}[1];
-         PDL::Graphics::OpenGLQ::gl_texts($points->slice($seg),
-                 $this->{LabelStrings});
+  if (defined $this->{LabelStart}) {
+    glColor3d(1,1,1);
+    PDL::Graphics::OpenGLQ::gl_texts($points->slice(":,$this->{LabelStart}:"),
+      $this->{LabelStrings});
   }
 }
 

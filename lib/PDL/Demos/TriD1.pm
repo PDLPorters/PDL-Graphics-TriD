@@ -149,7 +149,7 @@ my @demo = (
 |],
 
 [actnw => q|
-	contour3d($z, [$x,$y,$z-1]);
+	contour3d($z, [$x,$y,$z-1], {Labels=>[1,15]});
 			# ...and draw contours on that
 	# [press 'q' in the graphics window when done]
 |],

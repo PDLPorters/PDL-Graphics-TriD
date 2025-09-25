@@ -524,6 +524,10 @@ ndarray specifying the contour color and C<$options> is a hash reference to
 a list of options documented below.  Contours can also be coloured by
 value using the set_color_table function.
 
+The C<Labels> option takes an array-ref of integers: the first is
+the interval between contours to label (1 does them all), the second
+is the interval between points on each contour to label.
+
 Implemented by L<PDL::Graphics::TriD::Contours>.
 
 =head2 labels3d

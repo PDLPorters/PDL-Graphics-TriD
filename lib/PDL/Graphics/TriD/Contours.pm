@@ -28,7 +28,7 @@ use PDL::ImageND;
 use PDL::Graphics::TriD;
 use PDL::Graphics::TriD::Objects;
 use base qw/PDL::Graphics::TriD::GObject/;
-use fields qw/PathIndex ContourPathIndexEnd Labels LabelStrings/;
+use fields qw/PathIndex ContourPathIndexEnd LabelStart LabelStrings/;
 
 $PDL::Graphics::TriD::verbose //= 0;
 
@@ -130,7 +130,7 @@ sub new {
     $pcnt += 1; $pval += $thispi_maxval + 1;
   }
 
-  $this->addlabels($options->{Labels}) if defined $options->{Labels};
+  $this->addlabels(@{$options->{Labels}}) if defined $options->{Labels};
 
   $this;
 }
@@ -166,54 +166,25 @@ $segint defaults to 5, that is every fifth line segment will be labeled.
 
 =cut
 
-sub addlabels{
-  my ($self,$labelint, $segint) = @_;
-
-  $labelint = 1 unless(defined $labelint);
-  $segint = 5 unless(defined $segint);
-
-  my $cnt=0;
-
-  my $strlist;
-  my $lp=pdl->null;
-
-  my $pcnt = 0;
-  my $offset = pdl[0.5,0.5,0.5];
-
-  for(my $i=0; $i<= $#{$self->{ContourSegCnt}}; $i++){
-    next unless defined $self->{ContourSegCnt}[$i];
-    $cnt = $self->{ContourSegCnt}[$i];
-    my $val = $self->{Options}{ContourVals}->slice("($i)");
-
-    my $leg =  $self->{Points}->slice(":,$pcnt:$cnt");
-    $pcnt=$cnt+1;
-
-    next if($i % $labelint);
-
-    for(my $j=0; $j< $leg->getdim(1); $j+=2){
-      next if(($j/2) % $segint);
-
-		my $j1=$j+1;
-
-      my $lp2 = $leg->slice(":,($j)") +
-                $offset*($leg->slice(":,($j1)") -
-					  $leg->slice(":,($j)"));
-
-
-		$lp = $lp->append($lp2);
-# need a label string for each point
-		push(@$strlist,$val);
-
-	 }
-
+sub addlabels {
+  my ($self, $labelint, $segint) = @_;
+  $labelint //= 1;
+  $segint //= 5;
+  my (@pi_ends, @strlist);
+  my $lp = PDL->null;
+  for (my $i=0; $i<= $#{$self->{ContourPathIndexEnd}}; $i++) {
+    next unless defined $self->{ContourPathIndexEnd}[$i];
+    push @pi_ends, $self->{PathIndex}->at($self->{ContourPathIndexEnd}[$i]);
+    next if $i % $labelint;
+    my ($start, $end) = (@pi_ends > 1 ? $pi_ends[-2] : 0, $pi_ends[-1]);
+    my $lp2 = $self->{Points}->slice(":,$start:$end:$segint");
+    push @strlist, ($self->{Options}{ContourVals}->slice("($i)")) x $lp2->dim(1);
+    $lp = $lp->glue(1,$lp2);
   }
-  if($lp->nelem>0){
-	 $self->{Points} = $self->{Points}->transpose
-		->append($lp->reshape(3,$lp->nelem/3)->transpose)->transpose;
-	 $self->{Labels} = [$cnt+1,$cnt+$lp->nelem/3];
-	 $self->{LabelStrings} = $strlist;
-  }
-
+  return if !$lp->nelem;
+  $self->{Points} = $self->{Points}->glue(1,$lp);
+  $self->{LabelStart} = $self->{Points}->dim(1) - $lp->dim(1);
+  $self->{LabelStrings} = \@strlist;
 }
 
 =head2 set_colortable($table)
