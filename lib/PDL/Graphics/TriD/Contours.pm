@@ -64,64 +64,55 @@ value using the set_color_table function.
 
 =cut
 
-sub new{
-  my($type,$data,$points,$colors,$options) = @_;
-
-  if(! defined $points){
-	 $points = [$data->xvals,$data->yvals,$data->zvals];
-  }
-
-  if(ref($colors) eq "HASH"){
-    $options=$colors ;
-    undef $colors;
-  }
-
-  $colors = PDL::Graphics::TriD::realcoords("COLOR",pdl[1,1,1]) unless defined $colors;
-
+sub new {
+  my $options = ref($_[-1]) eq 'HASH' ? pop : $_[0]->get_valid_options;
+  my ($type,$data,$points,$colors) = @_;
+  $points //= [$data->xvals,$data->yvals,$data->zvals];
   my $this = $type->SUPER::new($points,$colors,$options);
+  $options = $this->{Options};
 
   my $fac=1;
   my ($min,$max) = $data->minmax;
 
-  unless(defined $this->{Options}{ContourMin}){
-    while($fac*($max-$min)<10){
+  unless(defined $options->{ContourMin}){
+    my $valuerange = $max-$min;
+    while($fac*$valuerange<10){
       $fac*=10;
     }
-    $this->{Options}{ContourMin} = int($fac*$min) == $fac*$min ? $min : int($fac*$min+1)/$fac;
-    print "ContourMin =  ",$this->{Options}{ContourMin},"\n"
+    $options->{ContourMin} = int($fac*$min) == $fac*$min ? $min : int($fac*$min+1)/$fac;
+    print "ContourMin =  ",$options->{ContourMin},"\n"
                 if $PDL::Graphics::TriD::verbose;
   }
-  unless(defined $this->{Options}{ContourMax} &&
-			$this->{Options}{ContourMax} > $this->{Options}{ContourMin} ){
-    if(defined $this->{Options}{ContourInt}){
-      $this->{Options}{ContourMax} = $this->{Options}{ContourMin};
-      while($this->{Options}{ContourMax}+$this->{Options}{ContourInt} < $max){
-	$this->{Options}{ContourMax}= $this->{Options}{ContourMax}+$this->{Options}{ContourInt};
+  unless(defined $options->{ContourMax} &&
+			$options->{ContourMax} > $options->{ContourMin} ){
+    if(defined $options->{ContourInt}){
+      $options->{ContourMax} = $options->{ContourMin};
+      while($options->{ContourMax}+$options->{ContourInt} < $max){
+	$options->{ContourMax}= $options->{ContourMax}+$options->{ContourInt};
       }
     }else{
-      $this->{Options}{ContourMax} = int($fac*$max) == $fac*$max ? $max : (int($fac*$max)-1)/$fac;
+      $options->{ContourMax} = int($fac*$max) == $fac*$max ? $max : (int($fac*$max)-1)/$fac;
     }
-    print "ContourMax =  ",$this->{Options}{ContourMax},"\n"
+    print "ContourMax =  ",$options->{ContourMax},"\n"
                 if $PDL::Graphics::TriD::verbose;
   }
-  unless(defined $this->{Options}{ContourInt} &&  $this->{Options}{ContourInt}>0){
-    $this->{Options}{ContourInt} = int($fac*($this->{Options}{ContourMax}-$this->{Options}{ContourMin}))/(10*$fac);
-    print "ContourInt =  ",$this->{Options}{ContourInt},"\n"
+  unless(defined $options->{ContourInt} &&  $options->{ContourInt}>0){
+    $options->{ContourInt} = int($fac*($options->{ContourMax}-$options->{ContourMin}))/(10*$fac);
+    print "ContourInt =  ",$options->{ContourInt},"\n"
 		if($PDL::Graphics::TriD::verbose);
   }
 #
 # The user could also name cvals
 #
   my $cvals;
-  if (!defined($this->{Options}{ContourVals}) || $this->{Options}{ContourVals}->isempty){
-    $cvals=zeroes(float(), int(($this->{Options}{ContourMax}-$this->{Options}{ContourMin})/$this->{Options}{ContourInt}+1));
-    $cvals = $cvals->xlinvals($this->{Options}{ContourMin},$this->{Options}{ContourMax});
+  if (!defined($options->{ContourVals}) || $options->{ContourVals}->isempty){
+    $cvals=zeroes(float(), int(($options->{ContourMax}-$options->{ContourMin})/$options->{ContourInt}+1));
+    $cvals = $cvals->xlinvals(@$options{qw(ContourMin ContourMax)});
   }else{
-    $cvals = $this->{Options}{ContourVals};
-    $this->{Options}{ContourMax}=$cvals->max->sclr;
-    $this->{Options}{ContourMin}=$cvals->min->sclr;
+    $cvals = $options->{ContourVals};
+    @$options{qw(ContourMin ContourMax)} = $cvals->minmax;
   }
-  $this->{Options}{ContourVals} = $cvals;
+  $options->{ContourVals} = $cvals;
   print "Cvals = $cvals\n" if $PDL::Graphics::TriD::verbose;
 
   my ($pi, $p) = contour_polylines($cvals,$data,$this->{Points});
@@ -139,9 +130,9 @@ sub new{
     $pcnt += 1; $pval += $thispi_maxval + 1;
   }
 
-  $this->addlabels($this->{Options}{Labels}) if defined $this->{Options}{Labels};
+  $this->addlabels($options->{Labels}) if defined $options->{Labels};
 
-  return $this;
+  $this;
 }
 
 sub get_valid_options { +{
