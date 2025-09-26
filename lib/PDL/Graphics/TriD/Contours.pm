@@ -28,7 +28,7 @@ use PDL::ImageND;
 use PDL::Graphics::TriD;
 use PDL::Graphics::TriD::Objects;
 use base qw/PDL::Graphics::TriD::GObject/;
-use fields qw/PathIndex ContourPathIndexEnd LabelStart LabelStrings/;
+use fields qw/PathIndex ContourPathIndexEnd/;
 
 $PDL::Graphics::TriD::verbose //= 0;
 
@@ -182,9 +182,7 @@ sub addlabels {
     $lp = $lp->glue(1,$lp2);
   }
   return if !$lp->nelem;
-  $self->{Points} = $self->{Points}->glue(1,$lp);
-  $self->{LabelStart} = $self->{Points}->dim(1) - $lp->dim(1);
-  $self->{LabelStrings} = \@strlist;
+  $self->add_object(PDL::Graphics::TriD::Labels->new($lp, {Strings=>\@strlist}));
 }
 
 =head2 set_colortable($table)
