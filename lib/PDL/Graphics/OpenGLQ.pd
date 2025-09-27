@@ -84,9 +84,10 @@ pp_def(
 );
 
 sub TRI {
-  my ($par, $suffix) = @_;
+  my ($par, $suffix, $var) = @_;
   $par .= $suffix if $suffix && !ref $suffix;
-  my $extra_arg = ref $suffix ? "trivert => $$suffix," : '';
+  $var //= 'trivert';
+  my $extra_arg = ref $suffix ? "$var => $$suffix," : '';
   join ',', map "$par(${extra_arg}tri => $_)", 0..2;
 }
 sub make_tri { shift()."(".TRI(@_).");\n" }
