@@ -186,19 +186,7 @@ sub PDL::Graphics::TriD::Lines::gdraw {
 
 sub PDL::Graphics::TriD::Contours::gdraw {
   my ($this,$points) = @_;
-  my $pi = $this->{PathIndex};
-  my ($pcnt, $i, $thisind) = (0, 0, 0);
-  for my $ie (grep defined, @{$this->{ContourPathIndexEnd}}) {
-    my $colors = $this->{Colors};
-    $colors = $colors->slice(":,($i)") if $colors->getndims==2;
-    my $this_pi = $pi->slice("$pcnt:$ie");
-    for ($this_pi->list) {
-      PDL::gl_line_strip_col($points->slice(",$thisind:$_"), $colors);
-      $thisind = $_ + 1;
-    }
-    $i++;
-    $pcnt=$ie+1;
-  }
+  PDL::gl_line_strip_multi($points, $this->{Colors}, $this->{PathIndex});
 }
 
 # A special construct which always faces the display and takes the entire window
