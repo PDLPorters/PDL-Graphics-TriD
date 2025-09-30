@@ -116,14 +116,15 @@ make_func($_) for qw(gl_line_strip gl_lines gl_points);
 
 pp_def('gl_line_strip_multi',
   GenericTypes => $F,
-  Pars => 'coords(tri=3,v); colors(tri,v); uint pathend(n);',
+  Pars => 'coords(tri=3,v); colors(tri,v); int count(drawcount); uint starts(drawcount); uint indices(alli);',
   Code => '
-PDL_ULong lastend = -1, thisstart = 0, thisend = 0;
-loop(n) %{
-  thisstart = lastend + 1;
-  lastend = thisend = $pathend();
+loop(drawcount) %{
+  PDL_ULong howmany = $count(), start = $starts(), upto = start+howmany-1;
   glBegin(GL_LINE_STRIP);
-  loop(v=thisstart:thisend) %{'.COLOR().VERTEX().'%}
+  loop(alli=start:upto) %{
+    PDL_ULong thisind = $indices();
+    '.COLOR(\'thisind', 'v').VERTEX(\'thisind', 'v').'
+  %}
   glEnd();
 %}
   ',

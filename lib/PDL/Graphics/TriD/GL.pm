@@ -186,7 +186,15 @@ sub PDL::Graphics::TriD::Lines::gdraw {
 
 sub PDL::Graphics::TriD::Contours::gdraw {
   my ($this,$points) = @_;
-  PDL::gl_line_strip_multi($points, $this->{Colors}, $this->{PathIndex});
+  my $pi = $this->{PathIndex}->ulong;
+  my $nv = $points->dim(1);
+  my $indices = sequence(ulong, $nv);
+  my $drawcount = $this->{PathIndex}->dim(0);
+  my $counts = $pi->numdiff->long;
+  $counts->slice('0')++; # account for starting from 0
+  my $starts = $pi->rotate(1) + ulong(1);
+  $starts->set(0, 0);
+  PDL::gl_line_strip_multi($points, $this->{Colors}, $counts, $starts, $indices);
 }
 
 # A special construct which always faces the display and takes the entire window
