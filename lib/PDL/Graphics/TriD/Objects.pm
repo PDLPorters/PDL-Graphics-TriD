@@ -235,6 +235,23 @@ sub new {
   $this;
 }
 
+package PDL::Graphics::TriD::LineStripMulti;
+use base qw/PDL::Graphics::TriD::GObject/;
+use fields qw/Counts Starts Indices/;
+sub cdummies { $_[1]->dummy(1, $_[2]->dim(1)) }
+sub r_type {""}
+sub get_valid_options { +{
+  UseDefcols => 0,
+  Lighting => 0,
+}}
+sub new {
+  my $options = ref($_[-1]) eq 'HASH' ? pop : {};
+  my ($class, $points, $colors, $counts, $starts, $indices) = @_;
+  my $this = $class->SUPER::new($points, $colors, $options);
+  @$this{qw(Counts Starts Indices)} = ($counts, $starts, $indices);
+  $this;
+}
+
 package PDL::Graphics::TriD::Labels;
 use base qw/PDL::Graphics::TriD::GObject/;
 sub get_valid_options { +{

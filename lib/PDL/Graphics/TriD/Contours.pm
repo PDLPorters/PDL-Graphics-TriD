@@ -25,10 +25,7 @@ use strict;
 use warnings;
 use PDL;
 use PDL::ImageND;
-use PDL::Graphics::TriD;
-use PDL::Graphics::TriD::Objects;
-use base qw/PDL::Graphics::TriD::GObject/;
-use fields qw/PathIndex ContourPathIndexEnd/;
+use base qw/PDL::Graphics::TriD::Object/;
 
 $PDL::Graphics::TriD::verbose //= 0;
 
@@ -64,12 +61,14 @@ value using the set_color_table function.
 
 =cut
 
+sub r_type {""}
 sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : $_[0]->get_valid_options;
   my ($type,$data,$points,$colors) = @_;
   $points //= [$data->xvals,$data->yvals,$data->zvals];
-  my $this = $type->SUPER::new($points,$colors,$options);
+  my $this = $type->SUPER::new($options);
   $options = $this->{Options};
+  $points = $this->normalise_as($type->r_type,$points);
 
   my $fac=1;
   my ($min,$max) = $data->minmax;
@@ -115,22 +114,34 @@ sub new {
   $options->{ContourVals} = $cvals;
   print "Cvals = $cvals\n" if $PDL::Graphics::TriD::verbose;
 
-  my ($pi, $p) = contour_polylines($cvals,$data,$this->{Points});
-  $_ = PDL->null for @$this{qw(Points PathIndex)};
-  my ($pcnt, $pval) = (0,0);
+  my ($pi, $p) = contour_polylines($cvals,$data,$points);
+  $_ = PDL->null for $points, my $pathindex;
+  my ($pcnt, $pval, @contour_path_index_end) = (0,0);
   for (my $i=0; $i<$cvals->nelem; $i++) {
     my $this_pi = $pi->slice(",($i)");
     next if $this_pi->at(0) == -1;
     my $thispi_maxind = $this_pi->maximum_ind->sclr;
     $this_pi = $this_pi->slice("0:$thispi_maxind");
     my $thispi_maxval = $this_pi->at($thispi_maxind);
-    $this->{PathIndex} = $this->{PathIndex}->append($this_pi+$pval);
-    $this->{Points} = $this->{Points}->glue(1,$p->slice(":,0:$thispi_maxval,($i)"));
-    $this->{ContourPathIndexEnd}[$i] = $pcnt = $pcnt+$thispi_maxind;
+    $pathindex = $pathindex->append($this_pi+$pval);
+    $points = $points->glue(1,$p->slice(":,0:$thispi_maxval,($i)"));
+    $contour_path_index_end[$i] = $pcnt = $pcnt+$thispi_maxind;
     $pcnt += 1; $pval += $thispi_maxval + 1;
   }
 
-  $this->addlabels(@{$options->{Labels}}) if defined $options->{Labels};
+  $pi = $pathindex->ulong;
+  my $indices = sequence(ulong, $points->dim(1));
+  my $counts = $pi->numdiff->long;
+  $counts->slice('0')++; # account for starting from 0
+  my $starts = $pi->rotate(1) + ulong(1);
+  $starts->set(0, 0);
+  $this->add_object(PDL::Graphics::TriD::LineStripMulti->new($points, $colors, $counts, $starts, $indices));
+
+  if (defined $options->{Labels}) {
+    my @labels = @{$options->{Labels}};
+    @labels[2..4] = (\@contour_path_index_end, $points, $pathindex);
+    $this->addlabels(@labels);
+  }
 
   $this;
 }
@@ -167,17 +178,17 @@ $segint defaults to 5, that is every fifth line segment will be labeled.
 =cut
 
 sub addlabels {
-  my ($self, $labelint, $segint) = @_;
+  my ($self, $labelint, $segint, $cpie, $points, $pathindex) = @_;
   $labelint //= 1;
   $segint //= 5;
   my (@pi_ends, @strlist);
   my $lp = PDL->null;
-  for (my $i=0; $i<= $#{$self->{ContourPathIndexEnd}}; $i++) {
-    next unless defined $self->{ContourPathIndexEnd}[$i];
-    push @pi_ends, $self->{PathIndex}->at($self->{ContourPathIndexEnd}[$i]);
+  for (my $i=0; $i<= $#$cpie; $i++) {
+    next unless defined $cpie->[$i];
+    push @pi_ends, $pathindex->at($cpie->[$i]);
     next if $i % $labelint;
     my ($start, $end) = (@pi_ends > 1 ? $pi_ends[-2] : 0, $pi_ends[-1]);
-    my $lp2 = $self->{Points}->slice(":,$start:$end:$segint");
+    my $lp2 = $points->slice(":,$start:$end:$segint");
     push @strlist, ($self->{Options}{ContourVals}->slice("($i)")) x $lp2->dim(1);
     $lp = $lp->glue(1,$lp2);
   }
