@@ -53,11 +53,21 @@ value using the set_color_table function.
   ContourMin  => 0.0  # explicitly set a contour minimum
   ContourMax  => 10.0 # explicitly set a contour maximum
   ContourVals => $pdl # explicitly set all contour values
-  Label => [1,5,$myfont] # see addlabels below
+  Labels => [1,15] # see addlabels below
 
-  If ContourVals is specified ContourInt, ContourMin, and ContourMax
-  are ignored.  If no options are specified, the algorithm tries to
-  choose values based on the data supplied.
+If C<ContourVals> is specified C<ContourInt>, C<ContourMin>, and C<ContourMax>
+are ignored.  If no options are specified, the algorithm tries to
+choose values based on the data supplied.
+
+If C<Labels> is given, labels are added to the contour plot.
+The first value, C<$labelint> , is the integer interval between
+labeled contours. If you have 8 contour levels and specify
+C<$labelint=3>, it will attempt to label the 1st, 4th, and 7th
+contours. C<$labelint> defaults to 1.
+The second value, C<$segint> specifies the density of labels on a single contour
+level. Each contour level consists of a number of connected
+line segments, C<$segint> defines how many of these segments get labels.
+C<$segint> defaults to 5, that is every fifth line segment will be labeled.
 
 =cut
 
@@ -138,9 +148,21 @@ sub new {
   $this->add_object(PDL::Graphics::TriD::LineStripMulti->new($points, $colors, $counts, $starts, $indices));
 
   if (defined $options->{Labels}) {
-    my @labels = @{$options->{Labels}};
-    @labels[2..4] = (\@contour_path_index_end, $points, $pathindex);
-    $this->addlabels(@labels);
+    my ($labelint, $segint) = @{$options->{Labels}};
+    $labelint //= 1;
+    $segint //= 5;
+    my (@pi_ends, @strlist);
+    my $lp = PDL->null;
+    for (my $i=0; $i<= $#contour_path_index_end; $i++) {
+      next unless defined $contour_path_index_end[$i];
+      push @pi_ends, $pathindex->at($contour_path_index_end[$i]);
+      next if $i % $labelint;
+      my ($start, $end) = (@pi_ends > 1 ? $pi_ends[-2] : 0, $pi_ends[-1]);
+      my $lp2 = $points->slice(":,$start:$end:$segint");
+      push @strlist, ($this->{Options}{ContourVals}->slice("($i)")) x $lp2->dim(1);
+      $lp = $lp->glue(1,$lp2);
+    }
+    $this->add_object(PDL::Graphics::TriD::Labels->new($lp, {Strings=>\@strlist})) if $lp->nelem;
   }
 
   $this;
@@ -155,46 +177,6 @@ sub get_valid_options { +{
   Labels => undef,
   Lighting => 0,
 }}
-
-=head2 addlabels()
-
-=for ref
-
-Add labels to a contour plot
-
-=for usage
-
-  $contour->addlabels($labelint,$segint);
-
-$labelint is the integer interval between labeled contours.  If you
-have 8 contour levels and specify $labelint=3 addlabels will attempt
-to label the 1st, 4th, and 7th contours.  $labelint defaults to 1.
-
-$segint specifies the density of labels on a single contour
-level.  Each contour level consists of a number of connected
-line segments, $segint defines how many of these segments get labels.
-$segint defaults to 5, that is every fifth line segment will be labeled.
-
-=cut
-
-sub addlabels {
-  my ($self, $labelint, $segint, $cpie, $points, $pathindex) = @_;
-  $labelint //= 1;
-  $segint //= 5;
-  my (@pi_ends, @strlist);
-  my $lp = PDL->null;
-  for (my $i=0; $i<= $#$cpie; $i++) {
-    next unless defined $cpie->[$i];
-    push @pi_ends, $pathindex->at($cpie->[$i]);
-    next if $i % $labelint;
-    my ($start, $end) = (@pi_ends > 1 ? $pi_ends[-2] : 0, $pi_ends[-1]);
-    my $lp2 = $points->slice(":,$start:$end:$segint");
-    push @strlist, ($self->{Options}{ContourVals}->slice("($i)")) x $lp2->dim(1);
-    $lp = $lp->glue(1,$lp2);
-  }
-  return if !$lp->nelem;
-  $self->add_object(PDL::Graphics::TriD::Labels->new($lp, {Strings=>\@strlist}));
-}
 
 =head2 set_colortable($table)
 

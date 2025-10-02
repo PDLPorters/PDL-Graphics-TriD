@@ -250,10 +250,9 @@ sub Contourdemos{
       $data=PDL::Graphics::TriD::Contours->new($z,[$z->xvals/$size,$z->yvals/$size,0]);
       $data->set_colortable(\&PDL::Graphics::TriD::Contours::coldhot_colortable);
     }elsif($demo eq "3DColor"){
-      $data=PDL::Graphics::TriD::Contours->new($z,[$z->xvals/$size,$z->yvals/$size,$z]);
+      $data=PDL::Graphics::TriD::Contours->new($z,[$z->xvals/$size,$z->yvals/$size,$z], {Labels=>[2,5]});
       $data->set_colortable(\&PDL::Graphics::TriD::Contours::coldhot_colortable);
     }
-	 $data->addlabels(2,5);
 
     $graph->add_dataseries($data,"Contours$demo");
   }
