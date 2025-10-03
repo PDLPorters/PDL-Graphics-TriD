@@ -53,7 +53,7 @@ value using the set_color_table function.
   ContourMin  => 0.0  # explicitly set a contour minimum
   ContourMax  => 10.0 # explicitly set a contour maximum
   ContourVals => $pdl # explicitly set all contour values
-  Labels => [1,15] # see addlabels below
+  Labels => [1,15] # enable contour labels
 
 If C<ContourVals> is specified C<ContourInt>, C<ContourMin>, and C<ContourMax>
 are ignored.  If no options are specified, the algorithm tries to
@@ -159,7 +159,7 @@ sub new {
       next if $i % $labelint;
       my ($start, $end) = (@pi_ends > 1 ? $pi_ends[-2] : 0, $pi_ends[-1]);
       my $lp2 = $points->slice(":,$start:$end:$segint");
-      push @strlist, ($this->{Options}{ContourVals}->slice("($i)")) x $lp2->dim(1);
+      push @strlist, ($cvals->slice("($i)")) x $lp2->dim(1);
       $lp = $lp->glue(1,$lp2);
     }
     $this->add_object(PDL::Graphics::TriD::Labels->new($lp, {Strings=>\@strlist})) if $lp->nelem;
