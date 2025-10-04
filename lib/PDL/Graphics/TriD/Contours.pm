@@ -53,7 +53,7 @@ value using the set_color_table function.
   ContourMin  => 0.0  # explicitly set a contour minimum
   ContourMax  => 10.0 # explicitly set a contour maximum
   ContourVals => $pdl # explicitly set all contour values
-  Labels => [1,15] # enable contour labels
+  Labels => [1,15] # enable contour labels - every contour, every 15 segments
 
 If C<ContourVals> is specified C<ContourInt>, C<ContourMin>, and C<ContourMax>
 are ignored.  If no options are specified, the algorithm tries to
@@ -80,41 +80,37 @@ sub new {
   $options = $this->{Options};
   $points = $this->normalise_as($type->r_type,$points);
 
-  my $fac=1;
-  my ($min,$max) = $data->minmax;
-
-  unless(defined $options->{ContourMin}){
-    my $valuerange = $max-$min;
-    while($fac*$valuerange<10){
-      $fac*=10;
-    }
-    $options->{ContourMin} = int($fac*$min) == $fac*$min ? $min : int($fac*$min+1)/$fac;
-    print "ContourMin =  ",$options->{ContourMin},"\n"
-                if $PDL::Graphics::TriD::verbose;
-  }
-  unless(defined $options->{ContourMax} &&
-			$options->{ContourMax} > $options->{ContourMin} ){
-    if(defined $options->{ContourInt}){
-      $options->{ContourMax} = $options->{ContourMin};
-      while($options->{ContourMax}+$options->{ContourInt} < $max){
-	$options->{ContourMax}= $options->{ContourMax}+$options->{ContourInt};
-      }
-    }else{
-      $options->{ContourMax} = int($fac*$max) == $fac*$max ? $max : (int($fac*$max)-1)/$fac;
-    }
-    print "ContourMax =  ",$options->{ContourMax},"\n"
-                if $PDL::Graphics::TriD::verbose;
-  }
-  unless(defined $options->{ContourInt} &&  $options->{ContourInt}>0){
-    $options->{ContourInt} = int($fac*($options->{ContourMax}-$options->{ContourMin}))/(10*$fac);
-    print "ContourInt =  ",$options->{ContourInt},"\n"
-		if($PDL::Graphics::TriD::verbose);
-  }
-#
-# The user could also name cvals
-#
   my $cvals;
-  if (!defined($options->{ContourVals}) || $options->{ContourVals}->isempty){
+  if (!defined($options->{ContourVals}) || $options->{ContourVals}->isempty) {
+    my $fac=1;
+    my ($min,$max) = $data->minmax;
+    unless(defined $options->{ContourMin}) {
+      my $valuerange = $max-$min;
+      while ($fac*$valuerange<10) {
+        $fac*=10;
+      }
+      $options->{ContourMin} = int($fac*$min) == $fac*$min ? $min : int($fac*$min+1)/$fac;
+      print "ContourMin =  ",$options->{ContourMin},"\n"
+                  if $PDL::Graphics::TriD::verbose;
+    }
+    unless(defined $options->{ContourMax} &&
+                          $options->{ContourMax} > $options->{ContourMin} ) {
+      if (defined $options->{ContourInt}) {
+        $options->{ContourMax} = $options->{ContourMin};
+        while ($options->{ContourMax}+$options->{ContourInt} < $max) {
+          $options->{ContourMax}= $options->{ContourMax}+$options->{ContourInt};
+        }
+      }else {
+        $options->{ContourMax} = int($fac*$max) == $fac*$max ? $max : (int($fac*$max)-1)/$fac;
+      }
+      print "ContourMax =  ",$options->{ContourMax},"\n"
+                  if $PDL::Graphics::TriD::verbose;
+    }
+    unless(defined $options->{ContourInt} &&  $options->{ContourInt}>0) {
+      $options->{ContourInt} = int($fac*($options->{ContourMax}-$options->{ContourMin}))/(10*$fac);
+      print "ContourInt =  ",$options->{ContourInt},"\n"
+                  if $PDL::Graphics::TriD::verbose;
+    }
     $cvals=zeroes(float(), int(($options->{ContourMax}-$options->{ContourMin})/$options->{ContourInt}+1));
     $cvals = $cvals->xlinvals(@$options{qw(ContourMin ContourMax)});
   }else{
@@ -199,7 +195,7 @@ by Contours.
 sub set_colortable{
   my($self,$table) = @_;
   my $colors;
-  if(ref($table) eq "CODE"){
+  if (ref($table) eq "CODE") {
 	 my $min = $self->{Options}{ContourMin};
 	 my $max = $self->{Options}{ContourMax};
 	 my $int = $self->{Options}{ContourInt};
@@ -209,10 +205,10 @@ sub set_colortable{
 	 $colors = $table;
   }
 
-  if($colors->getdim(0)!=3){
+  if ($colors->getdim(0)!=3) {
     $colors->reshape(3,$colors->nelem/3);
   }
-  print "Color info ",$self->{Colors}->info," ",$colors->info,"\n" if($PDL::Graphics::TriD::verbose);
+  print "Color info ",$self->{Colors}->info," ",$colors->info,"\n" if $PDL::Graphics::TriD::verbose;
 
   $self->{Colors} = $colors;
 }
@@ -235,11 +231,11 @@ sub coldhot_colortable{
   my($ncolors) = @_;
   my $colorpdl;
   # 0 red, 1 green, 2 blue
-  for(my $i=0;$i<$ncolors;$i++){
+  for (my $i=0;$i<$ncolors;$i++) {
     my $color = zeroes(float,3);
     (my $t = $color->slice("0")) .= 0.75*($i)/$ncolors;
     ($t = $color->slice("2")) .= 0.75*($ncolors-$i)/$ncolors;
-    if($i==0){
+    if ($i==0) {
       $colorpdl = $color;
     }else{
       $colorpdl = $colorpdl->append($color);
