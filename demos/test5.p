@@ -23,7 +23,7 @@ my @objs = (
 );
 my $i = 0;
 @objs = map mk_trid($i++, @$_), @objs;
-my ($below_obj, $above_obj) = map mk_trid($_, 'Lines'), -1, 0+@objs;
+my ($below_obj, $above_obj) = map mk_trid($_, 'LineStrip'), -1, 0+@objs;
 
 sub mk_trid { "PDL::Graphics::TriD::$_[1]"->new($y+pdl(0,0,$_[0]),$c,$_[2]) }
 
