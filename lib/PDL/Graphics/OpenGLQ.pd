@@ -119,10 +119,12 @@ pp_def('gl_line_strip_multi',
   Pars => 'coords(tri=3,v); colors(tri,v); int count(drawcount); uint starts(drawcount); uint indices(alli);',
   Code => '
 loop(drawcount) %{
-  PDL_ULong howmany = $count(), start = $starts(), upto = start+howmany-1;
+  PDL_ULong howmany = $count(), start = $starts(), upto = start+howmany;
   glBegin(GL_LINE_STRIP);
   loop(alli=start:upto) %{
     PDL_ULong thisind = $indices();
+    if (thisind >= $SIZE(v))
+      $CROAK("index number %"IND_FLAG" in drawcount=%"IND_FLAG" out of range: %"IND_FLAG" > %"IND_FLAG, alli, drawcount, thisind, $SIZE(v)-1);
     '.COLOR(\'thisind', 'v').VERTEX(\'thisind', 'v').'
   %}
   glEnd();
