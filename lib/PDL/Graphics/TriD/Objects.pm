@@ -218,8 +218,8 @@ sub new {
   $colors = $this->normalise_as("COLOR",$colors,$points);
   $options = $this->{Options};
   my $shading = $options->{Shading};
+  my (undef, $x, $y, @extradims) = $points->dims;
   if ($shading) {
-    my (undef, $x, $y, @extradims) = $points->dims;
     my $inds = PDL::ulong(0,1,$x,$x+1,$x,1)->slice(',*'.($x-1).',*'.($y-1));
     $inds = $inds->dupN(1,1,@extradims) if @extradims;
     my $indadd = PDL->sequence($x,$y,@extradims)->slice('*1,:-2,:-2');
@@ -229,8 +229,13 @@ sub new {
   }
   if ($shading == 0 or $options->{Lines}) {
     my $lcolors = $shading ? $this->cdummies(PDL::float(0,0,0),$points) : $colors;
-    $this->add_object(PDL::Graphics::TriD::LineStrip->new($points, $lcolors));
-    $this->add_object(PDL::Graphics::TriD::LineStrip->new($points->xchg(1,2), $lcolors->xchg(1,2)));
+    my $counts = (PDL->ones(PDL::long, $y, @extradims) * $x)->flat;
+    my $starts = (PDL->sequence(PDL::ulong, $y, @extradims) * $x)->flat;
+    my $indices = PDL->sequence(PDL::ulong, $x, $y, @extradims)->flat;
+    $counts = $counts->append((PDL->ones(PDL::long, $x, @extradims) * $y)->flat);
+    $starts = $starts->append((PDL->sequence(PDL::ulong, $x, @extradims) * $y)->flat + $indices->nelem);
+    $indices = $indices->append(PDL->sequence(PDL::ulong, $x, $y, @extradims)->t->flat);
+    $this->add_object(PDL::Graphics::TriD::LineStripMulti->new($points->clump(1..2+@extradims), $lcolors->clump(1..2+@extradims), $counts, $starts, $indices));
   }
   $this;
 }
