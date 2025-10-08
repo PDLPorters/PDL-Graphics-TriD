@@ -100,7 +100,7 @@ sub new {
         while ($options->{ContourMax}+$options->{ContourInt} < $max) {
           $options->{ContourMax}= $options->{ContourMax}+$options->{ContourInt};
         }
-      }else {
+      } else {
         $options->{ContourMax} = int($fac*$max) == $fac*$max ? $max : (int($fac*$max)-1)/$fac;
       }
       print "ContourMax =  ",$options->{ContourMax},"\n"
@@ -113,7 +113,7 @@ sub new {
     }
     $cvals=zeroes(float(), int(($options->{ContourMax}-$options->{ContourMin})/$options->{ContourInt}+1));
     $cvals = $cvals->xlinvals(@$options{qw(ContourMin ContourMax)});
-  }else{
+  } else {
     $cvals = $options->{ContourVals};
     @$options{qw(ContourMin ContourMax)} = $cvals->minmax;
   }
@@ -185,7 +185,7 @@ Sets contour level colors based on the color table.
 $table is passed in as either an ndarray of [3,n] colors, where n is the
 number of contour levels, or as a reference to a function which
 expects the number of contour levels as an argument and returns a
-[3,n] ndarray.  It should be straight forward to use the
+[3,n] ndarray.  It should be straightforward to use the
 L<PDL::Graphics::LUT> tables in a function which subsets the 256
 colors supplied by the look up table into the number of colors needed
 by Contours.
@@ -193,7 +193,7 @@ by Contours.
 =cut
 
 sub set_colortable{
-  my($self,$table) = @_;
+  my ($self,$table) = @_;
   my $colors;
   if (ref($table) eq "CODE") {
 	 my $min = $self->{Options}{ContourMin};
@@ -201,15 +201,13 @@ sub set_colortable{
 	 my $int = $self->{Options}{ContourInt};
 	 my $ncolors=($max-$min)/$int+1;
 	 $colors= &$table($ncolors);
-  }else{
+  } else {
 	 $colors = $table;
   }
-
   if ($colors->getdim(0)!=3) {
     $colors->reshape(3,$colors->nelem/3);
   }
   print "Color info ",$self->{Colors}->info," ",$colors->info,"\n" if $PDL::Graphics::TriD::verbose;
-
   $self->{Colors} = $colors;
 }
 
@@ -227,8 +225,8 @@ shades in between.
 
 =cut
 
-sub coldhot_colortable{
-  my($ncolors) = @_;
+sub coldhot_colortable {
+  my ($ncolors) = @_;
   my $colorpdl;
   # 0 red, 1 green, 2 blue
   for (my $i=0;$i<$ncolors;$i++) {
@@ -237,11 +235,11 @@ sub coldhot_colortable{
     ($t = $color->slice("2")) .= 0.75*($ncolors-$i)/$ncolors;
     if ($i==0) {
       $colorpdl = $color;
-    }else{
+    } else {
       $colorpdl = $colorpdl->append($color);
     }
   }
-  return $colorpdl;
+  $colorpdl;
 }
 
 1;
