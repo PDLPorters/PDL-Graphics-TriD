@@ -166,9 +166,7 @@ for(
 pp_def(
   $_->{Name},
   GenericTypes => $F,
-  Pars => 'coords(tri=3,trivert=3); '.
-           ($_->{NormalArgs}//'').
-          'colors(tri,trivert)',
+  Pars => 'coords(tri=3,trivert=3); '.($_->{NormalArgs}//'').'colors(tri,trivert)',
   Code => '
 glBegin(GL_TRIANGLES);
 broadcastloop %{'.
