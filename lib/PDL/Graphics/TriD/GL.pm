@@ -160,8 +160,6 @@ sub PDL::Graphics::TriD::Triangles::gdraw {
   my ($this,$points) = @_;
   my $options = $this->{Options};
   my $shading = $options->{Shading};
-  my $colours = $this->{Colors};
-  $colours = $colours->clump(1..$this->{Colors}->ndims-1)->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3) if $colours->ndims > 1;
   glShadeModel($shading == 1 ? GL_FLAT : GL_SMOOTH) if $shading;
   my $f = 'PDL::gl_triangles';
   $f .= '_wn' if $shading > 2;
@@ -173,7 +171,7 @@ sub PDL::Graphics::TriD::Triangles::gdraw {
       ? $this->{VertexNormals}->dice_axis(1,$this->{Faceidx}->flat)
                   ->splitdim(1,$this->{Faceidx}->dim(0)) : $this->{FaceNormals}->dummy(1,3);
   }
-  $f->($points->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3), @tmpn, $colours);
+  $f->($points->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3), @tmpn, $this->{Colors});
   if ($shading > 2) { glDisable(GL_COLOR_MATERIAL); }
 }
 

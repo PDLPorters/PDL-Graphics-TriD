@@ -155,6 +155,7 @@ sub new {
   my $this = $type->SUPER::new($points,$colors,$options);
   $faceidx = $this->{Faceidx} = $faceidx->ulong; # (3,nfaces) indices
   $options = $this->{Options};
+  $this->{Colors} = $this->{Colors}->clump(1..$this->{Colors}->ndims-1)->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3) if $this->{Colors}->ndims > 1;
   if ($options->{Shading} or $options->{ShowNormals}) {
     my ($fn, $vn) = triangle_normals($this->{Points}, $faceidx);
     if ($options->{Shading}) {
