@@ -147,7 +147,7 @@ sub cdummies { $_[1]->dummy(1,$_[2]->getdim(1)); }
 
 package PDL::Graphics::TriD::Triangles;
 use base qw/PDL::Graphics::TriD::GObject/;
-use fields qw/Faceidx FaceNormals VertexNormals/;
+use fields qw/Faceidx Normals/;
 use PDL::Graphics::OpenGLQ;
 sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : {};
@@ -159,8 +159,9 @@ sub new {
   if ($options->{Shading} or $options->{ShowNormals}) {
     my ($fn, $vn) = triangle_normals($this->{Points}, $faceidx);
     if ($options->{Shading}) {
-      $this->{VertexNormals} = $vn if $options->{Smooth};
-      $this->{FaceNormals} = $fn if !$options->{Smooth};
+      $this->{Normals} = $options->{Smooth}
+        ? $vn->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,$this->{Faceidx}->dim(0))
+        : $fn->dummy(1,3);
     }
     if ($options->{ShowNormals}) {
       $points = $this->normalise_as($type->r_type,$points);
