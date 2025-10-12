@@ -21,6 +21,7 @@ This provides the following class hierarchy:
   ├ PDL::Graphics::TriD::Spheres         fat 3D points :)
   ├ PDL::Graphics::TriD::Lines           separate lines
   ├ PDL::Graphics::TriD::LineStrip       continuous paths
+  ├ PDL::Graphics::TriD::LineStripMulti  continuous paths
   ├ PDL::Graphics::TriD::Triangles       just polygons
   └ PDL::Graphics::TriD::Labels          text labels
 
