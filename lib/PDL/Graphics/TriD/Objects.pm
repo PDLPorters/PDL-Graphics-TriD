@@ -294,7 +294,7 @@ sub new {
     $points->dice_axis(1,$from)->flowing->append($points->dice_axis(1,$to))->splitdim(0,3),
     $colors, $options
   ));
-  my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($points->flowing,$from,$to,
+  my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($points->flowing,$from->t->append($to->t),
     $hl, $w);
   $this->add_object(PDL::Graphics::TriD::Triangles->new($tv, $ti, $colors, { %$options, Shading=>0 }));
   $this;

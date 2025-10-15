@@ -183,7 +183,7 @@ glEnd();',
 }
 
 pp_def('gen_arrowheads',
-  Pars => 'coords(tri=3,v); uint indsa(n); uint indsb(n); [o] trivertices(tri,nv=CALC(5*$SIZE(n))); uint [o] triindices(ni=CALC(12*$SIZE(n)))',
+  Pars => 'coords(tri=3,v); uint fromto(ft=2,n); [o] trivertices(tri,nv=CALC(5*$SIZE(n))); uint [o] triindices(ni=CALC(12*$SIZE(n)))',
   OtherPars => 'float headlen; float width;',
   GenericTypes => $F,
   Code => <<'EOF',
@@ -194,7 +194,7 @@ if (w == 0)
 float tmp2[3] = { 0.000001, -0.0001, 1 };
 broadcastloop %{
 loop(n) %{
-  PDL_ULong a = $indsa(), b = $indsb(), nvbase = n * 5, nibase = n * 12;
+  PDL_ULong a = $fromto(ft=>0), b = $fromto(ft=>1), nvbase = n * 5, nibase = n * 12;
   if (a >= $SIZE(v))
     $CROAK("indsa number %"IND_FLAG" out of range: %"IND_FLAG" > %"IND_FLAG, n, a, $SIZE(v)-1);
   if (b >= $SIZE(v))
