@@ -198,6 +198,7 @@ my @demo = (
       [2,1,-3], [1,3,1], [1,1,2]);
   my $from = PDL->pdl(ulong, [0,1,2,3,4,4,4,5,5,5]);
   my $to =   PDL->pdl(ulong, [1,2,3,1,0,2,3,0,1,2]);
+  my $fromto = $from->t->append($to->t);
   my @names = map '  '.join(",",@$_), @coords;
   # Coords must be float, else will get converted and not flow
   my $e = PDL::GraphEvolver->new(PDL->pdl(float, @coords));
@@ -207,7 +208,7 @@ my @demo = (
   hold3d();
   nokeeptwiddling3d();
   my $lab = labels3d($c, {Strings => \@names});
-  my $lin = arrows3d($c, {From => $from, To => $to});
+  my $lin = arrows3d($c, {FromTo => $fromto});
   my $sph = spheres3d($c);
   my $ind = 0;
   while(1) {

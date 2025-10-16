@@ -169,16 +169,16 @@ sub new {
       my $faces = $points->dice_axis(1,$faceidx->flat)->splitdim(1,3);
       my $facecentres = $faces->transpose->avgover;
       my $facearrows = $facecentres->append($facecentres + $fn*0.1)->splitdim(0,3)->clump(1,2);
-      my ($fromind, $toind) = PDL->sequence(PDL::ulong,2,$facecentres->dim(1))->t->dog;
+      my $fromto = PDL->sequence(PDL::ulong,2,$facecentres->dim(1));
       $this->add_object(PDL::Graphics::TriD::Arrows->new(
         $facearrows, PDL::float(0.5,0.5,0.5),
-        { From=>$fromind, To=>$toind, ArrowLen => 0.5, ArrowWidth => 0.2 },
+        { FromTo => $fromto, ArrowLen => 0.5, ArrowWidth => 0.2 },
       ));
       my $vertarrows = $points->append($points + $vn*0.1)->splitdim(0,3)->clump(1,2);
-      ($fromind, $toind) = PDL->sequence(PDL::ulong,2,$points->dim(1))->t->dog;
+      $fromto = PDL->sequence(PDL::ulong,2,$points->dim(1));
       $this->add_object(PDL::Graphics::TriD::Arrows->new(
         $vertarrows, PDL::float(1,1,1),
-        { From=>$fromind, To=>$toind, ArrowLen => 0.5, ArrowWidth => 0.2 },
+        { FromTo => $fromto, ArrowLen => 0.5, ArrowWidth => 0.2 },
       ));
     }
   }
@@ -277,8 +277,7 @@ use base qw/PDL::Graphics::TriD::Object/;
 sub r_type { return "";}
 sub get_valid_options { +{
   UseDefcols => 0,
-  From => [],
-  To => [],
+  FromTo => [],
   ArrowWidth => 0.02,
   ArrowLen => 0.1,
   Lighting => 0,
@@ -288,13 +287,13 @@ sub new {
   my ($class, $points, $colors) = @_;
   my $this = $class->SUPER::new($options);
   $options = $this->{Options};
-  my ($from, $to, $w, $hl) = delete @$options{qw(From To ArrowWidth ArrowLen)};
+  my ($fromto, $w, $hl) = delete @$options{qw(FromTo ArrowWidth ArrowLen)};
   $points = $this->normalise_as($class->r_type,$points);
   $this->add_object(PDL::Graphics::TriD::Lines->new(
-    $points->dice_axis(1,$from)->flowing->append($points->dice_axis(1,$to))->splitdim(0,3),
+    $points->dice_axis(1,$fromto->flat),
     $colors, $options
   ));
-  my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($points->flowing,$from->t->append($to->t),
+  my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($points->flowing,$fromto,
     $hl, $w);
   $this->add_object(PDL::Graphics::TriD::Triangles->new($tv, $ti, $colors, { %$options, Shading=>0 }));
   $this;
