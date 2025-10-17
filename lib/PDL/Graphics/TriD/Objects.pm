@@ -156,19 +156,15 @@ sub new {
   my $this = $type->SUPER::new($points,$colors,$options);
   $faceidx = $this->{Faceidx} = $faceidx->ulong; # (3,nfaces) indices
   $options = $this->{Options};
-  $this->{Colors} = $this->{Colors}->clump(1..$this->{Colors}->ndims-1)->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3) if $this->{Colors}->ndims > 1;
+  my ($idxflat, $idx0) = ($faceidx->flat, $faceidx->dim(0));
+  $this->{Colors} = $this->{Colors}->clump(1..$this->{Colors}->ndims-1)->dice_axis(1,$idxflat)->splitdim(1,$idx0) if $this->{Colors}->ndims > 1;
   if ($options->{Shading} or $options->{ShowNormals}) {
     my ($fn, $vn) = triangle_normals($this->{Points}, $faceidx);
-    if ($options->{Shading}) {
-      $this->{Normals} = $options->{Smooth}
-        ? $vn->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,$this->{Faceidx}->dim(0))
-        : $fn->dummy(1,3);
-    }
     if ($options->{ShowNormals}) {
       $points = $this->normalise_as($type->r_type,$points);
-      my $faces = $points->dice_axis(1,$faceidx->flat)->splitdim(1,3);
+      my $faces = $points->dice_axis(1,$idxflat)->splitdim(1,$idx0);
       my $facecentres = $faces->transpose->avgover;
-      my $facearrows = $facecentres->append($facecentres + $fn*0.1)->splitdim(0,3)->clump(1,2);
+      my $facearrows = $facecentres->append($facecentres + $fn*0.1)->splitdim(0,$idx0)->clump(1,2);
       my $fromto = PDL->sequence(PDL::ulong,2,$facecentres->dim(1));
       $this->add_object(PDL::Graphics::TriD::Arrows->new(
         $facearrows, PDL::float(0.5,0.5,0.5),
@@ -180,6 +176,11 @@ sub new {
         $vertarrows, PDL::float(1,1,1),
         { FromTo => $fromto, ArrowLen => 0.5, ArrowWidth => 0.2 },
       ));
+    }
+    if ($options->{Shading}) {
+      $this->{Normals} = $options->{Smooth}
+        ? $vn->dice_axis(1,$idxflat)->splitdim(1,$idx0)
+        : $fn->dummy(1,$idx0);
     }
   }
   $this;
