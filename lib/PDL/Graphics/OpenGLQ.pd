@@ -183,7 +183,7 @@ glEnd();',
 }
 
 pp_def('gen_arrowheads',
-  Pars => 'coords(tri=3,v); uint fromto(ft=2,n); [o] trivertices(tri,nv=CALC(5*$SIZE(n))); uint [o] triindices(ni=CALC(12*$SIZE(n)))',
+  Pars => 'coords(tri=3,v); uint fromto(ft=2,n); [o] trivertices(tri,nv=CALC(5*$SIZE(n))); uint [o] triindices(trivert=3,ni=CALC(4*$SIZE(n)))',
   OtherPars => 'float headlen; float width;',
   GenericTypes => $F,
   Code => <<'EOF',
@@ -194,7 +194,7 @@ if (w == 0)
 float tmp2[3] = { 0.000001, -0.0001, 1 };
 broadcastloop %{
 loop(n) %{
-  PDL_ULong a = $fromto(ft=>0), b = $fromto(ft=>1), nvbase = n * 5, nibase = n * 12;
+  PDL_ULong a = $fromto(ft=>0), b = $fromto(ft=>1), nvbase = n * 5, nibase = n * 4;
   if (a >= $SIZE(v))
     $CROAK("indsa number %"IND_FLAG" out of range: %"IND_FLAG" > %"IND_FLAG, n, a, $SIZE(v)-1);
   if (b >= $SIZE(v))
@@ -215,18 +215,18 @@ loop(n) %{
   loop(tri) %{ $trivertices(nv=>nvbase+2) = partback[tri] + norm2[tri]; %}
   loop(tri) %{ $trivertices(nv=>nvbase+3) = partback[tri] - norm[tri]; %}
   loop(tri) %{ $trivertices(nv=>nvbase+4) = partback[tri] - norm2[tri]; %}
-  $triindices(ni=>nibase+0) =   nvbase+0;
-  $triindices(ni=>nibase+1) =   nvbase+1;
-  $triindices(ni=>nibase+2) =   nvbase+2;
-  $triindices(ni=>nibase+3) =   nvbase+0;
-  $triindices(ni=>nibase+4) =   nvbase+3;
-  $triindices(ni=>nibase+5) =   nvbase+4;
-  $triindices(ni=>nibase+6) =   nvbase+0;
-  $triindices(ni=>nibase+7) =   nvbase+2;
-  $triindices(ni=>nibase+8) =   nvbase+3;
-  $triindices(ni=>nibase+9) =   nvbase+0;
-  $triindices(ni=>nibase+10) =  nvbase+4;
-  $triindices(ni=>nibase+11) =  nvbase+1;
+  $triindices(trivert=>0,ni=>nibase+0) = nvbase+0;
+  $triindices(trivert=>1,ni=>nibase+0) = nvbase+1;
+  $triindices(trivert=>2,ni=>nibase+0) = nvbase+2;
+  $triindices(trivert=>0,ni=>nibase+1) = nvbase+0;
+  $triindices(trivert=>1,ni=>nibase+1) = nvbase+3;
+  $triindices(trivert=>2,ni=>nibase+1) = nvbase+4;
+  $triindices(trivert=>0,ni=>nibase+2) = nvbase+0;
+  $triindices(trivert=>1,ni=>nibase+2) = nvbase+2;
+  $triindices(trivert=>2,ni=>nibase+2) = nvbase+3;
+  $triindices(trivert=>0,ni=>nibase+3) = nvbase+0;
+  $triindices(trivert=>1,ni=>nibase+3) = nvbase+4;
+  $triindices(trivert=>2,ni=>nibase+3) = nvbase+1;
 %}
 %}
 EOF
