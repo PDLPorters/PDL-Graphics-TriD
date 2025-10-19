@@ -8,7 +8,6 @@ my $size = 5;
 my $y = PDL->zeroes(3,$size,$size);
 axisvalues($y->slice("(0)")->inplace);
 axisvalues($y->slice("(1)")->transpose->inplace);
-$y /= $size;
 srandom(5);
 random((my $ysl2 = $y->slice("(2)"))->inplace);
 $ysl2 /= 5;
