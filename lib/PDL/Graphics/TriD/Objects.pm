@@ -156,11 +156,10 @@ sub new {
   my $this = $type->SUPER::new($points,$colors,$options);
   $faceidx = $this->{Faceidx} = $faceidx->ulong; # (3,nfaces) indices
   $options = $this->{Options};
-  my ($idxflat, $idx0) = ($faceidx->flat, $faceidx->dim(0));
+  my ($idxflat, $idx0, @idxdims) = ($faceidx->flat, $faceidx->dims);
   $this->{Colors} = $this->{Colors}->dummy(1,$this->{Points}->dim(1)) if $this->{Colors}->ndims == 1;
   PDL::barf "Triangles error: broadcast dimensions forbidden for '$_' [@{[$this->{$_}->dims]}]" for grep $this->{$_}->ndims != 2, qw(Points Colors Faceidx);
   PDL::barf "Triangles error: dimension mismatch between Points [@{[$this->{Points}->dims]}] and Colors [@{[$this->{Colors}->dims]}]" if $this->{Points}->ndims != $this->{Colors}->ndims or $this->{Points}->dim(1) != $this->{Colors}->dim(1);
-  $this->{Colors} = $this->{Colors}->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3);
   if ($options->{Shading} or $options->{ShowNormals}) {
     my ($fn, $vn) = triangle_normals($this->{Points}, $faceidx);
     if ($options->{ShowNormals}) {
@@ -181,9 +180,15 @@ sub new {
       ));
     }
     if ($options->{Shading}) {
-      $this->{Normals} = $options->{Smooth}
-        ? $vn->dice_axis(1,$idxflat)->splitdim(1,$idx0)
-        : $fn->dummy(1,$idx0);
+      if ($options->{Smooth}) {
+        $this->{Normals} = $vn;
+      } else {
+        $this->{Points} = $this->{Points}->dice_axis(1,$idxflat);
+        $this->{Colors} = $this->{Colors}->clump(1..$this->{Colors}->ndims-1) if $this->{Colors}->ndims > 2;
+        $this->{Colors} = $this->{Colors}->dice_axis(1,$idxflat);
+        $this->{Normals} = $fn->dummy(1,$idx0)->clump(1,2);
+        $this->{Faceidx} = PDL->sequence(PDL::ulong,$idx0,@idxdims);
+      }
     }
   }
   $this;
@@ -232,8 +237,7 @@ sub new {
     my $indadd = PDL->sequence($x,$y,@extradims)->slice('*1,:-2,:-2');
     my $faceidx = ($inds + $indadd)->splitdim(0,3)->clump(1..3+@extradims);
     my %less = %$options; delete @less{qw(Lines)};
-    my $tricolours = $colors->ndims > 2 ? $colors->clump(1..$colors->ndims-1) : $colors;
-    $this->add_object(PDL::Graphics::TriD::Triangles->new($points->clump(1..2+@extradims), $faceidx, $tricolours, \%less));
+    $this->add_object(PDL::Graphics::TriD::Triangles->new($points->clump(1..2+@extradims), $faceidx, $colors->clump(1..$colors->ndims-1), \%less));
   }
   if ($shading == 0 or $options->{Lines}) {
     my $lcolors = $shading ? $this->cdummies(PDL::float(0,0,0),$points) : $colors;

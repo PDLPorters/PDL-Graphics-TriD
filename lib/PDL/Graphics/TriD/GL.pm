@@ -165,7 +165,7 @@ sub PDL::Graphics::TriD::Triangles::gdraw {
   $f .= '_wn' if $shading > 2;
   { no strict 'refs'; $f = \&$f; }
   if ($shading > 2) { glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE); glEnable(GL_COLOR_MATERIAL); }
-  $f->($points->dice_axis(1,$this->{Faceidx}->flat)->splitdim(1,3), $shading > 2 ? $this->{Normals} : (), $this->{Colors});
+  $f->($points, $shading > 2 ? $this->{Normals} : (), $this->{Colors}, $this->{Faceidx});
   if ($shading > 2) { glDisable(GL_COLOR_MATERIAL); }
 }
 
