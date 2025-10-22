@@ -184,7 +184,6 @@ sub new {
         $this->{Normals} = $vn;
       } else {
         $this->{Points} = $this->{Points}->dice_axis(1,$idxflat);
-        $this->{Colors} = $this->{Colors}->clump(1..$this->{Colors}->ndims-1) if $this->{Colors}->ndims > 2;
         $this->{Colors} = $this->{Colors}->dice_axis(1,$idxflat);
         $this->{Normals} = $fn->dummy(1,$idx0)->clump(1,2);
         $this->{Faceidx} = PDL->sequence(PDL::ulong,$idx0,@idxdims);
