@@ -169,11 +169,6 @@ sub PDL::Graphics::TriD::Triangles::gdraw {
   if ($shading > 2) { glDisable(GL_COLOR_MATERIAL); }
 }
 
-sub PDL::Graphics::TriD::LineStrip::gdraw {
-  my($this,$points) = @_;
-  PDL::gl_line_strip_col($points,$this->{Colors});
-}
-
 sub PDL::Graphics::TriD::Lines::gdraw {
   my($this,$points) = @_;
   PDL::gl_lines_col($points,$this->{Colors});

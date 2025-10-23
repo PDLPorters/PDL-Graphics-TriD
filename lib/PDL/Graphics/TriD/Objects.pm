@@ -14,13 +14,13 @@ This provides the following class hierarchy:
   ├ PDL::Graphics::TriD::Arrows          lines with arrowheads
   ├ PDL::Graphics::TriD::Trigrid         polygons
   ├ PDL::Graphics::TriD::Lattice         colored lattice, maybe filled/shaded
+  ├ PDL::Graphics::TriD::LineStrip       continuous paths
   └ PDL::Graphics::TriD::GObject         (abstract) base class for drawables
 
   PDL::Graphics::TriD::GObject           (abstract) base class for drawables
   ├ PDL::Graphics::TriD::Points          individual points
   ├ PDL::Graphics::TriD::Spheres         fat 3D points :)
   ├ PDL::Graphics::TriD::Lines           separate lines
-  ├ PDL::Graphics::TriD::LineStrip       continuous paths
   ├ PDL::Graphics::TriD::LineStripMulti  continuous paths
   ├ PDL::Graphics::TriD::Triangles       just polygons
   └ PDL::Graphics::TriD::Labels          text labels
@@ -106,7 +106,7 @@ sub get_valid_options { +{
 }}
 
 package PDL::Graphics::TriD::LineStrip;
-use base qw/PDL::Graphics::TriD::GObject/;
+use base qw/PDL::Graphics::TriD::Object/;
 sub cdummies { return $_[1]->dummy(1); }
 sub r_type { return "SURF2D";}
 sub get_valid_options { +{
@@ -114,6 +114,20 @@ sub get_valid_options { +{
   LineWidth => 1,
   Lighting => 0,
 }}
+sub new {
+  my $options = ref($_[-1]) eq 'HASH' ? pop : {};
+  my ($class,$points,$colors) = @_;
+  my $this = $class->SUPER::new($options);
+  $points = $this->normalise_as($class->r_type,$points);
+  $colors = $this->normalise_as("COLOR",$colors,$points);
+  $options = $this->{Options};
+  my (undef, $x, $y, @extradims) = $points->dims;
+  my $counts = (PDL->ones(PDL::long, $y, @extradims) * $x)->flat;
+  my $starts = (PDL->sequence(PDL::ulong, $y, @extradims) * $x)->flat;
+  my $indices = PDL->sequence(PDL::ulong, $x, $y, @extradims)->flat;
+  $this->add_object(PDL::Graphics::TriD::LineStripMulti->new($points->clump(1..2+@extradims), $colors->clump(1..2+@extradims), $counts, $starts, $indices));
+  $this;
+}
 
 package PDL::Graphics::TriD::Trigrid;
 use PDL::Graphics::OpenGLQ;
