@@ -120,6 +120,8 @@ sub new {
   my $this = $class->SUPER::new($options);
   $points = $this->normalise_as($class->r_type,$points);
   $colors = $this->normalise_as("COLOR",$colors,$points);
+  $colors = $colors->dummy(1,$points->dim(1)) if $colors->ndims == 1;
+  $colors = $colors->dummy(2,$points->dim(2)) if $colors->ndims == 2;
   $options = $this->{Options};
   my (undef, $x, $y, @extradims) = $points->dims;
   my $counts = (PDL->ones(PDL::long, $y, @extradims) * $x)->flat;
@@ -145,7 +147,7 @@ sub new {
   if ($options->{Lines}) {
     $points = $this->normalise_as($type->r_type,$points);
     my $faces = $points->dice_axis(1,$faceidx->flat)->splitdim(1,3);
-    $this->add_object(PDL::Graphics::TriD::Lines->new($faces->dice_axis(1,[0,1,2,0]), PDL::float(0,0,0)));
+    $this->add_object(PDL::Graphics::TriD::LineStrip->new($faces->dice_axis(1,[0,1,2,0]), PDL::float(0,0,0)));
   }
   $this;
 }
