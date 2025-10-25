@@ -143,7 +143,7 @@ sub new {
   $options = $this->{Options};
   my %less = %$options; delete @less{qw(Lines)};
   $less{Shading} = 3 if $options->{Shading};
-  $this->add_object(PDL::Graphics::TriD::Triangles->new($points, $faceidx->clump(1..$faceidx->ndims-1), $colors, \%less));
+  $this->add_object(PDL::Graphics::TriD::Triangles->new($points, $faceidx, $colors, \%less));
   if ($options->{Lines}) {
     $points = $this->normalise_as($type->r_type,$points);
     my $faces = $points->dice_axis(1,$faceidx->flat)->splitdim(1,3);
