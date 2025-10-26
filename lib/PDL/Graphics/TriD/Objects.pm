@@ -107,7 +107,7 @@ sub get_valid_options { +{
 
 package PDL::Graphics::TriD::LineStrip;
 use base qw/PDL::Graphics::TriD::Object/;
-sub cdummies { return $_[1]->dummy(1); }
+sub cdummies { $_[1]->dummy(1,$_[2]->getdim(1)); }
 sub r_type { return "SURF2D";}
 sub get_valid_options { +{
   UseDefcols => 0,
@@ -124,10 +124,13 @@ sub new {
   $colors = $colors->dummy(2,$points->dim(2)) if $colors->ndims == 2;
   $options = $this->{Options};
   my (undef, $x, $y, @extradims) = $points->dims;
+  $y //= 1,
   my $counts = (PDL->ones(PDL::long, $y, @extradims) * $x)->flat;
   my $starts = (PDL->sequence(PDL::ulong, $y, @extradims) * $x)->flat;
   my $indices = PDL->sequence(PDL::ulong, $x, $y, @extradims)->flat;
-  $this->add_object(PDL::Graphics::TriD::LineStripMulti->new($points->clump(1..2+@extradims), $colors->clump(1..2+@extradims), $counts, $starts, $indices));
+  $points = $points->clump(1..2+@extradims) if $points->ndims > 2;
+  $colors = $colors->clump(1..2+@extradims) if $colors->ndims > 2;
+  $this->add_object(PDL::Graphics::TriD::LineStripMulti->new($points, $colors, $counts, $starts, $indices));
   $this;
 }
 
@@ -140,6 +143,7 @@ sub new {
   my $this = $type->SUPER::new($options);
   # faceidx is 2D pdl of indices into points for each face
   $faceidx = $faceidx->ulong;
+  PDL::barf "Trigrid error: broadcast dims on faceidx forbidden" if $faceidx->ndims > 2;
   $options = $this->{Options};
   my %less = %$options; delete @less{qw(Lines)};
   $less{Shading} = 3 if $options->{Shading};
@@ -280,6 +284,9 @@ sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : {};
   my ($class, $points, $colors, $counts, $starts, $indices) = @_;
   my $this = $class->SUPER::new($points, $colors, $options);
+  PDL::barf "LineStripMulti error: dim mismatch between Points and Colors [@{[$this->{Points}->dims]}] vs [@{[$this->{Colors}->dims]}]"
+    if $this->{Points}->ndims != $this->{Colors}->ndims
+    or $this->{Points}->dim(1) != $this->{Colors}->dim(1);
   @$this{qw(Counts Starts Indices)} = ($counts, $starts, $indices);
   $this;
 }
