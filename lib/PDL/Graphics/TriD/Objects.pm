@@ -141,17 +141,19 @@ sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : {};
   my ($type,$points,$faceidx,$colors) = @_;
   my $this = $type->SUPER::new($options);
-  # faceidx is 2D pdl of indices into points for each face
-  $faceidx = $faceidx->ulong;
   PDL::barf "Trigrid error: broadcast dims on faceidx forbidden" if $faceidx->ndims > 2;
+  $faceidx = $faceidx->ulong;
   $options = $this->{Options};
   my %less = %$options; delete @less{qw(Lines)};
   $less{Shading} = 3 if $options->{Shading};
   $this->add_object(PDL::Graphics::TriD::Triangles->new($points, $faceidx, $colors, \%less));
   if ($options->{Lines}) {
     $points = $this->normalise_as($type->r_type,$points);
-    my $faces = $points->dice_axis(1,$faceidx->flat)->splitdim(1,3);
-    $this->add_object(PDL::Graphics::TriD::LineStrip->new($faces->dice_axis(1,[0,1,2,0]), PDL::float(0,0,0)));
+    my $f = $faceidx->dim(1);
+    my $counts = (PDL->ones(PDL::long, $f) * 4)->flat;
+    my $starts = (PDL->sequence(PDL::ulong, $f) * 4)->flat;
+    my $indices = $faceidx->append($faceidx->slice(0))->flat;
+    $this->add_object(PDL::Graphics::TriD::LineStripMulti->new($points, PDL::float(0,0,0)->dummy(1,$points->dim(1)), $counts, $starts, $indices));
   }
   $this;
 }
