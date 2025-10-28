@@ -2,7 +2,7 @@ package PDL::Graphics::TriD::GL::GLX;
 
 use strict;
 use warnings;
-use OpenGL qw/ :glxconstants /;
+use OpenGL::GLX qw/ :glxconstants /;
 
 our @ISA = qw(PDL::Graphics::TriD::GL);
 
