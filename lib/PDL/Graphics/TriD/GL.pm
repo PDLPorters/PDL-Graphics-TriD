@@ -1,7 +1,24 @@
 use strict;
 use warnings;
 no warnings 'redefine';
-use OpenGL qw/ :glfunctions :glconstants /;
+use OpenGL qw/
+  glBegin glVertex2f glEnd glMaterialfv glColor3d glRotatef glLightModeli
+  glLightfv_s glShadeModel glColorMaterial glNormal3d glTexCoord2f glVertex3f
+  glLineWidth glPointSize
+  glGenLists glDeleteLists glNewList glEndList glCallList
+  glPushAttrib glPopAttrib glMatrixMode glLoadIdentity glOrtho glTranslatef
+  glEnable glDisable
+  glTexImage2D_s glTexParameteri
+  GL_FRONT_AND_BACK GL_SHININESS GL_SPECULAR GL_AMBIENT GL_DIFFUSE GL_SMOOTH
+  GL_FLAT
+  GL_LIGHTING_BIT GL_POSITION GL_LIGHTING GL_LIGHT0 GL_LIGHT_MODEL_TWO_SIDE
+  GL_COMPILE GL_ENABLE_BIT GL_DEPTH_TEST GL_TRUE
+  GL_LINE_STRIP
+  GL_COLOR_MATERIAL GL_QUADS GL_MODELVIEW GL_PROJECTION
+  GL_RGB GL_FLOAT
+  GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
+  GL_NEAREST GL_REPEAT GL_TEXTURE_WRAP_S GL_TEXTURE_WRAP_T
+/;
 use PDL::Core qw(barf);
 
 sub PDL::Graphics::TriD::Material::togl{
@@ -228,7 +245,14 @@ sub PDL::Graphics::TriD::SimpleController::togl {
 # A window with mouse control over rotation.
 package PDL::Graphics::TriD::Window;
 
-use OpenGL qw/ :glfunctions :glconstants /;
+use OpenGL qw/
+  glPixelStorei glReadPixels_s
+  glClear glClearColor glEnable
+  glShadeModel glColor3f glPushMatrix glPopMatrix glMatrixMode
+  GL_UNPACK_ALIGNMENT GL_PACK_ALIGNMENT GL_RGB GL_UNSIGNED_BYTE
+  GL_FLAT GL_NORMALIZE GL_MODELVIEW
+  GL_COLOR_BUFFER_BIT GL_DEPTH_BUFFER_BIT
+/;
 
 use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/Ev Width Height Interactive _GLObject
@@ -459,7 +483,11 @@ sub set_button {
 
 package PDL::Graphics::TriD::ViewPort;
 
-use OpenGL qw/ :glfunctions :glconstants /;
+use OpenGL qw/
+  glLoadIdentity glMatrixMode glOrtho glFrustum
+  glEnable glDisable glLineWidth glViewport
+  GL_LIGHTING GL_MODELVIEW GL_PROJECTION
+/;
 use PDL::Graphics::OpenGLQ;
 
 sub highlight {
