@@ -155,34 +155,6 @@ pp_def(
   @internal
 );
 
-for(
-{Name => 'gl_triangles'},
-{Name => 'gl_triangles_wn',
- NormalArgs => 'norm(tri,v); ',
- NormalCode => NORMAL(\'thisind','v'),
-}) {
-# This may be suboptimal but should still be fast enough..
-# We only do triangles with this.
-pp_def(
-  $_->{Name},
-  GenericTypes => $F,
-  Pars => 'coords(tri=3,v); '.($_->{NormalArgs}//'').'colors(tri,v); uint faceidx(trivert=3,f)',
-  Code => '
-glBegin(GL_TRIANGLES);
-broadcastloop %{
-  loop(f,trivert) %{
-    PDL_ULong thisind = $faceidx();
-    if (thisind >= $SIZE(v))
-      $CROAK("index number %"IND_FLAG",%"IND_FLAG" out of range: %"IND_FLAG" > %"IND_FLAG, trivert, f, thisind, $SIZE(v)-1);
-    '.($_->{NormalCode}//'').
-    COLOR(\'thisind','v').VERTEX(\'thisind','v').'
-  %}
-%}
-glEnd();',
-  @internal
-);
-}
-
 pp_def('gen_arrowheads',
   Pars => 'coords(tri=3,v); uint fromto(ft=2,n); [o] trivertices(tri,nv=CALC(5*$SIZE(n))); uint [o] triindices(trivert=3,ni=CALC(4*$SIZE(n)))',
   OtherPars => 'float headlen; float width;',

@@ -7,17 +7,20 @@ use OpenGL qw/
   glLineWidth glPointSize
   glGenLists glDeleteLists glNewList glEndList glCallList
   glPushAttrib glPopAttrib glMatrixMode glLoadIdentity glOrtho glTranslatef
+  glVertexPointer_c glNormalPointer_c glColorPointer_c glDrawElements_c
+  glEnableClientState glDisableClientState
   glEnable glDisable
   glTexImage2D_s glTexParameteri
   GL_FRONT_AND_BACK GL_SHININESS GL_SPECULAR GL_AMBIENT GL_DIFFUSE GL_SMOOTH
   GL_FLAT
   GL_LIGHTING_BIT GL_POSITION GL_LIGHTING GL_LIGHT0 GL_LIGHT_MODEL_TWO_SIDE
   GL_COMPILE GL_ENABLE_BIT GL_DEPTH_TEST GL_TRUE
-  GL_LINE_STRIP
+  GL_LINE_STRIP GL_TRIANGLES
   GL_COLOR_MATERIAL GL_QUADS GL_MODELVIEW GL_PROJECTION
-  GL_RGB GL_FLOAT
+  GL_RGB GL_FLOAT GL_UNSIGNED_INT
   GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
   GL_NEAREST GL_REPEAT GL_TEXTURE_WRAP_S GL_TEXTURE_WRAP_T
+  GL_VERTEX_ARRAY GL_NORMAL_ARRAY GL_COLOR_ARRAY
 /;
 use PDL::Core qw(barf);
 
@@ -178,12 +181,23 @@ sub PDL::Graphics::TriD::Triangles::gdraw {
   my $options = $this->{Options};
   my $shading = $options->{Shading};
   glShadeModel($shading == 1 ? GL_FLAT : GL_SMOOTH) if $shading;
-  my $f = 'PDL::gl_triangles';
-  $f .= '_wn' if $shading > 2;
-  { no strict 'refs'; $f = \&$f; }
-  if ($shading > 2) { glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE); glEnable(GL_COLOR_MATERIAL); }
-  $f->($points, $shading > 2 ? $this->{Normals} : (), $this->{Colors}, $this->{Faceidx});
-  if ($shading > 2) { glDisable(GL_COLOR_MATERIAL); }
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glVertexPointer_c(3, GL_FLOAT, 0, $points->make_physical->address_data);
+  glEnableClientState(GL_COLOR_ARRAY);
+  glColorPointer_c(3, GL_FLOAT, 0, $this->{Colors}->make_physical->address_data);
+  if ($shading > 2) {
+    glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glNormalPointer_c(GL_FLOAT, 0, $this->{Normals}->make_physical->address_data);
+  }
+  glDrawElements_c(GL_TRIANGLES, $this->{Faceidx}->nelem, GL_UNSIGNED_INT, $this->{Faceidx}->make_physical->address_data);
+  if ($shading > 2) {
+    glDisable(GL_COLOR_MATERIAL);
+    glDisableClientState(GL_NORMAL_ARRAY);
+  }
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_COLOR_ARRAY);
 }
 
 sub PDL::Graphics::TriD::Lines::gdraw {
