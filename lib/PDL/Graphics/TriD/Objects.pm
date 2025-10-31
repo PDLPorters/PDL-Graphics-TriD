@@ -97,7 +97,7 @@ sub get_valid_options { +{
 
 package PDL::Graphics::TriD::Lines;
 use base qw/PDL::Graphics::TriD::GObject/;
-sub cdummies { return $_[1]->dummy(1); }
+sub cdummies { $_[1]->dummy(1,$_[2]->getdim(1)); }
 sub r_type { return "SURF2D";}
 sub get_valid_options { +{
   UseDefcols => 0,
