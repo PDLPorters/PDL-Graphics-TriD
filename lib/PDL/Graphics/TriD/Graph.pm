@@ -150,9 +150,9 @@ sub new {
   $_ = $_->dup(1,3)->rotate($dupseq) for $starts, $ends;
   $points = $points->glue(1, $starts->append($ends))->splitdim(0,3)->clump(1,2);
   $this->{NDiv} = $ndiv;
-  $this->add_object(PDL::Graphics::TriD::Lines->new($points, float(1,1,1)));
-  $this->add_object(PDL::Graphics::TriD::Labels->new($id3, float(1,1,1), {Strings=>$options->{Names}}));
-  $this->add_object($this->{AxisLabelsObj} = PDL::Graphics::TriD::Labels->new($ends, float(1,1,1), {Strings=>$options->{Names}}));
+  $this->add_object(PDL::Graphics::TriD::Lines->new($points));
+  $this->add_object(PDL::Graphics::TriD::Labels->new($id3, {Strings=>$options->{Names}}));
+  $this->add_object($this->{AxisLabelsObj} = PDL::Graphics::TriD::Labels->new($ends, {Strings=>$options->{Names}}));
   $this;
 }
 
