@@ -8,6 +8,7 @@ use OpenGL qw/
   glGenLists glDeleteLists glNewList glEndList glCallList
   glPushAttrib glPopAttrib glMatrixMode glLoadIdentity glOrtho glTranslatef
   glVertexPointer_c glNormalPointer_c glColorPointer_c glDrawElements_c
+  glDrawArrays
   glEnableClientState glDisableClientState
   glEnable glDisable
   glTexImage2D_s glTexParameteri
@@ -15,7 +16,7 @@ use OpenGL qw/
   GL_FLAT
   GL_LIGHTING_BIT GL_POSITION GL_LIGHTING GL_LIGHT0 GL_LIGHT_MODEL_TWO_SIDE
   GL_COMPILE GL_ENABLE_BIT GL_DEPTH_TEST GL_TRUE
-  GL_LINE_STRIP GL_TRIANGLES
+  GL_LINE_STRIP GL_TRIANGLES GL_LINES
   GL_COLOR_MATERIAL GL_QUADS GL_MODELVIEW GL_PROJECTION
   GL_RGB GL_FLOAT GL_UNSIGNED_INT
   GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
@@ -202,7 +203,13 @@ sub PDL::Graphics::TriD::Triangles::gdraw {
 
 sub PDL::Graphics::TriD::Lines::gdraw {
   my($this,$points) = @_;
-  PDL::gl_lines_col($points,$this->{Colors});
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glVertexPointer_c(3, GL_FLOAT, 0, $points->make_physical->address_data);
+  glEnableClientState(GL_COLOR_ARRAY);
+  glColorPointer_c(3, GL_FLOAT, 0, $this->{Colors}->make_physical->address_data);
+  glDrawArrays(GL_LINES, 0, $points->nelem / $points->dim(0));
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_COLOR_ARRAY);
 }
 
 sub PDL::Graphics::TriD::LineStripMulti::gdraw {

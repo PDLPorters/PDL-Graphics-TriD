@@ -112,7 +112,7 @@ sub make_func {
   }
 }
 
-make_func($_) for qw(gl_line_strip gl_lines gl_points);
+make_func($_) for qw(gl_line_strip gl_points);
 
 pp_def('gl_line_strip_multi',
   GenericTypes => $F,
