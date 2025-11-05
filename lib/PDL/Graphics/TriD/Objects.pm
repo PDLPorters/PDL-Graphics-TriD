@@ -21,7 +21,7 @@ This provides the following class hierarchy:
   ├ PDL::Graphics::TriD::Points          individual points
   ├ PDL::Graphics::TriD::Spheres         fat 3D points :)
   ├ PDL::Graphics::TriD::Lines           separate lines
-  ├ PDL::Graphics::TriD::LineStripMulti  continuous paths
+  ├ PDL::Graphics::TriD::DrawMulti       arbitrary-sized primitives
   ├ PDL::Graphics::TriD::Triangles       just polygons
   └ PDL::Graphics::TriD::Labels          text labels
 
@@ -130,7 +130,7 @@ sub new {
   my $indices = PDL->sequence(PDL::ulong, $x, $y, @extradims)->flat;
   $points = $points->clump(1..2+@extradims) if $points->ndims > 2;
   $colors = $colors->clump(1..2+@extradims) if $colors->ndims > 2;
-  $this->add_object(PDL::Graphics::TriD::LineStripMulti->new($points, $colors, $counts, $starts, $indices));
+  $this->add_object(PDL::Graphics::TriD::DrawMulti->new($points, $colors, 'linestrip', $counts, $starts, $indices));
   $this;
 }
 
@@ -153,7 +153,7 @@ sub new {
     my $counts = (PDL->ones(PDL::long, $f) * 4)->flat;
     my $starts = (PDL->sequence(PDL::ulong, $f) * 4)->flat;
     my $indices = $faceidx->append($faceidx->slice(0))->flat;
-    $this->add_object(PDL::Graphics::TriD::LineStripMulti->new($points, PDL::float(0,0,0)->dummy(1,$points->dim(1)), $counts, $starts, $indices));
+    $this->add_object(PDL::Graphics::TriD::DrawMulti->new($points, PDL::float(0,0,0)->dummy(1,$points->dim(1)), 'linestrip', $counts, $starts, $indices));
   }
   $this;
 }
@@ -268,14 +268,14 @@ sub new {
     $counts = $counts->append((PDL->ones(PDL::long, $x, @extradims) * $y)->flat);
     $starts = $starts->append((PDL->sequence(PDL::ulong, $x, @extradims) * $y)->flat + $indices->nelem);
     $indices = $indices->append(PDL->sequence(PDL::ulong, $x, $y, @extradims)->t->flat);
-    $this->add_object(PDL::Graphics::TriD::LineStripMulti->new($points->clump(1..2+@extradims), $lcolors->clump(1..2+@extradims), $counts, $starts, $indices));
+    $this->add_object(PDL::Graphics::TriD::DrawMulti->new($points->clump(1..2+@extradims), $lcolors->clump(1..2+@extradims), 'linestrip', $counts, $starts, $indices));
   }
   $this;
 }
 
-package PDL::Graphics::TriD::LineStripMulti;
+package PDL::Graphics::TriD::DrawMulti;
 use base qw/PDL::Graphics::TriD::GObject/;
-use fields qw/Counts Starts Indices/;
+use fields qw/Mode Counts Starts Indices/;
 sub cdummies { $_[1]->dummy(1, $_[2]->dim(1)) }
 sub r_type {""}
 sub get_valid_options { +{
@@ -284,12 +284,12 @@ sub get_valid_options { +{
 }}
 sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : {};
-  my ($class, $points, $colors, $counts, $starts, $indices) = @_;
+  my ($class, $points, $colors, $mode, $counts, $starts, $indices) = @_;
   my $this = $class->SUPER::new($points, $colors, $options);
-  PDL::barf "LineStripMulti error: dim mismatch between Points and Colors [@{[$this->{Points}->dims]}] vs [@{[$this->{Colors}->dims]}]"
+  PDL::barf "DrawMulti error: dim mismatch between Points and Colors [@{[$this->{Points}->dims]}] vs [@{[$this->{Colors}->dims]}]"
     if $this->{Points}->ndims != $this->{Colors}->ndims
     or $this->{Points}->dim(1) != $this->{Colors}->dim(1);
-  @$this{qw(Counts Starts Indices)} = ($counts, $starts, $indices);
+  @$this{qw(Mode Counts Starts Indices)} = ($mode, $counts, $starts, $indices);
   $this;
 }
 

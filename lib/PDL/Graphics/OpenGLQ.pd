@@ -114,13 +114,15 @@ sub make_func {
 
 make_func($_) for qw(gl_line_strip);
 
-pp_def('gl_line_strip_multi',
+pp_def('gl_draw_multi',
   GenericTypes => $F,
   Pars => 'coords(tri=3,v); colors(tri,v); int count(drawcount); uint starts(drawcount); uint indices(alli);',
+  OtherPars => 'int mode',
+  ArgOrder => [qw(mode coords colors count starts indices)],
   Code => '
 loop(drawcount) %{
   PDL_ULong howmany = $count(), start = $starts(), upto = start+howmany;
-  glBegin(GL_LINE_STRIP);
+  glBegin($COMP(mode));
   loop(alli=start:upto) %{
     PDL_ULong thisind = $indices();
     if (thisind >= $SIZE(v))

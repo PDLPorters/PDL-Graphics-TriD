@@ -144,6 +144,10 @@ sub PDL::Graphics::TriD::Quaternion::togl {
 ##################################
 # Graph Objects
 
+my %mode2enum = (
+  linestrip => GL_LINE_STRIP,
+);
+
 sub PDL::Graphics::TriD::GObject::togl {
   my ($this, $points) = @_;
   print "togl $this\n" if $PDL::Graphics::TriD::verbose;
@@ -218,9 +222,10 @@ sub PDL::Graphics::TriD::Lines::gdraw {
   glDisableClientState(GL_COLOR_ARRAY);
 }
 
-sub PDL::Graphics::TriD::LineStripMulti::gdraw {
+sub PDL::Graphics::TriD::DrawMulti::gdraw {
   my ($this,$points) = @_;
-  PDL::gl_line_strip_multi($points, @$this{qw(Colors Counts Starts Indices)});
+  my $mode = $mode2enum{$this->{Mode}} || PDL::barf "DrawMulti unknown mode";
+  PDL::gl_draw_multi($mode, $points, @$this{qw(Colors Counts Starts Indices)});
 }
 
 # A special construct which always faces the display and takes the entire window
