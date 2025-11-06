@@ -150,10 +150,10 @@ sub new {
   if ($options->{Lines}) {
     $points = $this->normalise_as($type->r_type,$points);
     my $f = $faceidx->dim(1);
-    my $counts = (PDL->ones(PDL::long, $f) * 4)->flat;
-    my $starts = (PDL->sequence(PDL::ulong, $f) * 4)->flat;
-    my $indices = $faceidx->append($faceidx->slice(0))->flat;
-    $this->add_object(PDL::Graphics::TriD::DrawMulti->new($points, PDL::float(0,0,0)->dummy(1,$points->dim(1)), 'linestrip', $counts, $starts, $indices));
+    my $counts = (PDL->ones(PDL::long, $f) * 3)->flat;
+    my $starts = (PDL->sequence(PDL::ulong, $f) * 3)->flat;
+    my $indices = $faceidx->flat;
+    $this->add_object(PDL::Graphics::TriD::DrawMulti->new($points, PDL::float(0,0,0)->dummy(1,$points->dim(1)), 'lineloop', $counts, $starts, $indices));
   }
   $this;
 }
