@@ -93,26 +93,7 @@ sub TRI {
 sub make_tri { shift()."(".TRI(@_).");\n" }
 sub COLOR { make_tri("glColor3f",'$colors',@_) }
 sub VERTEX { make_tri("glVertex3f",'$coords',@_) }
-sub NORMAL { make_tri("glNormal3f",'$norm',@_) }
 sub RPOS { make_tri("glRasterPos3f",'$coords',@_) }
-
-sub make_func {
-  my ($name) = @_;
-  for (['_col', ' colors(tri,n);', COLOR().VERTEX()]) {
-    pp_def(lc($name).$_->[0],
-      GenericTypes => $F,
-      Pars => 'coords(tri=3,n);'.$_->[1],
-      Code => '
-        glBegin('.uc($name).');
-        loop(n) %{'.$_->[2].'%}
-        glEnd();
-      ',
-      @internal
-    );
-  }
-}
-
-make_func($_) for qw(gl_line_strip);
 
 pp_def('gl_draw_multi',
   GenericTypes => $F,

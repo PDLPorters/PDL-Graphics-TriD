@@ -519,17 +519,22 @@ package PDL::Graphics::TriD::ViewPort;
 use OpenGL qw/
   glLoadIdentity glMatrixMode glOrtho glFrustum
   glEnable glDisable glLineWidth glViewport
+  glVertexPointer_c glNormalPointer_c glColorPointer_c glDrawArrays
+  glEnableClientState glDisableClientState
   GL_LIGHTING GL_MODELVIEW GL_PROJECTION
+  GL_VERTEX_ARRAY GL_COLOR_ARRAY
+  GL_FLOAT GL_LINE_LOOP
 /;
 use PDL::Graphics::OpenGLQ;
 
 sub highlight {
   my ($vp) = @_;
-  my $pts = PDL->new([[0,0,0],
+  my $pts = PDL->new(PDL::float, [[0,0,0],
 		      [$vp->{W},0,0],
 		      [$vp->{W},$vp->{H},0],
 		      [0,$vp->{H},0],
-		      [0,0,0]]);
+		      ]);
+  my $colors = PDL->new(PDL::float, [1,1,1])->dummy(1,$pts->dim(1));
   glDisable(GL_LIGHTING);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
@@ -537,7 +542,13 @@ sub highlight {
   glLoadIdentity();
   glOrtho(0,$vp->{W},0,$vp->{H},-1,1);
   glLineWidth(4);
-  gl_line_strip_col($pts, [1,1,1]);
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glVertexPointer_c(3, GL_FLOAT, 0, $pts->make_physical->address_data);
+  glEnableClientState(GL_COLOR_ARRAY);
+  glColorPointer_c(3, GL_FLOAT, 0, $colors->make_physical->address_data);
+  glDrawArrays(GL_LINE_LOOP, 0, $pts->nelem / $pts->dim(0));
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_COLOR_ARRAY);
   glLineWidth(1);
   glEnable(GL_LIGHTING);
 }
