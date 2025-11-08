@@ -244,7 +244,6 @@ sub PDL::Graphics::TriD::Image::gdraw {
     glLoadIdentity();
     glOrtho(0,1,0,1,-1,1);
   }
-  glColor3d(1,1,1);
   glTexImage2D_s(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->get_dataref());
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
@@ -264,6 +263,7 @@ sub PDL::Graphics::TriD::Image::gdraw {
     glVertex3f($vert->slice(":,($_)")->list);
   }
   glEnd();
+  glDisable(GL_TEXTURE_2D);
 }
 
 sub PDL::Graphics::TriD::SimpleController::togl {
