@@ -17,7 +17,7 @@ use OpenGL qw/
   GL_LIGHTING_BIT GL_POSITION GL_LIGHTING GL_LIGHT0 GL_LIGHT_MODEL_TWO_SIDE
   GL_COMPILE GL_ENABLE_BIT GL_DEPTH_TEST GL_TRUE
   GL_LINE_STRIP GL_TRIANGLES GL_LINES GL_POINTS GL_LINE_LOOP
-  GL_COLOR_MATERIAL GL_QUADS GL_MODELVIEW GL_PROJECTION
+  GL_COLOR_MATERIAL GL_MODELVIEW GL_PROJECTION
   GL_RGB GL_FLOAT GL_UNSIGNED_INT
   GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
   GL_NEAREST GL_REPEAT GL_TEXTURE_WRAP_S GL_TEXTURE_WRAP_T
@@ -251,15 +251,16 @@ sub PDL::Graphics::TriD::Image::gdraw {
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
   glNormal3d(0,0,1);
   glEnable(GL_TEXTURE_2D);
-  glBegin(GL_QUADS);
-  my @texvert = (
+  glBegin(GL_TRIANGLES);
+  my $texvert = PDL->new(PDL::float, [
     [0,0],
     [$xd/$txd, 0],
     [$xd/$txd, $yd/$tyd],
     [0, $yd/$tyd]
-  );
-  for(0..3) {
-    glTexCoord2f(@{$texvert[$_]});
+  ]);
+  my $inds = PDL->new(PDL::byte, [[0,1,2],[2,3,0]]);
+  for($inds->list) {
+    glTexCoord2f($texvert->slice(":,($_)")->list);
     glVertex3f($vert->slice(":,($_)")->list);
   }
   glEnd();
