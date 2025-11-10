@@ -8,6 +8,7 @@ use OpenGL qw/
   glGenLists glDeleteLists glNewList glEndList glCallList
   glPushAttrib glPopAttrib glMatrixMode glLoadIdentity glOrtho glTranslatef
   glVertexPointer_c glNormalPointer_c glColorPointer_c glDrawElements_c
+  glTexCoordPointer_c
   glDrawArrays
   glEnableClientState glDisableClientState
   glEnable glDisable
@@ -18,10 +19,10 @@ use OpenGL qw/
   GL_COMPILE GL_ENABLE_BIT GL_DEPTH_TEST GL_TRUE
   GL_LINE_STRIP GL_TRIANGLES GL_LINES GL_POINTS GL_LINE_LOOP
   GL_COLOR_MATERIAL GL_MODELVIEW GL_PROJECTION
-  GL_RGB GL_FLOAT GL_UNSIGNED_INT
+  GL_RGB GL_FLOAT GL_UNSIGNED_INT GL_UNSIGNED_BYTE
   GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
   GL_NEAREST GL_REPEAT GL_TEXTURE_WRAP_S GL_TEXTURE_WRAP_T
-  GL_VERTEX_ARRAY GL_NORMAL_ARRAY GL_COLOR_ARRAY
+  GL_VERTEX_ARRAY GL_NORMAL_ARRAY GL_COLOR_ARRAY GL_TEXTURE_COORD_ARRAY
 /;
 use PDL::Core qw(barf);
 
@@ -249,9 +250,8 @@ sub PDL::Graphics::TriD::Image::gdraw {
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-  glNormal3d(0,0,1);
+  my $norm = PDL->new(PDL::float, [0,0,1])->dummy(1,$vert->dim(1));
   glEnable(GL_TEXTURE_2D);
-  glBegin(GL_TRIANGLES);
   my $texvert = PDL->new(PDL::float, [
     [0,0],
     [$xd/$txd, 0],
@@ -259,11 +259,16 @@ sub PDL::Graphics::TriD::Image::gdraw {
     [0, $yd/$tyd]
   ]);
   my $inds = PDL->new(PDL::byte, [[0,1,2],[2,3,0]]);
-  for($inds->list) {
-    glTexCoord2f($texvert->slice(":,($_)")->list);
-    glVertex3f($vert->slice(":,($_)")->list);
-  }
-  glEnd();
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glVertexPointer_c(3, GL_FLOAT, 0, $vert->make_physical->address_data);
+  glEnableClientState(GL_NORMAL_ARRAY);
+  glNormalPointer_c(GL_FLOAT, 0, $norm->make_physical->address_data);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+  glTexCoordPointer_c(2, GL_FLOAT, 0, $texvert->make_physical->address_data);
+  glDrawElements_c(GL_TRIANGLES, $inds->nelem, GL_UNSIGNED_BYTE, $inds->make_physical->address_data);
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+  glDisableClientState(GL_NORMAL_ARRAY);
+  glDisableClientState(GL_VERTEX_ARRAY);
   glDisable(GL_TEXTURE_2D);
 }
 
