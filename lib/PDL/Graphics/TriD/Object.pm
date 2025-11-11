@@ -19,6 +19,10 @@ sub new {
 
 sub normalise_as {
   my ($this, $as, $what, $points) = @_;
+  if ($as eq "COLOR" and UNIVERSAL::isa($what, 'PDL') and $what->ndims == 1) {
+    die "Given 1D ndarray as colour but no points to match" if !defined $points;
+    return $this->cdummies($what->float,$points);
+  }
   return PDL::Graphics::TriD::realcoords($as, $what) if !defined $points or defined $what;
   $this->cdummies(PDL->pdl(PDL::float(),1,1,1),$points);
 }

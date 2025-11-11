@@ -120,8 +120,6 @@ sub new {
   my $this = $class->SUPER::new($options);
   $points = $this->normalise_as($class->r_type,$points);
   $colors = $this->normalise_as("COLOR",$colors,$points);
-  $colors = $colors->dummy(1,$points->dim(1)) if $colors->ndims == 1;
-  $colors = $colors->dummy(2,$points->dim(2)) if $colors->ndims == 2;
   $options = $this->{Options};
   my (undef, $x, $y, @extradims) = $points->dims;
   $y //= 1,
@@ -153,7 +151,7 @@ sub new {
     my $counts = (PDL->ones(PDL::long, $f) * 3)->flat;
     my $starts = (PDL->sequence(PDL::ulong, $f) * 3)->flat;
     my $indices = $faceidx->flat;
-    $this->add_object(PDL::Graphics::TriD::DrawMulti->new($points, PDL::float(0,0,0)->dummy(1,$points->dim(1)), 'lineloop', $counts, $starts, $indices));
+    $this->add_object(PDL::Graphics::TriD::DrawMulti->new($points, PDL::float(0,0,0), 'lineloop', $counts, $starts, $indices));
   }
   $this;
 }
@@ -179,7 +177,6 @@ sub new {
   $faceidx = $this->{Faceidx} = $faceidx->ulong; # (3,nfaces) indices
   $options = $this->{Options};
   my ($idxflat, $idx0, @idxdims) = ($faceidx->flat, $faceidx->dims);
-  $this->{Colors} = $this->{Colors}->dummy(1,$this->{Points}->dim(1)) if $this->{Colors}->ndims == 1;
   PDL::barf "Triangles error: broadcast dimensions forbidden for '$_' [@{[$this->{$_}->dims]}]" for grep $this->{$_}->ndims != 2, qw(Points Colors Faceidx);
   PDL::barf "Triangles error: dimension mismatch between Points [@{[$this->{Points}->dims]}] and Colors [@{[$this->{Colors}->dims]}]" if $this->{Points}->ndims != $this->{Colors}->ndims or $this->{Points}->dim(1) != $this->{Colors}->dim(1);
   if ($options->{Shading} or $options->{ShowNormals}) {
@@ -230,8 +227,6 @@ package PDL::Graphics::TriD::Lattice;
 use PDL::Graphics::OpenGLQ;
 use base qw/PDL::Graphics::TriD::Object/;
 sub cdummies {
-  my $shading = $_[0]{Options}{Shading};
-  !$shading ? $_[1]->dummy(1)->dummy(1) :
   $_[1]->slice(":," . join ',', map "*$_", ($_[2]->dims)[1,2])
 }
 sub r_type {return "SURF2D";}
