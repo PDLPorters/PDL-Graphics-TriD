@@ -37,8 +37,10 @@ EOD
 pp_addhdr('
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
+#include <OpenGL/glext.h>
 #else
 #include <GL/gl.h>
+#include <GL/glext.h>
 #endif
 
 #define PDL_3D_CROSS(to, v1, v2) \
@@ -55,6 +57,25 @@ pp_addhdr('
     int i; \
     for (i = 0; i < 3; i++) v[i] *= fac; \
   }
+
+#ifndef size_assert
+#define size_assert( what, howmuch ) \
+  typedef char what##_size_wrong_[( !!(sizeof(what) == howmuch) )*2-1 ]
+#endif
+
+#if defined(_WIN32) || (defined(__CYGWIN__) && defined(HAVE_W32API))
+#define loadProc(proc) \
+{ \
+  if (!proc) \
+  { \
+    proc = (void *)wglGetProcAddress(#proc); \
+    if (!proc) croak(#proc " is not supported by this renderer"); \
+  } \
+}
+PFNGLMULTIDRAWELEMENTSPROC glMultiDrawElements;
+#else /* not using WGL */
+#define loadProc(proc)
+#endif /* not defined _WIN32, __CYGWIN__, and HAVE_W32API */
 ');
 
 my @internal = (Doc => 'internal', NoPthread => 1);
@@ -91,8 +112,6 @@ sub TRI {
   join ',', map "$par(${extra_arg}tri => $_)", 0..2;
 }
 sub make_tri { shift()."(".TRI(@_).");\n" }
-sub COLOR { make_tri("glColor3f",'$colors',@_) }
-sub VERTEX { make_tri("glVertex3f",'$coords',@_) }
 sub RPOS { make_tri("glRasterPos3f",'$coords',@_) }
 
 pp_def('gl_draw_multi',
@@ -101,16 +120,20 @@ pp_def('gl_draw_multi',
   OtherPars => 'int mode',
   ArgOrder => [qw(mode coords colors count starts indices)],
   Code => '
-loop(drawcount) %{
-  PDL_ULong howmany = $count(), start = $starts(), upto = start+howmany;
-  glBegin($COMP(mode));
-  loop(alli=start:upto) %{
-    PDL_ULong thisind = $indices();
-    if (thisind >= $SIZE(v))
-      $CROAK("index number %"IND_FLAG" in drawcount=%"IND_FLAG" out of range: %"IND_FLAG" > %"IND_FLAG, alli, drawcount, thisind, $SIZE(v)-1);
-    '.COLOR(\'thisind', 'v').VERTEX(\'thisind', 'v').'
-  %}
-  glEnd();
+size_assert(PDL_ULong, sizeof(GLuint));
+loadProc(glMultiDrawElements)
+broadcastloop %{
+PDL_ULong **indexptrs = malloc(sizeof(PDL_ULong*) * $SIZE(drawcount));
+if (!indexptrs) $CROAK("malloc failed");
+loop(drawcount) %{ indexptrs[drawcount] = $P(indices) + $starts(); %}
+glEnableClientState(GL_VERTEX_ARRAY);
+glVertexPointer(3, GL_FLOAT, 0, $P(coords));
+glEnableClientState(GL_COLOR_ARRAY);
+glColorPointer(3, GL_FLOAT, 0, $P(colors));
+glMultiDrawElements($COMP(mode), $P(count), GL_UNSIGNED_INT, (const void *const *)indexptrs, $SIZE(drawcount));
+free(indexptrs);
+glDisableClientState(GL_COLOR_ARRAY);
+glDisableClientState(GL_VERTEX_ARRAY);
 %}
   ',
   @internal
