@@ -141,7 +141,7 @@ sub new {
   $counts->slice('0')++; # account for starting from 0
   my $starts = $pi->rotate(1) + ulong(1);
   $starts->set(0, 0);
-  $this->add_object(PDL::Graphics::TriD::LineStripMulti->new($points, $colors, $counts, $starts, $indices));
+  $this->add_object(PDL::Graphics::TriD::DrawMulti->new($points, $colors, 'linestrip', $counts, $starts, $indices));
 
   if (defined $options->{Labels}) {
     my ($labelint, $segint) = @{$options->{Labels}};
