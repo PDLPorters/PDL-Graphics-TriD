@@ -3,7 +3,7 @@ use warnings;
 no warnings 'redefine';
 use OpenGL qw/
   glBegin glVertex2f glEnd glMaterialfv glColor3d glRotatef glLightModeli
-  glLightfv_s glShadeModel glColorMaterial glNormal3d glTexCoord2f glVertex3f
+  glLightfv_p glShadeModel glColorMaterial glNormal3d glTexCoord2f glVertex3f
   glLineWidth glPointSize
   glGenLists glDeleteLists glNewList glEndList glCallList
   glPushAttrib glPopAttrib glMatrixMode glLoadIdentity glOrtho glTranslatef
@@ -12,7 +12,7 @@ use OpenGL qw/
   glDrawArrays
   glEnableClientState glDisableClientState
   glEnable glDisable
-  glTexImage2D_s glTexParameteri
+  glTexImage2D_c glTexParameteri
   GL_FRONT_AND_BACK GL_SHININESS GL_SPECULAR GL_AMBIENT GL_DIFFUSE GL_SMOOTH
   GL_FLAT
   GL_LIGHTING_BIT GL_POSITION GL_LIGHTING GL_LIGHT0 GL_LIGHT_MODEL_TWO_SIDE
@@ -161,7 +161,7 @@ sub PDL::Graphics::TriD::GObject::togl {
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-    glLightfv_s(GL_LIGHT0,GL_POSITION,pack "f*",1.0,1.0,1.0,0.0);
+    glLightfv_p(GL_LIGHT0,GL_POSITION,1.0,1.0,1.0,0.0);
   } else {
     glDisable(GL_LIGHTING);
   }
@@ -245,7 +245,7 @@ sub PDL::Graphics::TriD::Image::gdraw {
     glLoadIdentity();
     glOrtho(0,1,0,1,-1,1);
   }
-  glTexImage2D_s(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->get_dataref());
+  glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->make_physical->address_data);
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
@@ -285,7 +285,7 @@ sub PDL::Graphics::TriD::SimpleController::togl {
 package PDL::Graphics::TriD::Window;
 
 use OpenGL qw/
-  glPixelStorei glReadPixels_s
+  glPixelStorei glReadPixels_c
   glClear glClearColor glEnable
   glShadeModel glColor3f glPushMatrix glPopMatrix glMatrixMode
   GL_UNPACK_ALIGNMENT GL_PACK_ALIGNMENT GL_RGB GL_UNSIGNED_BYTE
@@ -457,7 +457,7 @@ sub read_picture {
 	my $res = PDL->zeroes(PDL::byte,3,$w,$h);
 	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 	glPixelStorei(GL_PACK_ALIGNMENT,1);
-        glReadPixels_s(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,$res->get_dataref);
+        glReadPixels_c(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,$res->make_physical->address_data);
 	return $res;
 }
 
