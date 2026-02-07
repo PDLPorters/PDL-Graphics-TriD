@@ -288,9 +288,11 @@ use OpenGL::Modern qw/
   glPixelStorei glReadPixels_c
   glClear glClearColor glEnable
   glShadeModel glColor3f glPushMatrix glPopMatrix glMatrixMode
+  glPushAttrib glPopAttrib
   GL_UNPACK_ALIGNMENT GL_PACK_ALIGNMENT GL_RGB GL_UNSIGNED_BYTE
   GL_FLAT GL_NORMALIZE GL_MODELVIEW
   GL_COLOR_BUFFER_BIT GL_DEPTH_BUFFER_BIT
+  GL_TRANSFORM_BIT
 /;
 
 use base qw/PDL::Graphics::TriD::Object/;
@@ -435,8 +437,9 @@ sub display {
   $this->{_GLObject}->set_window; # for multiwindow support
   print "display: calling glClear()\n" if ($PDL::Graphics::TriD::verbose);
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-  glMatrixMode(GL_MODELVIEW);
   for my $vp (@{$this->{_ViewPorts}}) {
+	 glPushAttrib(GL_TRANSFORM_BIT);
+	 glMatrixMode(GL_MODELVIEW);
 	 glPushMatrix();
 	 $vp->do_perspective();
 	 if($vp->{Transformer}) {
@@ -444,7 +447,9 @@ sub display {
 		$vp->{Transformer}->togl();
 	 }
 	 $vp->gl_call_list();
+	 glMatrixMode(GL_MODELVIEW);
 	 glPopMatrix();
+	 glPopAttrib();
   }
   $this->{_GLObject}->swap_buffers;
   print "display: after SwapBuffers\n" if $PDL::Graphics::TriD::verbose;
