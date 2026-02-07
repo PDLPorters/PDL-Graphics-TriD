@@ -5,6 +5,7 @@ use OpenGL::Modern qw/
   glBegin glVertex2f glEnd glMaterialfv_p glColor3d glRotatef glLightModeli
   glLightfv_p glShadeModel glColorMaterial glNormal3d glTexCoord2f glVertex3f
   glLineWidth glPointSize
+  glpSetAutoCheckErrors
   glGenLists glDeleteLists glNewList glEndList glCallList
   glPushAttrib glPopAttrib glMatrixMode glLoadIdentity glOrtho glTranslatef
   glVertexPointer_c glNormalPointer_c glColorPointer_c glDrawElements_c
@@ -42,6 +43,7 @@ $PDL::Graphics::TriD::verbose //= 0;
 
 sub PDL::Graphics::TriD::Object::gl_update_list {
   my ($this) = @_;
+  glpSetAutoCheckErrors(1);
   glDeleteLists($this->{List},1) if $this->{List};
   $this->{List} = my $lno = glGenLists(1);
   print "GENLIST $this $lno\n" if $PDL::Graphics::TriD::verbose;
