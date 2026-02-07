@@ -19,7 +19,7 @@ WriteMakefile (
   LICENSE=> "perl",
   VERSION_FROM => 'lib/PDL/Graphics/TriD.pm',
   CONFIGURE_REQUIRES => {
-    'ExtUtils::MakeMaker' => 0,
+    'ExtUtils::MakeMaker' => '7.72',
     'PDL' => '2.096',
     'OpenGL::Modern' => '0.0403',
   },
