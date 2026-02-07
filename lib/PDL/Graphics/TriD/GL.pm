@@ -1,8 +1,8 @@
 use strict;
 use warnings;
 no warnings 'redefine';
-use OpenGL qw/
-  glBegin glVertex2f glEnd glMaterialfv glColor3d glRotatef glLightModeli
+use OpenGL::Modern qw/
+  glBegin glVertex2f glEnd glMaterialfv_p glColor3d glRotatef glLightModeli
   glLightfv_p glShadeModel glColorMaterial glNormal3d glTexCoord2f glVertex3f
   glLineWidth glPointSize
   glGenLists glDeleteLists glNewList glEndList glCallList
@@ -29,13 +29,13 @@ use PDL::Core qw(barf);
 sub PDL::Graphics::TriD::Material::togl{
   my $this = shift;
   my $shin = pack "f*",$this->{Shine};
-  glMaterialfv(GL_FRONT_AND_BACK,GL_SHININESS,$shin);
+  glMaterialfv_p(GL_FRONT_AND_BACK,GL_SHININESS,$shin);
   my $spec = pack "f*",@{$this->{Specular}};
-  glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,$spec);
+  glMaterialfv_p(GL_FRONT_AND_BACK,GL_SPECULAR,$spec);
   my $amb = pack "f*",@{$this->{Ambient}};
-  glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,$amb);
+  glMaterialfv_p(GL_FRONT_AND_BACK,GL_AMBIENT,$amb);
   my $diff = pack "f*",@{$this->{Diffuse}};
-  glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,$diff);
+  glMaterialfv_p(GL_FRONT_AND_BACK,GL_DIFFUSE,$diff);
 }
 
 $PDL::Graphics::TriD::verbose //= 0;
@@ -284,7 +284,7 @@ sub PDL::Graphics::TriD::SimpleController::togl {
 # A window with mouse control over rotation.
 package PDL::Graphics::TriD::Window;
 
-use OpenGL qw/
+use OpenGL::Modern qw/
   glPixelStorei glReadPixels_c
   glClear glClearColor glEnable
   glShadeModel glColor3f glPushMatrix glPopMatrix glMatrixMode
@@ -522,7 +522,7 @@ sub set_button {
 
 package PDL::Graphics::TriD::ViewPort;
 
-use OpenGL qw/
+use OpenGL::Modern qw/
   glLoadIdentity glMatrixMode glOrtho glFrustum
   glEnable glDisable glLineWidth glViewport
   glVertexPointer_c glNormalPointer_c glColorPointer_c glDrawArrays

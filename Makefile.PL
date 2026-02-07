@@ -3,11 +3,11 @@ use warnings;
 use ExtUtils::MakeMaker;
 use PDL::Core::Dev;
 
-use OpenGL::Config;
+use OpenGL::Modern::Config;
 my ($def, $inc, $libs) = ('', '', '');
-$libs = $OpenGL::Config->{LIBS} if $OpenGL::Config->{LIBS};
-$def .= ' '.$OpenGL::Config->{DEFINE} if $OpenGL::Config->{DEFINE};
-$inc .= ' '.$OpenGL::Config->{INC} if $OpenGL::Config->{INC};
+$libs = $OpenGL::Modern::Config->{LIBS} if $OpenGL::Modern::Config->{LIBS};
+$def .= ' '.$OpenGL::Modern::Config->{DEFINE} if $OpenGL::Modern::Config->{DEFINE};
+$inc .= ' '.$OpenGL::Modern::Config->{INC} if $OpenGL::Modern::Config->{INC};
 $libs .= ' -lm' if $libs !~ /\s-lm\b/;
 
 my $package_name = "PDL::Graphics::TriD";
@@ -21,11 +21,11 @@ WriteMakefile (
   CONFIGURE_REQUIRES => {
     'ExtUtils::MakeMaker' => 0,
     'PDL' => '2.096',
-    'OpenGL' => '0.7004', # for $OpenGL::Config
+    'OpenGL::Modern' => '0.0403',
   },
   PREREQ_PM => {
     'PDL' => '2.096',
-    'OpenGL' => '0.7004',
+    'OpenGL::Modern' => '0.0403',
     'OpenGL::GLFW' => '0.0402',
   },
   TEST_REQUIRES => {

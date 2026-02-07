@@ -30,8 +30,8 @@ jobs:
         with:
           target-setup-perl: true
           perl-version: ${{ matrix.perl-version }}
-      - name: Install pogl dependencies
-        uses: Perl-GPU/devops/github-actions/install-dep-pogl-dep@main
+      - name: Install OGLM dependencies
+        uses: Perl-GPU/devops/github-actions/install-dep-opengl-modern-dep@main
       - name: Install GLFW dependencies
         uses: Perl-GPU/devops/github-actions/install-dep-opengl-glfw-dep@main
       - name: Install PDL dependencies
@@ -42,7 +42,7 @@ jobs:
           target-setup-perl: false
           target-install-dist-perl-deps: true
           build-enable-graphical-display: true
-          dist-perl-deps-configure: OpenGL OpenGL::GLUT PDL
+          dist-perl-deps-configure: OpenGL::Modern OpenGL::GLFW PDL
           target-test-release-testing: true
           target-test: true
           test-enable-graphical-display: true
