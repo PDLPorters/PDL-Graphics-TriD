@@ -706,13 +706,13 @@ sub PDL::Graphics::TriD::Object::vrml_update {
   $this->{VRML} = PDL::Graphics::VRMLNode->new('Transform',
                                    'translation' => "-1 -1 -1",
                                    'scale' => "2 2 2");
-  $this->{ValidList} = 1;
+  $this->{IsValid} = 1;
 }
 
 sub PDL::Graphics::TriD::Object::tovrml {
   my($this) = @_;
-  print ref($this)," valid=",$this->{ValidList}," tovrml\n";
-  if (!$this->{ValidList}) {
+  print ref($this)," valid=",$this->{IsValid}," tovrml\n";
+  if (!$this->{IsValid}) {
     $this->vrml_update();
   }
   $this->{VRML}->add('children',

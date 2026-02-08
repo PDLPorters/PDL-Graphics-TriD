@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Scalar::Util qw(weaken);
 
-use fields qw(Objects ValidList ChangedSub List Options);
+use fields qw(Objects IsValid ChangedSub Impl Options);
 
 $PDL::Graphics::TriD::verbose //= 0;
 
@@ -45,7 +45,7 @@ sub get_valid_options { +{
 sub clear_objects {
 	my($this) = @_;
 	$this->{Objects} = [];
-	$this->{ValidList} = 0;
+	$this->{IsValid} = 0;
 }
 
 sub delete_object {
@@ -63,7 +63,7 @@ sub add_object {
   my ($this,$object) = @_;
   weaken $this;
   push @{$this->{Objects}},$object;
-  $this->{ValidList} = 0;
+  $this->{IsValid} = 0;
   for(@{$this->{ChangedSub}}) {
     $object->add_changedsub($_);
   }
@@ -105,7 +105,7 @@ sub clear {
 sub changed {
   my($this) = @_;
   print "VALID0 $this\n" if $PDL::Graphics::TriD::verbose;
-  $this->{ValidList} = 0;
+  $this->{IsValid} = 0;
   $_->($this) for @{$this->{ChangedSub}};
 }
 

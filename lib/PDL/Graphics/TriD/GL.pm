@@ -44,8 +44,8 @@ $PDL::Graphics::TriD::verbose //= 0;
 sub PDL::Graphics::TriD::Object::gl_update_list {
   my ($this) = @_;
   glpSetAutoCheckErrors(1);
-  glDeleteLists($this->{List},1) if $this->{List};
-  $this->{List} = my $lno = glGenLists(1);
+  glDeleteLists($this->{Impl}{List},1) if $this->{Impl}{List};
+  $this->{Impl}{List} = my $lno = glGenLists(1);
   print "GENLIST $this $lno\n" if $PDL::Graphics::TriD::verbose;
   glNewList($lno,GL_COMPILE);
   eval {
@@ -55,22 +55,22 @@ sub PDL::Graphics::TriD::Object::gl_update_list {
   { local $@; glEndList(); }
   die if $@;
   print "VALID1 $this\n" if $PDL::Graphics::TriD::verbose;
-  $this->{ValidList} = 1;
+  $this->{IsValid} = 1;
 }
 
 sub PDL::Graphics::TriD::Object::gl_call_list {
 	my($this) = @_;
-	print "CALLIST ",$this->{List}//'undef',"!\n" if $PDL::Graphics::TriD::verbose;
-	print "CHECKVALID $this=$this->{ValidList}\n" if $PDL::Graphics::TriD::verbose;
-	$this->gl_update_list if !$this->{ValidList};
-	glCallList($this->{List});
+	print "CALLIST ",$this->{Impl}{List}//'undef',"!\n" if $PDL::Graphics::TriD::verbose;
+	print "VALID $this=$this->{IsValid}\n" if $PDL::Graphics::TriD::verbose;
+	$this->gl_update_list if !$this->{IsValid};
+	glCallList($this->{Impl}{List});
 }
 
 sub PDL::Graphics::TriD::Object::delete_displist {
 	my($this) = @_;
-	return if !$this->{List};
-	glDeleteLists($this->{List},1);
-	delete @$this{qw(List ValidList)};
+	return if !$this->{Impl}{List};
+	glDeleteLists($this->{Impl}{List},1);
+	delete $this->{Impl};
 }
 
 sub PDL::Graphics::TriD::Object::togl { $_->togl for $_[0]->contained_objects }
