@@ -284,7 +284,8 @@ sub PDL::Graphics::TriD::SimpleController::togl {
 
 ##############################################
 # A window with mouse control over rotation.
-package PDL::Graphics::TriD::Window;
+package # hide from PAUSE
+  PDL::Graphics::TriD::Window;
 
 use OpenGL::Modern qw/
   glPixelStorei glReadPixels_c
@@ -472,7 +473,8 @@ sub read_picture {
 ######################################################################
 # EVENT HANDLER MINIPACKAGE FOLLOWS!
 
-package PDL::Graphics::TriD::EventHandler;
+package # hide from PAUSE
+  PDL::Graphics::TriD::EventHandler;
 
 use fields qw/X Y Buttons VP/;
 sub new {
@@ -527,7 +529,8 @@ sub set_button {
 ######################################################################
 # VIEWPORT MINI_PACKAGE FOLLOWS!
 
-package PDL::Graphics::TriD::ViewPort;
+package # hide from PAUSE
+  PDL::Graphics::TriD::ViewPort;
 
 use OpenGL::Modern qw/
   glLoadIdentity glMatrixMode glOrtho glFrustum

@@ -1,6 +1,7 @@
 # XXXX NOTHING BUT stupidpolygonize WORKS!!!!
 
-package PDL::Graphics::TriD::StupidPolygonize;
+package # hide from PAUSE
+  PDL::Graphics::TriD::StupidPolygonize;
 
 use strict;
 use warnings;
@@ -44,7 +45,8 @@ sub polygonizeraw {
 sub contours {
 }
 
-package PDL::Graphics::TriD::ContourPolygonize;
+package # hide from PAUSE
+  PDL::Graphics::TriD::ContourPolygonize;
 
 #
 # First compute contours.

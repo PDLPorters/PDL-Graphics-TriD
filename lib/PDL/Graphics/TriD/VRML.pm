@@ -394,7 +394,8 @@ sub geturl {
   barf "can't disconnect" unless $client->Disconnect;
 }
 
-package PDL::Graphics::TriD::VRML::Parameter;
+package # hide from PAUSE
+  PDL::Graphics::TriD::VRML::Parameter;
 use PDL::Core '';  # barf
 
 sub new {
@@ -485,7 +486,8 @@ sub send_to_browser {my $this=$_[0]; &{$this->{'Browser'}}(@_)
 		       if defined $this->{'Browser'}}
 
 
-package PDL::Graphics::TriD::VRML::URL;
+package # hide from PAUSE
+  PDL::Graphics::TriD::VRML::URL;
 use PDL::Core '';  # barf
 require File::Temp;
 
@@ -539,7 +541,8 @@ $para->file($tmpname);
 $para->browser_com($^O =~ /win32/i ? 'netscape/win32' : 'none');
 
 
-package PDL::Graphics::TriD::VRMLObject;
+package # hide from PAUSE
+  PDL::Graphics::TriD::VRMLObject;
 use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/Node/;
 
@@ -555,8 +558,8 @@ sub tovrml {
   return $_[0]->{Node};
 }
 
-#package PDL::Graphics::TriD::VRML::Window;
-package PDL::Graphics::TriD::Window;
+package # hide from PAUSE
+  PDL::Graphics::TriD::Window;
 
 use PDL::Graphics::TriD::SimpleController;
 PDL::Graphics::VRMLNode->import();
@@ -694,7 +697,8 @@ sub twiddle {
   # should probably wait for input of character 'q' ?
 }
 
-package PDL::Graphics::TriD::ViewPort;
+package # hide from PAUSE
+  PDL::Graphics::TriD::ViewPort;
 use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/X0 Y0 W H Transformer EHandler Active ResizeCommands 
               DefMaterial AspectRatio Graphs/;

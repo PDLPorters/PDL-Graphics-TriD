@@ -9,7 +9,8 @@
 #
 # This needs a faster implementation (?)
 
-package PDL::Graphics::TriD::QuaterController;
+package # hide from PAUSE
+  PDL::Graphics::TriD::QuaterController;
 use strict;
 use warnings;
 use PDL::Graphics::TriD::Quaternion;
@@ -86,7 +87,8 @@ sub normxy2qua {
 }
 
 # Tjl's version: a cone - more even change of
-package PDL::Graphics::TriD::ArcCone;
+package # hide from PAUSE
+  PDL::Graphics::TriD::ArcCone;
 
 use base qw/PDL::Graphics::TriD::ArcBall/;
 
@@ -96,7 +98,8 @@ sub get_z {
 }
 
 # Tjl's version2: a bowl -- angle is proportional to displacement.
-package PDL::Graphics::TriD::ArcBowl;
+package # hide from PAUSE
+  PDL::Graphics::TriD::ArcBowl;
 
 use base qw/PDL::Graphics::TriD::ArcBall/;
 BEGIN { *PI = \&PDL::Graphics::TriD::QuaterController::PI; }
@@ -106,7 +109,8 @@ sub get_z {
   cos($dist*PI/2);
 }
 
-package PDL::Graphics::TriD::Orbiter;
+package # hide from PAUSE
+  PDL::Graphics::TriD::Orbiter;
 
 use base qw/PDL::Graphics::TriD::QuaterController/;
 BEGIN { *PI = \&PDL::Graphics::TriD::QuaterController::PI; }

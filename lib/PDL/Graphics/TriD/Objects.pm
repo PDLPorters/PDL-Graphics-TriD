@@ -44,7 +44,8 @@ It is for primitive objects rather than containers.
 
 =cut
 
-package PDL::Graphics::TriD::GObject;
+package # hide from PAUSE
+  PDL::Graphics::TriD::GObject;
 use strict;
 use warnings;
 use base qw/PDL::Graphics::TriD::Object/;
@@ -78,7 +79,8 @@ sub cdummies { $_[1] }
 sub r_type { "" }
 sub defcols { $_[0]{Options}{UseDefcols} }
 
-package PDL::Graphics::TriD::Points;
+package # hide from PAUSE
+  PDL::Graphics::TriD::Points;
 use base qw/PDL::Graphics::TriD::GObject/;
 sub get_valid_options { +{
   UseDefcols => 0,
@@ -86,7 +88,8 @@ sub get_valid_options { +{
   Lighting => 0,
 }}
 
-package PDL::Graphics::TriD::Spheres;
+package # hide from PAUSE
+  PDL::Graphics::TriD::Spheres;
 use base qw/PDL::Graphics::TriD::GObject/;
 # need to add radius
 sub get_valid_options { +{
@@ -95,7 +98,8 @@ sub get_valid_options { +{
   Lighting => 1,
 }}
 
-package PDL::Graphics::TriD::Lines;
+package # hide from PAUSE
+  PDL::Graphics::TriD::Lines;
 use base qw/PDL::Graphics::TriD::GObject/;
 sub cdummies { $_[1]->dummy(1,$_[2]->getdim(1)); }
 sub r_type { return "SURF2D";}
@@ -105,7 +109,8 @@ sub get_valid_options { +{
   Lighting => 0,
 }}
 
-package PDL::Graphics::TriD::LineStrip;
+package # hide from PAUSE
+  PDL::Graphics::TriD::LineStrip;
 use base qw/PDL::Graphics::TriD::Object/;
 sub cdummies { $_[1]->slice(":," . join ',', map "*$_", grep defined, ($_[2]->dims)[1,2]) }
 sub r_type { return "SURF2D";}
@@ -132,7 +137,8 @@ sub new {
   $this;
 }
 
-package PDL::Graphics::TriD::Trigrid;
+package # hide from PAUSE
+  PDL::Graphics::TriD::Trigrid;
 use PDL::Graphics::OpenGLQ;
 use base qw/PDL::Graphics::TriD::Object/;
 sub new {
@@ -166,7 +172,8 @@ sub get_valid_options { +{
 }}
 sub cdummies { $_[1]->dummy(1,$_[2]->getdim(1)); }
 
-package PDL::Graphics::TriD::Triangles;
+package # hide from PAUSE
+  PDL::Graphics::TriD::Triangles;
 use base qw/PDL::Graphics::TriD::GObject/;
 use fields qw/Faceidx Normals/;
 use PDL::Graphics::OpenGLQ;
@@ -223,7 +230,8 @@ sub cdummies { $_[1]->dummy(1,$_[2]->getdim(1)); }
 # lattice -> triangle vertices:
 # 4  5  6  7  ->  formula: origin coords + sequence of orig size minus top+right
 # 0  1  2  3      4,0,1,1,5,4  5,1,2,2,6,5    6,2,3,3,7,6
-package PDL::Graphics::TriD::Lattice;
+package # hide from PAUSE
+  PDL::Graphics::TriD::Lattice;
 use PDL::Graphics::OpenGLQ;
 use base qw/PDL::Graphics::TriD::Object/;
 sub cdummies {
@@ -268,7 +276,8 @@ sub new {
   $this;
 }
 
-package PDL::Graphics::TriD::DrawMulti;
+package # hide from PAUSE
+  PDL::Graphics::TriD::DrawMulti;
 use base qw/PDL::Graphics::TriD::GObject/;
 use fields qw/Mode Counts Starts Indices/;
 sub cdummies { $_[1]->dummy(1, $_[2]->dim(1)) }
@@ -288,7 +297,8 @@ sub new {
   $this;
 }
 
-package PDL::Graphics::TriD::Labels;
+package # hide from PAUSE
+  PDL::Graphics::TriD::Labels;
 use base qw/PDL::Graphics::TriD::GObject/;
 sub get_valid_options { +{
   UseDefcols => 0,
@@ -300,7 +310,8 @@ sub set_labels {
   $this->{Options}{Strings} = $array;
 }
 
-package PDL::Graphics::TriD::Arrows;
+package # hide from PAUSE
+  PDL::Graphics::TriD::Arrows;
 use base qw/PDL::Graphics::TriD::Object/;
 sub r_type { return "";}
 sub get_valid_options { +{

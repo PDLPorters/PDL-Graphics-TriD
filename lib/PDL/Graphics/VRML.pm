@@ -5,7 +5,8 @@
 #
 # VRMLProto
 
-package PDL::Graphics::VRMLProto;
+package # hide from PAUSE
+  PDL::Graphics::VRMLProto;
 use strict;
 use warnings;
 use Exporter;
@@ -53,7 +54,8 @@ sub to_text {
 #
 # VRMLNode
 
-package PDL::Graphics::VRMLNode;
+package # hide from PAUSE
+  PDL::Graphics::VRMLNode;
 use Exporter;
 
 our @ISA = qw/ Exporter /;
@@ -135,7 +137,8 @@ sub vrml3v {
 #
 # VRMLPdlNode
 
-package PDL::Graphics::VRMLPdlNode;
+package # hide from PAUSE
+  PDL::Graphics::VRMLPdlNode;
 our @ISA = qw/ PDL::Graphics::VRMLNode /;
 use PDL::Lite;
 use PDL::Core qw(barf broadcast_define over);
