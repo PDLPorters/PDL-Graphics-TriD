@@ -351,6 +351,15 @@ sub PDL::Graphics::TriD::SimpleController::tovrml {
 	     'description' => "\"Home\"");
 }
 
+$PDL::Graphics::VRML::current_window = undef;
+
+# set up the default parameters for VRML
+my $tmpdir = File::Temp::tempdir(CLEANUP=>1);
+my $tmpname = "$tmpdir/tridvrml_$$.wrl";
+my $para = $PDL::Graphics::TriD::Settings =
+  PDL::Graphics::TriD::VRML::Parameter->new() ;
+$para->file($tmpname);
+$para->browser_com($^O =~ /win32/i ? 'netscape/win32' : 'none');
 
 package #split this line so the
         # CPAN indexer doesn't complain
@@ -528,18 +537,6 @@ sub totext {
 }
 
 sub save { &{$_[0]->{Type}->{save}}(@_) }
-
-package PDL::Graphics::TriD::VRML;
-$PDL::Graphics::VRML::current_window = undef;
-
-# set up the default parameters for VRML
-my $tmpdir = File::Temp::tempdir(CLEANUP=>1);
-my $tmpname = "$tmpdir/tridvrml_$$.wrl";
-my $para = $PDL::Graphics::TriD::Settings =
-  PDL::Graphics::TriD::VRML::Parameter->new() ;
-$para->file($tmpname);
-$para->browser_com($^O =~ /win32/i ? 'netscape/win32' : 'none');
-
 
 package # hide from PAUSE
   PDL::Graphics::TriD::VRMLObject;
