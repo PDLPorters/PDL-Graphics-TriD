@@ -59,18 +59,16 @@ sub PDL::Graphics::TriD::Object::gl_update_list {
 }
 
 sub PDL::Graphics::TriD::Object::gl_call_list {
-	my($this) = @_;
-	print "CALLIST ",$this->{Impl}{List}//'undef',"!\n" if $PDL::Graphics::TriD::verbose;
-	print "VALID $this=$this->{IsValid}\n" if $PDL::Graphics::TriD::verbose;
-	$this->gl_update_list if !$this->{IsValid};
-	glCallList($this->{Impl}{List});
+  my($this) = @_;
+  print "CALLIST ",$this->{Impl}{List}//'undef',"!\n" if $PDL::Graphics::TriD::verbose;
+  glCallList($this->{Impl}{List});
 }
 
 sub PDL::Graphics::TriD::Object::delete_displist {
-	my($this) = @_;
-	return if !$this->{Impl}{List};
-	glDeleteLists($this->{Impl}{List},1);
-	delete $this->{Impl};
+  my($this) = @_;
+  return if !$this->{Impl}{List};
+  glDeleteLists($this->{Impl}{List},1);
+  delete $this->{Impl};
 }
 
 sub PDL::Graphics::TriD::Object::togl { $_->togl for $_[0]->contained_objects }
@@ -438,21 +436,23 @@ sub display {
   my($this) = @_;
   return unless defined($this);
   $this->{_GLObject}->set_window; # for multiwindow support
-  print "display: calling glClear()\n" if ($PDL::Graphics::TriD::verbose);
+  print "display: calling glClear()\n" if $PDL::Graphics::TriD::verbose;
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
   for my $vp (@{$this->{_ViewPorts}}) {
-	 glPushAttrib(GL_TRANSFORM_BIT);
-	 glMatrixMode(GL_MODELVIEW);
-	 glPushMatrix();
-	 $vp->do_perspective();
-	 if($vp->{Transformer}) {
-		print "display: transforming viewport!\n" if ($PDL::Graphics::TriD::verbose);
-		$vp->{Transformer}->togl();
-	 }
-	 $vp->gl_call_list();
-	 glMatrixMode(GL_MODELVIEW);
-	 glPopMatrix();
-	 glPopAttrib();
+    glPushAttrib(GL_TRANSFORM_BIT);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    $vp->do_perspective();
+    if ($vp->{Transformer}) {
+      print "display: transforming viewport!\n" if $PDL::Graphics::TriD::verbose;
+      $vp->{Transformer}->togl();
+    }
+    print "VALID $this=$this->{IsValid}\n" if $PDL::Graphics::TriD::verbose;
+    $vp->gl_update_list if !$vp->{IsValid};
+    $vp->gl_call_list();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glPopAttrib();
   }
   $this->{_GLObject}->swap_buffers;
   print "display: after SwapBuffers\n" if $PDL::Graphics::TriD::verbose;
