@@ -18,7 +18,7 @@ use OpenGL::Modern qw/
   GL_FLAT
   GL_LIGHTING_BIT GL_POSITION GL_LIGHTING GL_LIGHT0 GL_LIGHT_MODEL_TWO_SIDE
   GL_COMPILE GL_ENABLE_BIT GL_DEPTH_TEST GL_TRUE
-  GL_LINE_STRIP GL_TRIANGLES GL_LINES GL_POINTS GL_LINE_LOOP
+  GL_LINE_STRIP GL_TRIANGLE_STRIP GL_TRIANGLES GL_LINES GL_POINTS GL_LINE_LOOP
   GL_COLOR_MATERIAL GL_MODELVIEW GL_PROJECTION
   GL_RGB GL_FLOAT GL_UNSIGNED_INT GL_UNSIGNED_BYTE
   GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
@@ -260,14 +260,14 @@ sub PDL::Graphics::TriD::Image::gdraw {
     [$xd/$txd, $yd/$tyd],
     [0, $yd/$tyd]
   ]);
-  my $inds = PDL->new(PDL::byte, [[0,1,2],[2,3,0]]);
+  my $inds = PDL->new(PDL::byte, [1,2,0,3]);
   glEnableClientState(GL_VERTEX_ARRAY);
   glVertexPointer_c(3, GL_FLOAT, 0, $vert->make_physical->address_data);
   glEnableClientState(GL_NORMAL_ARRAY);
   glNormalPointer_c(GL_FLOAT, 0, $norm->make_physical->address_data);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
   glTexCoordPointer_c(2, GL_FLOAT, 0, $texvert->make_physical->address_data);
-  glDrawElements_c(GL_TRIANGLES, $inds->nelem, GL_UNSIGNED_BYTE, $inds->make_physical->address_data);
+  glDrawElements_c(GL_TRIANGLE_STRIP, $inds->nelem, GL_UNSIGNED_BYTE, $inds->make_physical->address_data);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
   glDisableClientState(GL_NORMAL_ARRAY);
   glDisableClientState(GL_VERTEX_ARRAY);
