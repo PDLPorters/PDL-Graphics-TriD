@@ -47,6 +47,7 @@ sub PDL::Graphics::TriD::Object::gl_update_list {
   glDeleteLists($this->{Impl}{List},1) if $this->{Impl}{List};
   $this->{Impl}{List} = my $lno = glGenLists(1);
   print "GENLIST $this $lno\n" if $PDL::Graphics::TriD::verbose;
+  $this->togl_setup;
   glNewList($lno,GL_COMPILE);
   eval {
     $this->togl;
@@ -71,6 +72,10 @@ sub PDL::Graphics::TriD::Object::delete_displist {
   delete $this->{Impl};
 }
 
+sub PDL::Graphics::TriD::Object::togl_setup {
+  print "togl_setup $_[0]\n" if $PDL::Graphics::TriD::verbose;
+  $_->togl_setup for $_[0]->contained_objects;
+}
 sub PDL::Graphics::TriD::Object::togl { $_->togl for $_[0]->contained_objects }
 
 sub PDL::Graphics::TriD::Graph::togl {
@@ -232,9 +237,22 @@ sub PDL::Graphics::TriD::DrawMulti::gdraw {
 
 # A special construct which always faces the display and takes the entire window
 # The quick method is to use texturing for the good effect.
+sub PDL::Graphics::TriD::Image::togl_setup {
+  my ($this) = @_;
+  print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
+  $this->{Impl}{flattened} = [ $this->flatten(1) ]; # do binary alignment
+  my (undef,$xd,$yd,$txd,$tyd) = @{ $this->{Impl}{flattened} };
+  $this->{Impl}{texvert} = PDL->new(PDL::float, [
+    [0,0],
+    [$xd/$txd, 0],
+    [$xd/$txd, $yd/$tyd],
+    [0, $yd/$tyd]
+  ]);
+  $this->{Impl}{inds} = PDL->new(PDL::byte, [1,2,0,3]);
+}
 sub PDL::Graphics::TriD::Image::gdraw {
   my ($this,$vert) = @_;
-  my ($p,$xd,$yd,$txd,$tyd) = $this->flatten(1); # do binary alignment
+  my ($p,undef,undef,$txd,$tyd) = @{ $this->{Impl}{flattened} };
   $vert //= $this->{Points};
   barf "Need 3,4 vert"
     if grep $_->dim(1) < 4 || $_->dim(0) != 3, $vert;
@@ -250,15 +268,9 @@ sub PDL::Graphics::TriD::Image::gdraw {
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-  my $norm = PDL->new(PDL::float, [0,0,1])->dummy(1,$vert->dim(1));
   glEnable(GL_TEXTURE_2D);
-  my $texvert = PDL->new(PDL::float, [
-    [0,0],
-    [$xd/$txd, 0],
-    [$xd/$txd, $yd/$tyd],
-    [0, $yd/$tyd]
-  ]);
-  my $inds = PDL->new(PDL::byte, [1,2,0,3]);
+  my ($texvert, $inds) = @{ $this->{Impl} }{qw(texvert inds)};
+  my $norm = PDL->new(PDL::float, [0,0,1])->dummy(1,$vert->dim(1));
   glEnableClientState(GL_VERTEX_ARRAY);
   glVertexPointer_c(3, GL_FLOAT, 0, $vert->make_physical->address_data);
   glEnableClientState(GL_NORMAL_ARRAY);
