@@ -22,7 +22,7 @@ use OpenGL::Modern qw/
   GL_COLOR_MATERIAL GL_MODELVIEW GL_PROJECTION
   GL_RGB GL_FLOAT GL_UNSIGNED_INT GL_UNSIGNED_BYTE
   GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
-  GL_NEAREST GL_REPEAT GL_TEXTURE_WRAP_S GL_TEXTURE_WRAP_T
+  GL_NEAREST GL_CLAMP_TO_EDGE GL_TEXTURE_WRAP_S GL_TEXTURE_WRAP_T
   GL_VERTEX_ARRAY GL_NORMAL_ARRAY GL_COLOR_ARRAY GL_TEXTURE_COORD_ARRAY
 /;
 use PDL::Core qw(barf);
@@ -266,8 +266,8 @@ sub PDL::Graphics::TriD::Image::gdraw {
   glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->make_physical->address_data);
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
   glEnable(GL_TEXTURE_2D);
   my ($texvert, $inds) = @{ $this->{Impl} }{qw(texvert inds)};
   my $norm = PDL->new(PDL::float, [0,0,1])->dummy(1,$vert->dim(1));
