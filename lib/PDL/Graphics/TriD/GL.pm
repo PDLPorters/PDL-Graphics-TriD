@@ -13,7 +13,9 @@ use OpenGL::Modern qw/
   glDrawArrays
   glEnableClientState glDisableClientState
   glEnable glDisable
+  glGenTextures_p glBindTexture glDeleteTextures_p
   glTexImage2D_c glTexParameteri
+  glGetIntegerv_p
   GL_FRONT_AND_BACK GL_SHININESS GL_SPECULAR GL_AMBIENT GL_DIFFUSE GL_SMOOTH
   GL_FLAT
   GL_LIGHTING_BIT GL_POSITION GL_LIGHTING GL_LIGHT0 GL_LIGHT_MODEL_TWO_SIDE
@@ -23,6 +25,7 @@ use OpenGL::Modern qw/
   GL_RGB GL_FLOAT GL_UNSIGNED_INT GL_UNSIGNED_BYTE
   GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
   GL_NEAREST GL_CLAMP_TO_EDGE GL_TEXTURE_WRAP_S GL_TEXTURE_WRAP_T
+  GL_TEXTURE_BINDING_2D
   GL_VERTEX_ARRAY GL_NORMAL_ARRAY GL_COLOR_ARRAY GL_TEXTURE_COORD_ARRAY
 /;
 use PDL::Core qw(barf);
@@ -240,19 +243,27 @@ sub PDL::Graphics::TriD::DrawMulti::gdraw {
 sub PDL::Graphics::TriD::Image::togl_setup {
   my ($this) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
-  $this->{Impl}{flattened} = [ $this->flatten(1) ]; # do binary alignment
-  my (undef,$xd,$yd,$txd,$tyd) = @{ $this->{Impl}{flattened} };
+  my ($p,$xd,$yd,$txd,$tyd) = $this->flatten(1); # do binary alignment
+  # assume proportions could change each time
   $this->{Impl}{texvert} = PDL->new(PDL::float, [
     [0,0],
     [$xd/$txd, 0],
     [$xd/$txd, $yd/$tyd],
     [0, $yd/$tyd]
   ]);
+  # //= as never changes, even if re-setup
   $this->{Impl}{inds} //= PDL->new(PDL::byte, [1,2,0,3]);
+  # ||= as only need one, even if re-setup
+  glBindTexture(GL_TEXTURE_2D, $this->{Impl}{tex_id} ||= glGenTextures_p(1));
+  glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->make_physical->address_data);
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+  glBindTexture(GL_TEXTURE_2D, 0);
 }
 sub PDL::Graphics::TriD::Image::gdraw {
   my ($this,$vert) = @_;
-  my ($p,undef,undef,$txd,$tyd) = @{ $this->{Impl}{flattened} };
   $vert //= $this->{Points};
   barf "Need 3,4 vert"
     if grep $_->dim(1) < 4 || $_->dim(0) != 3, $vert;
@@ -263,11 +274,7 @@ sub PDL::Graphics::TriD::Image::gdraw {
     glLoadIdentity();
     glOrtho(0,1,0,1,-1,1);
   }
-  glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->make_physical->address_data);
-  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+  glBindTexture(GL_TEXTURE_2D, $this->{Impl}{tex_id});
   glEnable(GL_TEXTURE_2D);
   my ($texvert, $inds) = @{ $this->{Impl} }{qw(texvert inds)};
   my $norm = PDL->new(PDL::float, [0,0,1])->dummy(1,$vert->dim(1));
@@ -281,7 +288,14 @@ sub PDL::Graphics::TriD::Image::gdraw {
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
   glDisableClientState(GL_NORMAL_ARRAY);
   glDisableClientState(GL_VERTEX_ARRAY);
+  glBindTexture(GL_TEXTURE_2D, 0);
   glDisable(GL_TEXTURE_2D);
+}
+sub PDL::Graphics::TriD::Image::DESTROY {
+  my ($this) = @_;
+  print "DESTROY $this\n" if $PDL::Graphics::TriD::verbose;
+  glBindTexture(GL_TEXTURE_2D, 0) if glGetIntegerv_p(GL_TEXTURE_BINDING_2D) == $this->{Impl}{tex_id};
+  glDeleteTextures_p($this->{Impl}{tex_id});
 }
 
 sub PDL::Graphics::TriD::SimpleController::togl {
