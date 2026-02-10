@@ -248,7 +248,7 @@ sub PDL::Graphics::TriD::Image::togl_setup {
     [$xd/$txd, $yd/$tyd],
     [0, $yd/$tyd]
   ]);
-  $this->{Impl}{inds} = PDL->new(PDL::byte, [1,2,0,3]);
+  $this->{Impl}{inds} //= PDL->new(PDL::byte, [1,2,0,3]);
 }
 sub PDL::Graphics::TriD::Image::gdraw {
   my ($this,$vert) = @_;
