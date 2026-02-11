@@ -237,7 +237,10 @@ sub PDL::Graphics::TriD::Lines::gdraw {
 sub PDL::Graphics::TriD::DrawMulti::gdraw {
   my ($this,$points) = @_;
   my $mode = $mode2enum{$this->{Mode}} || PDL::barf "DrawMulti unknown mode";
-  PDL::gl_draw_multi($mode, $points, @$this{qw(Colors Counts Starts Indices)});
+  glEnableClientState(GL_COLOR_ARRAY);
+  glColorPointer_c(3, GL_FLOAT, 0, $this->{Colors}->make_physical->address_data);
+  PDL::gl_draw_multi($mode, $points, @$this{qw(Counts Starts Indices)});
+  glDisableClientState(GL_COLOR_ARRAY);
 }
 
 # A special construct which always faces the display and takes the entire window
