@@ -13,6 +13,7 @@ use OpenGL::Modern qw/
   glDrawArrays
   glEnableClientState glDisableClientState
   glEnable glDisable
+  glGenBuffers_p glBindBuffer glDeleteBuffers_p glBufferData_c
   glGenTextures_p glBindTexture glDeleteTextures_p
   glTexImage2D_c glTexParameteri
   glGetIntegerv_p
@@ -27,6 +28,8 @@ use OpenGL::Modern qw/
   GL_NEAREST GL_CLAMP_TO_EDGE GL_TEXTURE_WRAP_S GL_TEXTURE_WRAP_T
   GL_TEXTURE_BINDING_2D
   GL_VERTEX_ARRAY GL_NORMAL_ARRAY GL_COLOR_ARRAY GL_TEXTURE_COORD_ARRAY
+  GL_ARRAY_BUFFER GL_ARRAY_BUFFER_BINDING GL_STATIC_DRAW
+  GL_ELEMENT_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER_BINDING
 /;
 use PDL::Core qw(barf);
 
@@ -163,28 +166,61 @@ sub PDL::Graphics::TriD::Spheres::gdraw {
    PDL::gl_spheres($points, 0.025, 15, 15);
 }
 
+sub PDL::Graphics::TriD::Triangles::togl_setup {
+  my ($this,$points) = @_;
+  print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
+  @{ $this->{Impl} }{qw(vert_buf color_buf indx_buf)} = glGenBuffers_p(3) if !$this->{Impl}{vert_buf};
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, $this->{Impl}{indx_buf});
+  # physicalise on nbytes not on second use so nbytes is correct
+  glBufferData_c(GL_ELEMENT_ARRAY_BUFFER, $this->{Faceidx}->make_physical->nbytes, $this->{Faceidx}->address_data, GL_STATIC_DRAW);
+  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
+  glBufferData_c(GL_ARRAY_BUFFER, $points->make_physical->nbytes, $points->address_data, GL_STATIC_DRAW);
+  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{color_buf});
+  glBufferData_c(GL_ARRAY_BUFFER, $this->{Colors}->make_physical->nbytes, $this->{Colors}->address_data, GL_STATIC_DRAW);
+  if ($this->{Options}{Shading} > 2) {
+    glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{norm_buf} ||= glGenBuffers_p(1));
+    glBufferData_c(GL_ARRAY_BUFFER, $this->{Normals}->make_physical->nbytes, $this->{Normals}->address_data, GL_STATIC_DRAW);
+  }
+  glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER;
+}
 sub PDL::Graphics::TriD::Triangles::gdraw {
   my ($this,$points) = @_;
   my $options = $this->{Options};
   my $shading = $options->{Shading};
   glShadeModel($shading == 1 ? GL_FLAT : GL_SMOOTH) if $shading;
   glEnableClientState(GL_VERTEX_ARRAY);
-  glVertexPointer_c(3, GL_FLOAT, 0, $points->make_physical->address_data);
+  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
+  glVertexPointer_c(3, GL_FLOAT, 0, 0);
   glEnableClientState(GL_COLOR_ARRAY);
-  glColorPointer_c(3, GL_FLOAT, 0, $this->{Colors}->make_physical->address_data);
+  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{color_buf});
+  glColorPointer_c(3, GL_FLOAT, 0, 0);
   if ($shading > 2) {
     glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
     glEnable(GL_COLOR_MATERIAL);
     glEnableClientState(GL_NORMAL_ARRAY);
-    glNormalPointer_c(GL_FLOAT, 0, $this->{Normals}->make_physical->address_data);
+    glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{norm_buf});
+    glNormalPointer_c(GL_FLOAT, 0, 0);
   }
-  glDrawElements_c(GL_TRIANGLES, $this->{Faceidx}->nelem, GL_UNSIGNED_INT, $this->{Faceidx}->make_physical->address_data);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, $this->{Impl}{indx_buf});
+  glDrawElements_c(GL_TRIANGLES, $this->{Faceidx}->nelem, GL_UNSIGNED_INT, 0);
+  glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER;
   if ($shading > 2) {
     glDisable(GL_COLOR_MATERIAL);
     glDisableClientState(GL_NORMAL_ARRAY);
   }
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_COLOR_ARRAY);
+}
+sub PDL::Graphics::TriD::Triangles::DESTROY {
+  my ($this) = @_;
+  print "DESTROY $this\n" if $PDL::Graphics::TriD::verbose;
+  my $bound = glGetIntegerv_p(GL_ARRAY_BUFFER_BINDING);
+  my @array_bufs = grep defined, @{ $this->{Impl} }{qw(vert_buf color_buf norm_buf)};
+  glBindBuffer(GL_ARRAY_BUFFER, 0) if grep $bound == $_, @array_bufs;
+  $bound = glGetIntegerv_p(GL_ELEMENT_ARRAY_BUFFER_BINDING);
+  my @elt_bufs = grep defined, @{ $this->{Impl} }{qw(indx_buf)};
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0) if grep $bound == $_, @elt_bufs;
+  glDeleteBuffers_p(@array_bufs, @elt_bufs) if @array_bufs + @elt_bufs;
 }
 
 sub PDL::Graphics::TriD::Lines::gdraw {
