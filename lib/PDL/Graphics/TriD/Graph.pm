@@ -195,6 +195,8 @@ sub transform {
 
 # projects from the sphere to a cylinder
 package PDL::Graphics::TriD::CylindricalEquidistantAxes;
+use base qw/PDL::Graphics::TriD::Object/;
+use fields qw/Name Scale/;
 use PDL::Core '';
 
 sub new {
