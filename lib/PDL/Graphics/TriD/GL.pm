@@ -2,8 +2,8 @@ use strict;
 use warnings;
 no warnings 'redefine';
 use OpenGL::Modern qw/
-  glBegin glVertex2f glEnd glMaterialfv_p glColor3d glRotatef glLightModeli
-  glLightfv_p glShadeModel glColorMaterial glNormal3d glTexCoord2f glVertex3f
+  glMaterialfv_p glColor3d glRotatef glLightModeli
+  glLightfv_p glShadeModel glColorMaterial
   glLineWidth glPointSize
   glpSetAutoCheckErrors
   glGenLists glDeleteLists glNewList glEndList glCallList
@@ -98,49 +98,6 @@ sub PDL::Graphics::TriD::Graph::togl {
       $data->togl($this->get_points($series, $data));
     }
   }
-}
-
-use PDL;
-sub PDL::Graphics::TriD::CylindricalEquidistantAxes::togl {
-  my($this) = @_;
-  my (@nadd,@nc,@ns);
-  for my $dim (0..1) {
-    my $width = $this->{Scale}[$dim][1]-$this->{Scale}[$dim][0];
-    if($width > 100){
-      $nadd[$dim] = 10;
-    }elsif($width>30){
-      $nadd[$dim] = 5;
-    }elsif($width>20){
-      $nadd[$dim] = 2;
-    }else{
-      $nadd[$dim] = 1;
-    }
-    $nc[$dim] = int($this->{Scale}[$dim][0]/$nadd[$dim])*$nadd[$dim];
-    $ns[$dim] = int($width/$nadd[$dim])+1;
-  }
-  # can be changed to topo heights?
-  my $verts = zeroes(PDL::float(),3,$ns[0],$ns[1]);
-  $verts->slice("2") .= 1012.5;
-  $verts->slice("0") .= $verts->slice("0")->ylinvals($nc[0],$nc[0]+$nadd[0]*($ns[0]-1));
-  $verts->slice("1") .= $verts->slice("0")->zlinvals($nc[1],$nc[1]+$nadd[1]*($ns[1]-1));
-  my $tverts = zeroes(PDL::float(),3,$ns[0],$ns[1]);
-  $tverts = $this->transform($tverts,$verts,[0,1,2]);
-  glDisable(GL_LIGHTING);
-  glColor3d(1,1,1);
-  for(my $j=0;$j<$tverts->getdim(2)-1;$j++){
-    my $j1=$j+1;
-    glBegin(GL_LINE_STRIP);
-    for(my $i=0;$i<$tverts->getdim(1)-1;$i++){
-      my $i1=$i+1;
-      glVertex2f($tverts->at(0,$i,$j),$tverts->at(1,$i,$j));
-      glVertex2f($tverts->at(0,$i1,$j),$tverts->at(1,$i1,$j));
-      glVertex2f($tverts->at(0,$i1,$j1),$tverts->at(1,$i1,$j1));
-      glVertex2f($tverts->at(0,$i,$j1),$tverts->at(1,$i,$j1));
-      glVertex2f($tverts->at(0,$i,$j),$tverts->at(1,$i,$j));
-    }
-    glEnd();
-  }
-  glEnable(GL_LIGHTING);
 }
 
 sub PDL::Graphics::TriD::Labels::gdraw {

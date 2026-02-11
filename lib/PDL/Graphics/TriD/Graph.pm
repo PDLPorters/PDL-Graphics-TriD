@@ -269,6 +269,29 @@ sub finish_scale {
     $this->{Scale}[1][0] -= (90-$dist[1])/2;
     $this->{Scale}[1][1] += (90-$dist[1])/2;
   }    
+  my (@nadd,@nc,@ns);
+  for my $dim (0..1) {
+    my $width = $this->{Scale}[$dim][1]-$this->{Scale}[$dim][0];
+    if($width > 100){
+      $nadd[$dim] = 10;
+    }elsif($width>30){
+      $nadd[$dim] = 5;
+    }elsif($width>20){
+      $nadd[$dim] = 2;
+    }else{
+      $nadd[$dim] = 1;
+    }
+    $nc[$dim] = int($this->{Scale}[$dim][0]/$nadd[$dim])*$nadd[$dim];
+    $ns[$dim] = int($width/$nadd[$dim])+1;
+  }
+  # can be changed to topo heights?
+  my $verts = PDL->zeroes(PDL::float(),3,$ns[0],$ns[1]);
+  $verts->slice("2") .= 1012.5;
+  $verts->slice("0") .= $verts->slice("0")->ylinvals($nc[0],$nc[0]+$nadd[0]*($ns[0]-1));
+  $verts->slice("1") .= $verts->slice("0")->zlinvals($nc[1],$nc[1]+$nadd[1]*($ns[1]-1));
+  my $tverts = PDL->zeroes(PDL::float(),3,$ns[0],$ns[1]);
+  $tverts = $this->transform($tverts,$verts,[0,1,2]);
+  $this->add_object(PDL::Graphics::TriD::Lattice->new($tverts, {Shading=>0}));
 }
 
 sub transform {
