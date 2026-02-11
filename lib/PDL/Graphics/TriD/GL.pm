@@ -237,9 +237,12 @@ sub PDL::Graphics::TriD::Lines::gdraw {
 sub PDL::Graphics::TriD::DrawMulti::gdraw {
   my ($this,$points) = @_;
   my $mode = $mode2enum{$this->{Mode}} || PDL::barf "DrawMulti unknown mode";
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glVertexPointer_c(3, GL_FLOAT, 0, $points->make_physical->address_data);
   glEnableClientState(GL_COLOR_ARRAY);
   glColorPointer_c(3, GL_FLOAT, 0, $this->{Colors}->make_physical->address_data);
-  PDL::gl_draw_multi($mode, $points, @$this{qw(Counts Starts Indices)});
+  PDL::gl_draw_multi($mode, @$this{qw(Counts Starts Indices)});
+  glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_COLOR_ARRAY);
 }
 

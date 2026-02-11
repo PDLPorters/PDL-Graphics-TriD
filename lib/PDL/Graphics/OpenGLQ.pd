@@ -116,22 +116,19 @@ sub RPOS { make_tri("glRasterPos3f",'$coords',@_) }
 
 pp_def('gl_draw_multi',
   GenericTypes => $F,
-  Pars => 'coords(tri=3,v); int count(drawcount); uint starts(drawcount); uint indices(alli);',
+  Pars => 'int count(drawcount); uint starts(drawcount); uint indices(alli);',
   OtherPars => 'int mode',
-  ArgOrder => [qw(mode coords count starts indices)],
+  ArgOrder => [qw(mode count starts indices)],
   Code => '
 size_assert(PDL_ULong, sizeof(GLuint));
 loadProc(glMultiDrawElements)
-glEnableClientState(GL_VERTEX_ARRAY);
 broadcastloop %{
 PDL_ULong **indexptrs = malloc(sizeof(PDL_ULong*) * $SIZE(drawcount));
 if (!indexptrs) $CROAK("malloc failed");
 loop(drawcount) %{ indexptrs[drawcount] = $P(indices) + $starts(); %}
-glVertexPointer(3, GL_FLOAT, 0, $P(coords));
 glMultiDrawElements($COMP(mode), $P(count), GL_UNSIGNED_INT, (const void *const *)indexptrs, $SIZE(drawcount));
 free(indexptrs);
 %}
-glDisableClientState(GL_VERTEX_ARRAY);
   ',
   @internal
 );
