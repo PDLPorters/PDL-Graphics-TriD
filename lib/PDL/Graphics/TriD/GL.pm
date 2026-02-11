@@ -234,16 +234,38 @@ sub PDL::Graphics::TriD::Lines::gdraw {
   glDisableClientState(GL_COLOR_ARRAY);
 }
 
+sub PDL::Graphics::TriD::DrawMulti::togl_setup {
+  my ($this,$points) = @_;
+  print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
+  @{ $this->{Impl} }{qw(vert_buf color_buf)} = glGenBuffers_p(2) if !$this->{Impl}{vert_buf};
+  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
+  glBufferData_c(GL_ARRAY_BUFFER, $points->make_physical->nbytes, $points->address_data, GL_STATIC_DRAW);
+  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{color_buf});
+  glBufferData_c(GL_ARRAY_BUFFER, $this->{Colors}->make_physical->nbytes, $this->{Colors}->address_data, GL_STATIC_DRAW);
+  glBindBuffer($_, 0) for GL_ARRAY_BUFFER;
+}
 sub PDL::Graphics::TriD::DrawMulti::gdraw {
   my ($this,$points) = @_;
   my $mode = $mode2enum{$this->{Mode}} || PDL::barf "DrawMulti unknown mode";
   glEnableClientState(GL_VERTEX_ARRAY);
-  glVertexPointer_c(3, GL_FLOAT, 0, $points->make_physical->address_data);
+  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
+  # switch to glPrimitiveRestartindex when 3.1 available
+  glVertexPointer_c(3, GL_FLOAT, 0, 0);
   glEnableClientState(GL_COLOR_ARRAY);
-  glColorPointer_c(3, GL_FLOAT, 0, $this->{Colors}->make_physical->address_data);
+  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{color_buf});
+  glColorPointer_c(3, GL_FLOAT, 0, 0);
   PDL::gl_draw_multi($mode, @$this{qw(Counts Starts Indices)});
+  glBindBuffer($_, 0) for GL_ARRAY_BUFFER;
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_COLOR_ARRAY);
+}
+sub PDL::Graphics::TriD::DrawMulti::DESTROY {
+  my ($this) = @_;
+  print "DESTROY $this\n" if $PDL::Graphics::TriD::verbose;
+  my $bound = glGetIntegerv_p(GL_ARRAY_BUFFER_BINDING);
+  my @array_bufs = grep defined, @{ $this->{Impl} }{qw(vert_buf color_buf)};
+  glBindBuffer(GL_ARRAY_BUFFER, 0) if grep $bound == $_, @array_bufs;
+  glDeleteBuffers_p(@array_bufs) if @array_bufs;
 }
 
 # A special construct which always faces the display and takes the entire window
