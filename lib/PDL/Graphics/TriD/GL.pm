@@ -81,6 +81,15 @@ sub PDL::Graphics::TriD::Object::togl_setup {
 }
 sub PDL::Graphics::TriD::Object::togl { $_->togl for $_[0]->contained_objects }
 
+sub PDL::Graphics::TriD::Graph::togl_setup {
+  my ($this) = @_;
+  $this->{Axis}{$_}->togl_setup for grep $_ ne "Default", keys %{$this->{Axis}};
+  while (my ($series,$h) = each %{ $this->{Data} }) {
+    for my $data (values %$h) {
+      $data->togl_setup($this->get_points($series, $data));
+    }
+  }
+}
 sub PDL::Graphics::TriD::Graph::togl {
   my ($this) = @_;
   $this->{Axis}{$_}->togl for grep $_ ne "Default", keys %{$this->{Axis}};
