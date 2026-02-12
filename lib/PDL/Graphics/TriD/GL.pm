@@ -316,10 +316,10 @@ sub PDL::Graphics::TriD::Image::togl_setup {
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 sub PDL::Graphics::TriD::Image::gdraw {
-  my ($this,$vert) = @_;
-  $vert //= $this->{Points};
+  my ($this,$points) = @_;
+  $points //= $this->{Points};
   barf "Need 3,4 vert"
-    if grep $_->dim(1) < 4 || $_->dim(0) != 3, $vert;
+    if grep $_->dim(1) < 4 || $_->dim(0) != 3, $points;
   if ($this->{Options}{FullScreen}) {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -330,9 +330,9 @@ sub PDL::Graphics::TriD::Image::gdraw {
   glBindTexture(GL_TEXTURE_2D, $this->{Impl}{tex_id});
   glEnable(GL_TEXTURE_2D);
   my ($texvert, $inds) = @{ $this->{Impl} }{qw(texvert inds)};
-  my $norm = PDL->new(PDL::float, [0,0,1])->dummy(1,$vert->dim(1));
+  my $norm = PDL->new(PDL::float, [0,0,1])->dummy(1,$points->dim(1));
   glEnableClientState(GL_VERTEX_ARRAY);
-  glVertexPointer_c(3, GL_FLOAT, 0, $vert->make_physical->address_data);
+  glVertexPointer_c(3, GL_FLOAT, 0, $points->make_physical->address_data);
   glEnableClientState(GL_NORMAL_ARRAY);
   glNormalPointer_c(GL_FLOAT, 0, $norm->make_physical->address_data);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
