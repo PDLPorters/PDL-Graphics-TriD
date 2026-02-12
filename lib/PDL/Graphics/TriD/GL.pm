@@ -148,6 +148,17 @@ sub PDL::Graphics::TriD::GObject::togl {
   { local $@; glPopAttrib(); }
   die if $@;
 }
+sub PDL::Graphics::TriD::GObject::DESTROY {
+  my ($this) = @_;
+  print "DESTROY $this\n" if $PDL::Graphics::TriD::verbose;
+  my $bound = glGetIntegerv_p(GL_ARRAY_BUFFER_BINDING);
+  my @array_bufs = grep defined, @{ $this->{Impl} }{qw(vert_buf color_buf norm_buf)};
+  glBindBuffer(GL_ARRAY_BUFFER, 0) if grep $bound == $_, @array_bufs;
+  $bound = glGetIntegerv_p(GL_ELEMENT_ARRAY_BUFFER_BINDING);
+  my @elt_bufs = grep defined, @{ $this->{Impl} }{qw(indx_buf)};
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0) if grep $bound == $_, @elt_bufs;
+  glDeleteBuffers_p(@array_bufs, @elt_bufs) if @array_bufs + @elt_bufs;
+}
 
 sub PDL::Graphics::TriD::Points::gdraw {
   my($this,$points) = @_;
@@ -211,17 +222,6 @@ sub PDL::Graphics::TriD::Triangles::gdraw {
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_COLOR_ARRAY);
 }
-sub PDL::Graphics::TriD::Triangles::DESTROY {
-  my ($this) = @_;
-  print "DESTROY $this\n" if $PDL::Graphics::TriD::verbose;
-  my $bound = glGetIntegerv_p(GL_ARRAY_BUFFER_BINDING);
-  my @array_bufs = grep defined, @{ $this->{Impl} }{qw(vert_buf color_buf norm_buf)};
-  glBindBuffer(GL_ARRAY_BUFFER, 0) if grep $bound == $_, @array_bufs;
-  $bound = glGetIntegerv_p(GL_ELEMENT_ARRAY_BUFFER_BINDING);
-  my @elt_bufs = grep defined, @{ $this->{Impl} }{qw(indx_buf)};
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0) if grep $bound == $_, @elt_bufs;
-  glDeleteBuffers_p(@array_bufs, @elt_bufs) if @array_bufs + @elt_bufs;
-}
 
 sub PDL::Graphics::TriD::Lines::gdraw {
   my($this,$points) = @_;
@@ -262,17 +262,6 @@ sub PDL::Graphics::TriD::DrawMulti::gdraw {
   glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER; # unbind the VAO before you unbind the Index Buffer
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_COLOR_ARRAY);
-}
-sub PDL::Graphics::TriD::DrawMulti::DESTROY {
-  my ($this) = @_;
-  print "DESTROY $this\n" if $PDL::Graphics::TriD::verbose;
-  my $bound = glGetIntegerv_p(GL_ARRAY_BUFFER_BINDING);
-  my @array_bufs = grep defined, @{ $this->{Impl} }{qw(vert_buf color_buf)};
-  glBindBuffer(GL_ARRAY_BUFFER, 0) if grep $bound == $_, @array_bufs;
-  $bound = glGetIntegerv_p(GL_ELEMENT_ARRAY_BUFFER_BINDING);
-  my @elt_bufs = grep defined, @{ $this->{Impl} }{qw(indx_buf)};
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0) if grep $bound == $_, @elt_bufs;
-  glDeleteBuffers_p(@array_bufs, @elt_bufs) if @array_bufs + @elt_bufs;
 }
 
 # A special construct which always faces the display and takes the entire window
