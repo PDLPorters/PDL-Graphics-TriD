@@ -82,6 +82,7 @@ sub defcols { $_[0]{Options}{UseDefcols} }
 package # hide from PAUSE
   PDL::Graphics::TriD::Points;
 use base qw/PDL::Graphics::TriD::GObject/;
+sub cdummies { $_[1]->slice(":," . join ',', map "*$_", grep defined, ($_[2]->dims)[1,2]) }
 sub get_valid_options { +{
   UseDefcols => 0,
   PointSize => 1,
