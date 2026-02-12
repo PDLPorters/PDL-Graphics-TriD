@@ -294,7 +294,8 @@ sub PDL::Graphics::TriD::DrawMulti::gdraw {
 # A special construct which always faces the display and takes the entire window
 # The quick method is to use texturing for the good effect.
 sub PDL::Graphics::TriD::Image::togl_setup {
-  my ($this) = @_;
+  my ($this,$points) = @_;
+  $points //= $this->{Points};
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
   my ($p,$xd,$yd,$txd,$tyd) = $this->flatten(1); # do binary alignment
   # assume proportions could change each time
@@ -304,6 +305,7 @@ sub PDL::Graphics::TriD::Image::togl_setup {
     [$xd/$txd, $yd/$tyd],
     [0, $yd/$tyd]
   ]);
+  $this->{Impl}{norm} = PDL->new(PDL::float, [0,0,1])->dummy(1,$points->dim(1));
   # //= as never changes, even if re-setup
   $this->{Impl}{inds} //= PDL->new(PDL::byte, [1,2,0,3]);
   # ||= as only need one, even if re-setup
@@ -329,8 +331,7 @@ sub PDL::Graphics::TriD::Image::gdraw {
   }
   glBindTexture(GL_TEXTURE_2D, $this->{Impl}{tex_id});
   glEnable(GL_TEXTURE_2D);
-  my ($texvert, $inds) = @{ $this->{Impl} }{qw(texvert inds)};
-  my $norm = PDL->new(PDL::float, [0,0,1])->dummy(1,$points->dim(1));
+  my ($texvert, $inds, $norm) = @{ $this->{Impl} }{qw(texvert inds norm)};
   glEnableClientState(GL_VERTEX_ARRAY);
   glVertexPointer_c(3, GL_FLOAT, 0, $points->make_physical->address_data);
   glEnableClientState(GL_NORMAL_ARRAY);
