@@ -10,7 +10,7 @@ use OpenGL::Modern qw/
   glPushAttrib glPopAttrib glMatrixMode glLoadIdentity glOrtho glTranslatef
   glVertexPointer_c glNormalPointer_c glColorPointer_c glDrawElements_c
   glTexCoordPointer_c
-  glDrawArrays
+  glDrawArrays glMultiDrawElements_c
   glEnableClientState glDisableClientState
   glEnable glDisable
   glGenBuffers_p glBindBuffer glDeleteBuffers_p glBufferData_c
@@ -237,12 +237,15 @@ sub PDL::Graphics::TriD::Lines::gdraw {
 sub PDL::Graphics::TriD::DrawMulti::togl_setup {
   my ($this,$points) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
-  @{ $this->{Impl} }{qw(vert_buf color_buf)} = glGenBuffers_p(2) if !$this->{Impl}{vert_buf};
+  @{ $this->{Impl} }{qw(vert_buf color_buf indx_buf)} = glGenBuffers_p(3) if !$this->{Impl}{vert_buf};
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, $this->{Impl}{indx_buf});
+  glBufferData_c(GL_ELEMENT_ARRAY_BUFFER, $this->{Indices}->make_physical->nbytes, $this->{Indices}->address_data, GL_STATIC_DRAW);
   glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
   glBufferData_c(GL_ARRAY_BUFFER, $points->make_physical->nbytes, $points->address_data, GL_STATIC_DRAW);
   glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{color_buf});
   glBufferData_c(GL_ARRAY_BUFFER, $this->{Colors}->make_physical->nbytes, $this->{Colors}->address_data, GL_STATIC_DRAW);
-  glBindBuffer($_, 0) for GL_ARRAY_BUFFER;
+  glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER;
+  $this->{Impl}{Starts4} = $this->{Starts}->indx * PDL::Core::howbig(PDL::ulong->enum); # byte offset into GPU buffer, not elements
 }
 sub PDL::Graphics::TriD::DrawMulti::gdraw {
   my ($this,$points) = @_;
@@ -254,8 +257,9 @@ sub PDL::Graphics::TriD::DrawMulti::gdraw {
   glEnableClientState(GL_COLOR_ARRAY);
   glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{color_buf});
   glColorPointer_c(3, GL_FLOAT, 0, 0);
-  PDL::gl_draw_multi($mode, @$this{qw(Counts Starts Indices)});
-  glBindBuffer($_, 0) for GL_ARRAY_BUFFER;
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, $this->{Impl}{indx_buf});
+  glMultiDrawElements_c($mode, $this->{Counts}->make_physical->address_data, GL_UNSIGNED_INT, $this->{Impl}{Starts4}->make_physical->address_data, $this->{Counts}->nelem);
+  glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER; # unbind the VAO before you unbind the Index Buffer
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_COLOR_ARRAY);
 }
@@ -265,7 +269,10 @@ sub PDL::Graphics::TriD::DrawMulti::DESTROY {
   my $bound = glGetIntegerv_p(GL_ARRAY_BUFFER_BINDING);
   my @array_bufs = grep defined, @{ $this->{Impl} }{qw(vert_buf color_buf)};
   glBindBuffer(GL_ARRAY_BUFFER, 0) if grep $bound == $_, @array_bufs;
-  glDeleteBuffers_p(@array_bufs) if @array_bufs;
+  $bound = glGetIntegerv_p(GL_ELEMENT_ARRAY_BUFFER_BINDING);
+  my @elt_bufs = grep defined, @{ $this->{Impl} }{qw(indx_buf)};
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0) if grep $bound == $_, @elt_bufs;
+  glDeleteBuffers_p(@array_bufs, @elt_bufs) if @array_bufs + @elt_bufs;
 }
 
 # A special construct which always faces the display and takes the entire window

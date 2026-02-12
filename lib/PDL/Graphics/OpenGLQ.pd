@@ -37,10 +37,8 @@ EOD
 pp_addhdr('
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
-#include <OpenGL/glext.h>
 #else
 #include <GL/gl.h>
-#include <GL/glext.h>
 #endif
 
 #define PDL_3D_CROSS(to, v1, v2) \
@@ -57,25 +55,6 @@ pp_addhdr('
     int i; \
     for (i = 0; i < 3; i++) v[i] *= fac; \
   }
-
-#ifndef size_assert
-#define size_assert( what, howmuch ) \
-  typedef char what##_size_wrong_[( !!(sizeof(what) == howmuch) )*2-1 ]
-#endif
-
-#if defined(_WIN32) || (defined(__CYGWIN__) && defined(HAVE_W32API))
-#define loadProc(proc) \
-{ \
-  if (!proc) \
-  { \
-    proc = (void *)wglGetProcAddress(#proc); \
-    if (!proc) croak(#proc " is not supported by this renderer"); \
-  } \
-}
-PFNGLMULTIDRAWELEMENTSPROC glMultiDrawElements;
-#else /* not using WGL */
-#define loadProc(proc)
-#endif /* not defined _WIN32, __CYGWIN__, and HAVE_W32API */
 ');
 
 my @internal = (Doc => 'internal', NoPthread => 1);
@@ -113,25 +92,6 @@ sub TRI {
 }
 sub make_tri { shift()."(".TRI(@_).");\n" }
 sub RPOS { make_tri("glRasterPos3f",'$coords',@_) }
-
-pp_def('gl_draw_multi',
-  GenericTypes => $F,
-  Pars => 'int count(drawcount); uint starts(drawcount); uint indices(alli);',
-  OtherPars => 'int mode',
-  ArgOrder => [qw(mode count starts indices)],
-  Code => '
-size_assert(PDL_ULong, sizeof(GLuint));
-loadProc(glMultiDrawElements)
-broadcastloop %{
-PDL_ULong **indexptrs = malloc(sizeof(PDL_ULong*) * $SIZE(drawcount));
-if (!indexptrs) $CROAK("malloc failed");
-loop(drawcount) %{ indexptrs[drawcount] = $P(indices) + $starts(); %}
-glMultiDrawElements($COMP(mode), $P(count), GL_UNSIGNED_INT, (const void *const *)indexptrs, $SIZE(drawcount));
-free(indexptrs);
-%}
-  ',
-  @internal
-);
 
 pp_def(
   'gl_texts',
