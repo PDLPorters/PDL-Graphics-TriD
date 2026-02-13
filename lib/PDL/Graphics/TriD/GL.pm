@@ -103,12 +103,6 @@ sub PDL::Graphics::TriD::Graph::togl {
   }
 }
 
-sub PDL::Graphics::TriD::Labels::gdraw {
-  my ($this,$points) = @_;
-  glColor3d(1,1,1);
-  PDL::Graphics::OpenGLQ::gl_texts($points,@{$this->{Options}}{qw(Strings)});
-}
-
 use POSIX qw//;
 sub PDL::Graphics::TriD::Quaternion::togl {
   my($this) = @_;
@@ -121,6 +115,12 @@ sub PDL::Graphics::TriD::Quaternion::togl {
 
 ##################################
 # Graph Objects
+
+sub PDL::Graphics::TriD::Labels::gdraw {
+  my ($this,$points) = @_;
+  glColor3d(1,1,1);
+  PDL::Graphics::OpenGLQ::gl_texts($points,@{$this->{Options}}{qw(Strings)});
+}
 
 my %mode2enum = (
   linestrip => GL_LINE_STRIP,
