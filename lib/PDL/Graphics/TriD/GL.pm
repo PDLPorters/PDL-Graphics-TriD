@@ -215,10 +215,13 @@ sub gdraw {
 }
 }
 
-sub PDL::Graphics::TriD::Spheres::gdraw {
+{ package PDL::Graphics::TriD::Spheres;
+use OpenGL::Modern qw(glShadeModel GL_SMOOTH);
+sub gdraw {
    my($this,$points) = @_;
    glShadeModel(GL_SMOOTH);
    PDL::gl_spheres($points, 0.025, 15, 15);
+}
 }
 
 sub PDL::Graphics::TriD::Triangles::togl_setup {
