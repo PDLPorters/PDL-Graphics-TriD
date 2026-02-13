@@ -158,6 +158,10 @@ sub PDL::Graphics::TriD::GObject::DESTROY {
   my @elt_bufs = grep defined, @{ $this->{Impl} }{qw(indx_buf)};
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0) if grep $bound == $_, @elt_bufs;
   glDeleteBuffers_p(@array_bufs, @elt_bufs) if @array_bufs + @elt_bufs;
+  if (defined(my $tex_id = $this->{Impl}{tex_id})) {
+    glBindTexture(GL_TEXTURE_2D, 0) if glGetIntegerv_p(GL_TEXTURE_BINDING_2D) == $tex_id;
+    glDeleteTextures_p($tex_id);
+  }
 }
 
 sub PDL::Graphics::TriD::Points::togl_setup {
@@ -350,13 +354,6 @@ sub PDL::Graphics::TriD::Image::gdraw {
   glDisableClientState(GL_VERTEX_ARRAY);
   glBindTexture(GL_TEXTURE_2D, 0);
   glDisable(GL_TEXTURE_2D);
-}
-sub PDL::Graphics::TriD::Image::DESTROY {
-  my ($this) = @_;
-  print "DESTROY $this\n" if $PDL::Graphics::TriD::verbose;
-  glBindTexture(GL_TEXTURE_2D, 0) if glGetIntegerv_p(GL_TEXTURE_BINDING_2D) == $this->{Impl}{tex_id};
-  glDeleteTextures_p($this->{Impl}{tex_id});
-  $this->PDL::Graphics::TriD::GObject::DESTROY; # would be SUPER but package
 }
 
 sub PDL::Graphics::TriD::SimpleController::togl {
