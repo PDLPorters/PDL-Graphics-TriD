@@ -3,7 +3,6 @@ use warnings;
 no warnings 'redefine';
 use OpenGL::Modern qw/
   glRotatef
-  glShadeModel glColorMaterial
   glpSetAutoCheckErrors
   glGenLists glDeleteLists glNewList glEndList glCallList
   glMatrixMode glLoadIdentity glOrtho glTranslatef
@@ -15,11 +14,9 @@ use OpenGL::Modern qw/
   glGenBuffers_p glBindBuffer glBufferData_c
   glGenTextures_p glBindTexture
   glTexImage2D_c glTexParameteri
-  GL_FRONT_AND_BACK GL_DIFFUSE GL_SMOOTH
-  GL_FLAT
   GL_COMPILE
   GL_LINE_STRIP GL_TRIANGLE_STRIP GL_TRIANGLES GL_LINES GL_POINTS GL_LINE_LOOP
-  GL_COLOR_MATERIAL GL_MODELVIEW GL_PROJECTION
+  GL_MODELVIEW GL_PROJECTION
   GL_RGB GL_FLOAT GL_UNSIGNED_INT GL_UNSIGNED_BYTE
   GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
   GL_NEAREST GL_CLAMP_TO_EDGE GL_TEXTURE_WRAP_S GL_TEXTURE_WRAP_T
@@ -224,7 +221,20 @@ sub gdraw {
 }
 }
 
-sub PDL::Graphics::TriD::Triangles::togl_setup {
+{ package PDL::Graphics::TriD::Triangles;
+use OpenGL::Modern qw(
+  glGenBuffers_p glBindBuffer glBufferData_c
+  glShadeModel
+  glEnableClientState glDisableClientState
+  glColorMaterial glEnable glDisable
+  glVertexPointer_c glColorPointer_c glNormalPointer_c
+  glDrawElements_c
+  GL_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER GL_STATIC_DRAW
+  GL_FLAT GL_SMOOTH GL_FRONT_AND_BACK GL_DIFFUSE GL_COLOR_MATERIAL
+  GL_VERTEX_ARRAY GL_COLOR_ARRAY GL_NORMAL_ARRAY
+  GL_FLOAT GL_TRIANGLES GL_UNSIGNED_INT
+);
+sub togl_setup {
   my ($this,$points) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
   @{ $this->{Impl} }{qw(vert_buf color_buf indx_buf)} = glGenBuffers_p(3) if !$this->{Impl}{vert_buf};
@@ -241,7 +251,7 @@ sub PDL::Graphics::TriD::Triangles::togl_setup {
   }
   glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER;
 }
-sub PDL::Graphics::TriD::Triangles::gdraw {
+sub gdraw {
   my ($this,$points) = @_;
   my $options = $this->{Options};
   my $shading = $options->{Shading};
@@ -268,6 +278,7 @@ sub PDL::Graphics::TriD::Triangles::gdraw {
   }
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_COLOR_ARRAY);
+}
 }
 
 sub PDL::Graphics::TriD::Lines::togl_setup {
