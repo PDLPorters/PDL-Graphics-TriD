@@ -35,14 +35,10 @@ use PDL::Core qw(barf);
 
 sub PDL::Graphics::TriD::Material::togl{
   my $this = shift;
-  my $shin = pack "f*",$this->{Shine};
-  glMaterialfv_p(GL_FRONT_AND_BACK,GL_SHININESS,$shin);
-  my $spec = pack "f*",@{$this->{Specular}};
-  glMaterialfv_p(GL_FRONT_AND_BACK,GL_SPECULAR,$spec);
-  my $amb = pack "f*",@{$this->{Ambient}};
-  glMaterialfv_p(GL_FRONT_AND_BACK,GL_AMBIENT,$amb);
-  my $diff = pack "f*",@{$this->{Diffuse}};
-  glMaterialfv_p(GL_FRONT_AND_BACK,GL_DIFFUSE,$diff);
+  glMaterialfv_p(GL_FRONT_AND_BACK,GL_SHININESS,$this->{Shine});
+  glMaterialfv_p(GL_FRONT_AND_BACK,GL_SPECULAR,@{$this->{Specular}});
+  glMaterialfv_p(GL_FRONT_AND_BACK,GL_AMBIENT,@{$this->{Ambient}});
+  glMaterialfv_p(GL_FRONT_AND_BACK,GL_DIFFUSE,@{$this->{Diffuse}});
 }
 
 $PDL::Graphics::TriD::verbose //= 0;
