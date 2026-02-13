@@ -3,8 +3,6 @@ use warnings;
 no warnings 'redefine';
 use OpenGL::Modern qw/
   glRotatef
-  glpSetAutoCheckErrors
-  glGenLists glDeleteLists glNewList glEndList glCallList
   glMatrixMode glLoadIdentity glOrtho glTranslatef
   glVertexPointer_c glNormalPointer_c glColorPointer_c glDrawElements_c
   glTexCoordPointer_c
@@ -14,7 +12,6 @@ use OpenGL::Modern qw/
   glGenBuffers_p glBindBuffer glBufferData_c
   glGenTextures_p glBindTexture
   glTexImage2D_c glTexParameteri
-  GL_COMPILE
   GL_LINE_STRIP GL_TRIANGLE_STRIP GL_TRIANGLES GL_LINES GL_POINTS GL_LINE_LOOP
   GL_MODELVIEW GL_PROJECTION
   GL_RGB GL_FLOAT GL_UNSIGNED_INT GL_UNSIGNED_BYTE
@@ -42,7 +39,13 @@ sub togl {
 
 $PDL::Graphics::TriD::verbose //= 0;
 
-sub PDL::Graphics::TriD::Object::gl_update_list {
+{ package PDL::Graphics::TriD::Object;
+use OpenGL::Modern qw(
+  glpSetAutoCheckErrors
+  glGenLists glDeleteLists glNewList glEndList glCallList
+  GL_COMPILE
+);
+sub gl_update_list {
   my ($this) = @_;
   glpSetAutoCheckErrors(1);
   glDeleteLists($this->{Impl}{List},1) if $this->{Impl}{List};
@@ -59,25 +62,23 @@ sub PDL::Graphics::TriD::Object::gl_update_list {
   print "VALID1 $this\n" if $PDL::Graphics::TriD::verbose;
   $this->{IsValid} = 1;
 }
-
-sub PDL::Graphics::TriD::Object::gl_call_list {
+sub gl_call_list {
   my($this) = @_;
   print "CALLIST ",$this->{Impl}{List}//'undef',"!\n" if $PDL::Graphics::TriD::verbose;
   glCallList($this->{Impl}{List});
 }
-
-sub PDL::Graphics::TriD::Object::delete_displist {
+sub delete_displist {
   my($this) = @_;
   return if !$this->{Impl}{List};
   glDeleteLists($this->{Impl}{List},1);
   delete $this->{Impl};
 }
-
-sub PDL::Graphics::TriD::Object::togl_setup {
+sub togl_setup {
   print "togl_setup $_[0]\n" if $PDL::Graphics::TriD::verbose;
   $_->togl_setup for $_[0]->contained_objects;
 }
-sub PDL::Graphics::TriD::Object::togl { $_->togl for $_[0]->contained_objects }
+sub togl { $_->togl for $_[0]->contained_objects }
+}
 
 sub PDL::Graphics::TriD::Graph::togl_setup {
   my ($this) = @_;
