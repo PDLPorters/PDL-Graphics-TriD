@@ -2,34 +2,30 @@ use strict;
 use warnings;
 no warnings 'redefine';
 use OpenGL::Modern qw/
-  glRotatef glLightModeli
-  glLightfv_p glShadeModel glColorMaterial
-  glLineWidth glPointSize
+  glRotatef
+  glShadeModel glColorMaterial
   glpSetAutoCheckErrors
   glGenLists glDeleteLists glNewList glEndList glCallList
-  glPushAttrib glPopAttrib glMatrixMode glLoadIdentity glOrtho glTranslatef
+  glMatrixMode glLoadIdentity glOrtho glTranslatef
   glVertexPointer_c glNormalPointer_c glColorPointer_c glDrawElements_c
   glTexCoordPointer_c
   glDrawArrays glMultiDrawElements_c
   glEnableClientState glDisableClientState
   glEnable glDisable
-  glGenBuffers_p glBindBuffer glDeleteBuffers_p glBufferData_c
-  glGenTextures_p glBindTexture glDeleteTextures_p
+  glGenBuffers_p glBindBuffer glBufferData_c
+  glGenTextures_p glBindTexture
   glTexImage2D_c glTexParameteri
-  glGetIntegerv_p
   GL_FRONT_AND_BACK GL_DIFFUSE GL_SMOOTH
   GL_FLAT
-  GL_LIGHTING_BIT GL_POSITION GL_LIGHTING GL_LIGHT0 GL_LIGHT_MODEL_TWO_SIDE
-  GL_COMPILE GL_ENABLE_BIT GL_DEPTH_TEST GL_TRUE
+  GL_COMPILE
   GL_LINE_STRIP GL_TRIANGLE_STRIP GL_TRIANGLES GL_LINES GL_POINTS GL_LINE_LOOP
   GL_COLOR_MATERIAL GL_MODELVIEW GL_PROJECTION
   GL_RGB GL_FLOAT GL_UNSIGNED_INT GL_UNSIGNED_BYTE
   GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
   GL_NEAREST GL_CLAMP_TO_EDGE GL_TEXTURE_WRAP_S GL_TEXTURE_WRAP_T
-  GL_TEXTURE_BINDING_2D
   GL_VERTEX_ARRAY GL_NORMAL_ARRAY GL_COLOR_ARRAY GL_TEXTURE_COORD_ARRAY
-  GL_ARRAY_BUFFER GL_ARRAY_BUFFER_BINDING GL_STATIC_DRAW
-  GL_ELEMENT_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER_BINDING
+  GL_ARRAY_BUFFER GL_STATIC_DRAW
+  GL_ELEMENT_ARRAY_BUFFER
 /;
 use PDL::Core qw(barf);
 
@@ -132,7 +128,22 @@ my %mode2enum = (
   lineloop => GL_LINE_LOOP,
 );
 
-sub PDL::Graphics::TriD::GObject::togl {
+{ package PDL::Graphics::TriD::GObject;
+use OpenGL::Modern qw(
+  glPushAttrib glPopAttrib
+  glLineWidth glPointSize
+  glLightfv_p glLightModeli
+  glEnable glDisable
+  glGetIntegerv_p
+  glBindBuffer glDeleteBuffers_p
+  glBindTexture glDeleteTextures_p
+  GL_LIGHTING_BIT GL_ENABLE_BIT GL_DEPTH_TEST GL_LIGHTING GL_LIGHT0
+  GL_LIGHT_MODEL_TWO_SIDE GL_TRUE GL_POSITION
+  GL_ARRAY_BUFFER GL_ARRAY_BUFFER_BINDING
+  GL_ELEMENT_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER_BINDING
+  GL_TEXTURE_2D GL_TEXTURE_BINDING_2D
+);
+sub togl {
   my ($this, $points) = @_;
   print "togl $this\n" if $PDL::Graphics::TriD::verbose;
   glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
@@ -153,7 +164,7 @@ sub PDL::Graphics::TriD::GObject::togl {
   { local $@; glPopAttrib(); }
   die if $@;
 }
-sub PDL::Graphics::TriD::GObject::DESTROY {
+sub DESTROY {
   my ($this) = @_;
   print "DESTROY $this\n" if $PDL::Graphics::TriD::verbose;
   my $bound = glGetIntegerv_p(GL_ARRAY_BUFFER_BINDING);
@@ -167,6 +178,7 @@ sub PDL::Graphics::TriD::GObject::DESTROY {
     glBindTexture(GL_TEXTURE_2D, 0) if glGetIntegerv_p(GL_TEXTURE_BINDING_2D) == $tex_id;
     glDeleteTextures_p($tex_id);
   }
+}
 }
 
 sub PDL::Graphics::TriD::Points::togl_setup {
