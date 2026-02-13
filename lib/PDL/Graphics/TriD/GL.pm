@@ -291,14 +291,13 @@ sub PDL::Graphics::TriD::DrawMulti::gdraw {
   glDisableClientState(GL_COLOR_ARRAY);
 }
 
-# A special construct which always faces the display and takes the entire window
-# The quick method is to use texturing for the good effect.
+# A special construct which has a mode to face the display and take the entire window
 sub PDL::Graphics::TriD::Image::togl_setup {
   my ($this,$points) = @_;
   $points //= $this->{Points};
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
   my ($p,$xd,$yd,$txd,$tyd) = $this->flatten(1); # do binary alignment
-  @{ $this->{Impl} }{qw(vert_buf norm_buf texc_buf indx_buf)} = glGenBuffers_p(4) if !$this->{Impl}{vert_buf};
+  @{ $this->{Impl} }{qw(vert_buf texc_buf indx_buf)} = glGenBuffers_p(3) if !$this->{Impl}{vert_buf};
   glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
   glBufferData_c(GL_ARRAY_BUFFER, $points->make_physical->nbytes, $points->address_data, GL_STATIC_DRAW);
   # assume proportions could change each time
@@ -310,9 +309,6 @@ sub PDL::Graphics::TriD::Image::togl_setup {
   ]);
   glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{texc_buf});
   glBufferData_c(GL_ARRAY_BUFFER, $texvert->make_physical->nbytes, $texvert->address_data, GL_STATIC_DRAW);
-  my $norm = PDL->new(PDL::float, [0,0,1])->dummy(1,$points->dim(1));
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{norm_buf});
-  glBufferData_c(GL_ARRAY_BUFFER, $norm->make_physical->nbytes, $norm->address_data, GL_STATIC_DRAW);
   # //= as never changes, even if re-setup
   my $inds = $this->{Impl}{inds} //= PDL->new(PDL::byte, [1,2,0,3]);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, $this->{Impl}{indx_buf});
@@ -344,9 +340,6 @@ sub PDL::Graphics::TriD::Image::gdraw {
   glEnableClientState(GL_VERTEX_ARRAY);
   glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
   glVertexPointer_c(3, GL_FLOAT, 0, 0);
-  glEnableClientState(GL_NORMAL_ARRAY);
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{norm_buf});
-  glNormalPointer_c(GL_FLOAT, 0, 0);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
   glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{texc_buf});
   glTexCoordPointer_c(2, GL_FLOAT, 0, 0);
@@ -354,7 +347,6 @@ sub PDL::Graphics::TriD::Image::gdraw {
   glDrawElements_c(GL_TRIANGLE_STRIP, $this->{Impl}{inds}->nelem, GL_UNSIGNED_BYTE, 0);
   glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER;
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-  glDisableClientState(GL_NORMAL_ARRAY);
   glDisableClientState(GL_VERTEX_ARRAY);
   glBindTexture(GL_TEXTURE_2D, 0);
   glDisable(GL_TEXTURE_2D);
