@@ -152,7 +152,7 @@ sub PDL::Graphics::TriD::GObject::DESTROY {
   my ($this) = @_;
   print "DESTROY $this\n" if $PDL::Graphics::TriD::verbose;
   my $bound = glGetIntegerv_p(GL_ARRAY_BUFFER_BINDING);
-  my @array_bufs = grep defined, @{ $this->{Impl} }{qw(vert_buf color_buf norm_buf)};
+  my @array_bufs = grep defined, @{ $this->{Impl} }{qw(vert_buf color_buf norm_buf texc_buf)};
   glBindBuffer(GL_ARRAY_BUFFER, 0) if grep $bound == $_, @array_bufs;
   $bound = glGetIntegerv_p(GL_ELEMENT_ARRAY_BUFFER_BINDING);
   my @elt_bufs = grep defined, @{ $this->{Impl} }{qw(indx_buf)};
@@ -298,16 +298,26 @@ sub PDL::Graphics::TriD::Image::togl_setup {
   $points //= $this->{Points};
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
   my ($p,$xd,$yd,$txd,$tyd) = $this->flatten(1); # do binary alignment
+  @{ $this->{Impl} }{qw(vert_buf norm_buf texc_buf indx_buf)} = glGenBuffers_p(4) if !$this->{Impl}{vert_buf};
+  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
+  glBufferData_c(GL_ARRAY_BUFFER, $points->make_physical->nbytes, $points->address_data, GL_STATIC_DRAW);
   # assume proportions could change each time
-  $this->{Impl}{texvert} = PDL->new(PDL::float, [
+  my $texvert = PDL->new(PDL::float, [
     [0,0],
     [$xd/$txd, 0],
     [$xd/$txd, $yd/$tyd],
     [0, $yd/$tyd]
   ]);
-  $this->{Impl}{norm} = PDL->new(PDL::float, [0,0,1])->dummy(1,$points->dim(1));
+  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{texc_buf});
+  glBufferData_c(GL_ARRAY_BUFFER, $texvert->make_physical->nbytes, $texvert->address_data, GL_STATIC_DRAW);
+  my $norm = PDL->new(PDL::float, [0,0,1])->dummy(1,$points->dim(1));
+  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{norm_buf});
+  glBufferData_c(GL_ARRAY_BUFFER, $norm->make_physical->nbytes, $norm->address_data, GL_STATIC_DRAW);
   # //= as never changes, even if re-setup
-  $this->{Impl}{inds} //= PDL->new(PDL::byte, [1,2,0,3]);
+  my $inds = $this->{Impl}{inds} //= PDL->new(PDL::byte, [1,2,0,3]);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, $this->{Impl}{indx_buf});
+  glBufferData_c(GL_ELEMENT_ARRAY_BUFFER, $inds->make_physical->nbytes, $inds->address_data, GL_STATIC_DRAW);
+  glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER;
   # ||= as only need one, even if re-setup
   glBindTexture(GL_TEXTURE_2D, $this->{Impl}{tex_id} ||= glGenTextures_p(1));
   glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->make_physical->address_data);
@@ -331,14 +341,18 @@ sub PDL::Graphics::TriD::Image::gdraw {
   }
   glBindTexture(GL_TEXTURE_2D, $this->{Impl}{tex_id});
   glEnable(GL_TEXTURE_2D);
-  my ($texvert, $inds, $norm) = @{ $this->{Impl} }{qw(texvert inds norm)};
   glEnableClientState(GL_VERTEX_ARRAY);
-  glVertexPointer_c(3, GL_FLOAT, 0, $points->make_physical->address_data);
+  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
+  glVertexPointer_c(3, GL_FLOAT, 0, 0);
   glEnableClientState(GL_NORMAL_ARRAY);
-  glNormalPointer_c(GL_FLOAT, 0, $norm->make_physical->address_data);
+  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{norm_buf});
+  glNormalPointer_c(GL_FLOAT, 0, 0);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-  glTexCoordPointer_c(2, GL_FLOAT, 0, $texvert->make_physical->address_data);
-  glDrawElements_c(GL_TRIANGLE_STRIP, $inds->nelem, GL_UNSIGNED_BYTE, $inds->make_physical->address_data);
+  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{texc_buf});
+  glTexCoordPointer_c(2, GL_FLOAT, 0, 0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, $this->{Impl}{indx_buf});
+  glDrawElements_c(GL_TRIANGLE_STRIP, $this->{Impl}{inds}->nelem, GL_UNSIGNED_BYTE, 0);
+  glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER;
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
   glDisableClientState(GL_NORMAL_ARRAY);
   glDisableClientState(GL_VERTEX_ARRAY);
@@ -350,6 +364,7 @@ sub PDL::Graphics::TriD::Image::DESTROY {
   print "DESTROY $this\n" if $PDL::Graphics::TriD::verbose;
   glBindTexture(GL_TEXTURE_2D, 0) if glGetIntegerv_p(GL_TEXTURE_BINDING_2D) == $this->{Impl}{tex_id};
   glDeleteTextures_p($this->{Impl}{tex_id});
+  $this->PDL::Graphics::TriD::GObject::DESTROY; # would be SUPER but package
 }
 
 sub PDL::Graphics::TriD::SimpleController::togl {
