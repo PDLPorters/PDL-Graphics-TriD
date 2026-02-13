@@ -2,7 +2,7 @@ use strict;
 use warnings;
 no warnings 'redefine';
 use OpenGL::Modern qw/
-  glMaterialfv_p glColor3d glRotatef glLightModeli
+  glColor3d glRotatef glLightModeli
   glLightfv_p glShadeModel glColorMaterial
   glLineWidth glPointSize
   glpSetAutoCheckErrors
@@ -17,7 +17,7 @@ use OpenGL::Modern qw/
   glGenTextures_p glBindTexture glDeleteTextures_p
   glTexImage2D_c glTexParameteri
   glGetIntegerv_p
-  GL_FRONT_AND_BACK GL_SHININESS GL_SPECULAR GL_AMBIENT GL_DIFFUSE GL_SMOOTH
+  GL_FRONT_AND_BACK GL_DIFFUSE GL_SMOOTH
   GL_FLAT
   GL_LIGHTING_BIT GL_POSITION GL_LIGHTING GL_LIGHT0 GL_LIGHT_MODEL_TWO_SIDE
   GL_COMPILE GL_ENABLE_BIT GL_DEPTH_TEST GL_TRUE
@@ -33,12 +33,18 @@ use OpenGL::Modern qw/
 /;
 use PDL::Core qw(barf);
 
-sub PDL::Graphics::TriD::Material::togl{
+{ package PDL::Graphics::TriD::Material;
+use OpenGL::Modern qw(
+  glMaterialfv_p
+  GL_FRONT_AND_BACK GL_SHININESS GL_SPECULAR GL_AMBIENT GL_DIFFUSE
+);
+sub togl {
   my $this = shift;
   glMaterialfv_p(GL_FRONT_AND_BACK,GL_SHININESS,$this->{Shine});
   glMaterialfv_p(GL_FRONT_AND_BACK,GL_SPECULAR,@{$this->{Specular}});
   glMaterialfv_p(GL_FRONT_AND_BACK,GL_AMBIENT,@{$this->{Ambient}});
   glMaterialfv_p(GL_FRONT_AND_BACK,GL_DIFFUSE,@{$this->{Diffuse}});
+}
 }
 
 $PDL::Graphics::TriD::verbose //= 0;
