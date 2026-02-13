@@ -17,7 +17,7 @@ use OpenGL::Modern qw/
   GL_RGB GL_FLOAT GL_UNSIGNED_INT GL_UNSIGNED_BYTE
   GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
   GL_NEAREST GL_CLAMP_TO_EDGE GL_TEXTURE_WRAP_S GL_TEXTURE_WRAP_T
-  GL_VERTEX_ARRAY GL_NORMAL_ARRAY GL_COLOR_ARRAY GL_TEXTURE_COORD_ARRAY
+  GL_VERTEX_ARRAY GL_COLOR_ARRAY GL_TEXTURE_COORD_ARRAY
   GL_ARRAY_BUFFER GL_STATIC_DRAW
   GL_ELEMENT_ARRAY_BUFFER
 /;
@@ -282,7 +282,17 @@ sub gdraw {
 }
 }
 
-sub PDL::Graphics::TriD::Lines::togl_setup {
+{ package PDL::Graphics::TriD::Lines;
+use OpenGL::Modern qw(
+  glGenBuffers_p glBindBuffer glBufferData_c
+  glEnableClientState glDisableClientState
+  glVertexPointer_c glColorPointer_c
+  glDrawArrays
+  GL_ARRAY_BUFFER GL_STATIC_DRAW
+  GL_VERTEX_ARRAY GL_COLOR_ARRAY
+  GL_FLOAT GL_LINES
+);
+sub togl_setup {
   my ($this,$points) = @_;
   $points //= $this->{Points}; # as used in Graph
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
@@ -293,7 +303,7 @@ sub PDL::Graphics::TriD::Lines::togl_setup {
   glBufferData_c(GL_ARRAY_BUFFER, $this->{Colors}->make_physical->nbytes, $this->{Colors}->address_data, GL_STATIC_DRAW);
   glBindBuffer($_, 0) for GL_ARRAY_BUFFER;
 }
-sub PDL::Graphics::TriD::Lines::gdraw {
+sub gdraw {
   my($this,$points) = @_;
   glEnableClientState(GL_VERTEX_ARRAY);
   glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
@@ -305,6 +315,7 @@ sub PDL::Graphics::TriD::Lines::gdraw {
   glBindBuffer($_, 0) for GL_ARRAY_BUFFER;
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_COLOR_ARRAY);
+}
 }
 
 sub PDL::Graphics::TriD::DrawMulti::togl_setup {
