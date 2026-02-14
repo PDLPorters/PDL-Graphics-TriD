@@ -120,7 +120,7 @@ use OpenGL::Modern qw(
   glVertexPointer_c glColorPointer_c glTexCoordPointer_c glNormalPointer_c
   glEnable glDisable
   glGetIntegerv_p
-  glBindBuffer glDeleteBuffers_p
+  glGenBuffers_p glBindBuffer glDeleteBuffers_p glBufferData_c
   glBindTexture glDeleteTextures_p
   GL_VERTEX_ARRAY GL_COLOR_ARRAY GL_TEXTURE_COORD_ARRAY GL_NORMAL_ARRAY
   GL_LIGHTING_BIT GL_ENABLE_BIT GL_DEPTH_TEST GL_LIGHTING GL_LIGHT0
@@ -128,8 +128,17 @@ use OpenGL::Modern qw(
   GL_ARRAY_BUFFER GL_ARRAY_BUFFER_BINDING
   GL_ELEMENT_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER_BINDING
   GL_TEXTURE_2D GL_TEXTURE_BINDING_2D
-  GL_FLOAT
+  GL_FLOAT GL_STATIC_DRAW
 );
+sub load_buffer {
+  my ($this, $idname, $pdl, $target, $usage) = @_;
+  $target //= GL_ARRAY_BUFFER;
+  $usage //= GL_STATIC_DRAW;
+  my $id = $this->{Impl}{$idname} //= glGenBuffers_p(1);
+  glBindBuffer($target, $id);
+  # physicalise on nbytes not on second use so nbytes is correct
+  glBufferData_c($target, $pdl->make_physical->nbytes, $pdl->address_data, $usage);
+}
 sub togl_bind {
   my ($this) = @_;
   if (defined $this->{Impl}{tex_id}) {
@@ -211,21 +220,14 @@ sub DESTROY {
 }
 
 { package PDL::Graphics::TriD::GL::Primitive;
-use OpenGL::Modern qw(
-  glGenBuffers_p glBindBuffer glBufferData_c
-  glDrawArrays
-  GL_ARRAY_BUFFER GL_STATIC_DRAW
-);
+use OpenGL::Modern qw(glDrawArrays);
 sub togl_setup {
   my ($this,$points) = @_;
   $points //= $this->{Points}; # as Lines is used in Graph
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
-  @{ $this->{Impl} }{qw(vert_buf color_buf)} = glGenBuffers_p(2) if !$this->{Impl}{vert_buf};
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
-  glBufferData_c(GL_ARRAY_BUFFER, $points->make_physical->nbytes, $points->address_data, GL_STATIC_DRAW);
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{color_buf});
-  glBufferData_c(GL_ARRAY_BUFFER, $this->{Colors}->make_physical->nbytes, $this->{Colors}->address_data, GL_STATIC_DRAW);
-  glBindBuffer($_, 0) for GL_ARRAY_BUFFER;
+  $this->load_buffer(vert_buf => $points);
+  $this->load_buffer(color_buf => $this->{Colors});
+  $this->togl_unbind;
 }
 sub gdraw {
   my($this,$points) = @_;
@@ -251,30 +253,20 @@ sub gdraw {
 
 { package PDL::Graphics::TriD::Triangles;
 use OpenGL::Modern qw(
-  glGenBuffers_p glBindBuffer glBufferData_c
   glShadeModel
   glColorMaterial glEnable glDisable
   glDrawElements_c
-  GL_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER GL_STATIC_DRAW
   GL_FLAT GL_SMOOTH GL_FRONT_AND_BACK GL_DIFFUSE GL_COLOR_MATERIAL
-  GL_TRIANGLES GL_UNSIGNED_INT
+  GL_ELEMENT_ARRAY_BUFFER GL_TRIANGLES GL_UNSIGNED_INT
 );
 sub togl_setup {
   my ($this,$points) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
-  @{ $this->{Impl} }{qw(vert_buf color_buf indx_buf)} = glGenBuffers_p(3) if !$this->{Impl}{vert_buf};
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, $this->{Impl}{indx_buf});
-  # physicalise on nbytes not on second use so nbytes is correct
-  glBufferData_c(GL_ELEMENT_ARRAY_BUFFER, $this->{Faceidx}->make_physical->nbytes, $this->{Faceidx}->address_data, GL_STATIC_DRAW);
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
-  glBufferData_c(GL_ARRAY_BUFFER, $points->make_physical->nbytes, $points->address_data, GL_STATIC_DRAW);
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{color_buf});
-  glBufferData_c(GL_ARRAY_BUFFER, $this->{Colors}->make_physical->nbytes, $this->{Colors}->address_data, GL_STATIC_DRAW);
-  if ($this->{Options}{Shading} > 2) {
-    glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{norm_buf} ||= glGenBuffers_p(1));
-    glBufferData_c(GL_ARRAY_BUFFER, $this->{Normals}->make_physical->nbytes, $this->{Normals}->address_data, GL_STATIC_DRAW);
-  }
-  glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER;
+  $this->load_buffer(vert_buf => $points);
+  $this->load_buffer(color_buf => $this->{Colors});
+  $this->load_buffer(indx_buf => $this->{Faceidx}, GL_ELEMENT_ARRAY_BUFFER);
+  $this->load_buffer(norm_buf => $this->{Normals}) if $this->{Options}{Shading} > 2;
+  $this->togl_unbind;
 }
 sub gdraw {
   my ($this,$points) = @_;
@@ -296,22 +288,16 @@ sub gdraw {
 
 { package PDL::Graphics::TriD::DrawMulti;
 use OpenGL::Modern qw(
-  glGenBuffers_p glBindBuffer glBufferData_c
   glMultiDrawElements_c
-  GL_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER GL_STATIC_DRAW
-  GL_UNSIGNED_INT
+  GL_ELEMENT_ARRAY_BUFFER GL_UNSIGNED_INT
 );
 sub togl_setup {
   my ($this,$points) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
-  @{ $this->{Impl} }{qw(vert_buf color_buf indx_buf)} = glGenBuffers_p(3) if !$this->{Impl}{vert_buf};
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, $this->{Impl}{indx_buf});
-  glBufferData_c(GL_ELEMENT_ARRAY_BUFFER, $this->{Indices}->make_physical->nbytes, $this->{Indices}->address_data, GL_STATIC_DRAW);
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
-  glBufferData_c(GL_ARRAY_BUFFER, $points->make_physical->nbytes, $points->address_data, GL_STATIC_DRAW);
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{color_buf});
-  glBufferData_c(GL_ARRAY_BUFFER, $this->{Colors}->make_physical->nbytes, $this->{Colors}->address_data, GL_STATIC_DRAW);
-  glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER;
+  $this->load_buffer(vert_buf => $points);
+  $this->load_buffer(color_buf => $this->{Colors});
+  $this->load_buffer(indx_buf => $this->{Indices}, GL_ELEMENT_ARRAY_BUFFER);
+  $this->togl_unbind;
   $this->{Impl}{Starts4} = $this->{Starts}->indx * PDL::Core::howbig(PDL::ulong->enum); # byte offset into GPU buffer, not elements
 }
 sub gdraw {
@@ -327,11 +313,10 @@ sub gdraw {
 # A special construct which has a mode to face the display and take the entire window
 { package PDL::Graphics::TriD::Image;
 use OpenGL::Modern qw(
-  glGenBuffers_p glBindBuffer glBufferData_c
   glGenTextures_p glBindTexture glTexImage2D_c glTexParameteri
   glMatrixMode glLoadIdentity glOrtho
   glDrawElements_c
-  GL_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER GL_STATIC_DRAW
+  GL_ELEMENT_ARRAY_BUFFER
   GL_MODELVIEW GL_PROJECTION
   GL_FLOAT GL_TRIANGLE_STRIP GL_UNSIGNED_BYTE GL_RGB
   GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
@@ -342,9 +327,7 @@ sub togl_setup {
   $points //= $this->{Points};
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
   my ($p,$xd,$yd,$txd,$tyd) = $this->flatten(1); # do binary alignment
-  @{ $this->{Impl} }{qw(vert_buf texc_buf indx_buf)} = glGenBuffers_p(3) if !$this->{Impl}{vert_buf};
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
-  glBufferData_c(GL_ARRAY_BUFFER, $points->make_physical->nbytes, $points->address_data, GL_STATIC_DRAW);
+  $this->load_buffer(vert_buf => $points);
   # assume proportions could change each time
   my $texvert = PDL->new(PDL::float, [
     [0,0],
@@ -352,13 +335,8 @@ sub togl_setup {
     [$xd/$txd, $yd/$tyd],
     [0, $yd/$tyd]
   ]);
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{texc_buf});
-  glBufferData_c(GL_ARRAY_BUFFER, $texvert->make_physical->nbytes, $texvert->address_data, GL_STATIC_DRAW);
-  # //= as never changes, even if re-setup
-  my $inds = $this->{Impl}{inds} //= PDL->new(PDL::byte, [1,2,0,3]);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, $this->{Impl}{indx_buf});
-  glBufferData_c(GL_ELEMENT_ARRAY_BUFFER, $inds->make_physical->nbytes, $inds->address_data, GL_STATIC_DRAW);
-  glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER;
+  $this->load_buffer(texc_buf => $texvert);
+  $this->load_buffer(indx_buf => $this->{Impl}{inds} = PDL->new(PDL::byte, [1,2,0,3]), GL_ELEMENT_ARRAY_BUFFER) if !defined $this->{Impl}{indx_buf};
   # ||= as only need one, even if re-setup
   glBindTexture(GL_TEXTURE_2D, $this->{Impl}{tex_id} ||= glGenTextures_p(1));
   glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->make_physical->address_data);
@@ -366,7 +344,7 @@ sub togl_setup {
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-  glBindTexture(GL_TEXTURE_2D, 0);
+  $this->togl_unbind;
 }
 sub gdraw {
   my ($this,$points) = @_;
