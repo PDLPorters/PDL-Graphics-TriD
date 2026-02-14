@@ -179,17 +179,18 @@ sub DESTROY {
 }
 }
 
-{ package PDL::Graphics::TriD::Points;
+{ package PDL::Graphics::TriD::GL::Primitive;
 use OpenGL::Modern qw(
   glGenBuffers_p glBindBuffer glBufferData_c
   glEnableClientState glDisableClientState
   glVertexPointer_c glColorPointer_c
   glDrawArrays
   GL_ARRAY_BUFFER GL_STATIC_DRAW GL_VERTEX_ARRAY GL_COLOR_ARRAY
-  GL_FLOAT GL_POINTS
+  GL_FLOAT
 );
 sub togl_setup {
   my ($this,$points) = @_;
+  $points //= $this->{Points}; # as Lines is used in Graph
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
   @{ $this->{Impl} }{qw(vert_buf color_buf)} = glGenBuffers_p(2) if !$this->{Impl}{vert_buf};
   glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
@@ -206,12 +207,17 @@ sub gdraw {
   glEnableClientState(GL_COLOR_ARRAY);
   glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{color_buf});
   glColorPointer_c(3, GL_FLOAT, 0, 0);
-  glDrawArrays(GL_POINTS, 0, $points->nelem / $points->dim(0));
+  glDrawArrays($this->primitive, 0, $points->nelem / $points->dim(0));
   glBindBuffer($_, 0) for GL_ARRAY_BUFFER;
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_COLOR_ARRAY);
 }
 }
+
+unshift @PDL::Graphics::TriD::Points::ISA, qw(PDL::Graphics::TriD::GL::Primitive);
+sub PDL::Graphics::TriD::Points::primitive {OpenGL::Modern::GL_POINTS}
+unshift @PDL::Graphics::TriD::Lines::ISA, qw(PDL::Graphics::TriD::GL::Primitive);
+sub PDL::Graphics::TriD::Lines::primitive {OpenGL::Modern::GL_LINES}
 
 { package PDL::Graphics::TriD::Spheres;
 use OpenGL::Modern qw(glShadeModel GL_SMOOTH);
@@ -277,42 +283,6 @@ sub gdraw {
     glDisable(GL_COLOR_MATERIAL);
     glDisableClientState(GL_NORMAL_ARRAY);
   }
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_COLOR_ARRAY);
-}
-}
-
-{ package PDL::Graphics::TriD::Lines;
-use OpenGL::Modern qw(
-  glGenBuffers_p glBindBuffer glBufferData_c
-  glEnableClientState glDisableClientState
-  glVertexPointer_c glColorPointer_c
-  glDrawArrays
-  GL_ARRAY_BUFFER GL_STATIC_DRAW
-  GL_VERTEX_ARRAY GL_COLOR_ARRAY
-  GL_FLOAT GL_LINES
-);
-sub togl_setup {
-  my ($this,$points) = @_;
-  $points //= $this->{Points}; # as used in Graph
-  print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
-  @{ $this->{Impl} }{qw(vert_buf color_buf)} = glGenBuffers_p(2) if !$this->{Impl}{vert_buf};
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
-  glBufferData_c(GL_ARRAY_BUFFER, $points->make_physical->nbytes, $points->address_data, GL_STATIC_DRAW);
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{color_buf});
-  glBufferData_c(GL_ARRAY_BUFFER, $this->{Colors}->make_physical->nbytes, $this->{Colors}->address_data, GL_STATIC_DRAW);
-  glBindBuffer($_, 0) for GL_ARRAY_BUFFER;
-}
-sub gdraw {
-  my($this,$points) = @_;
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
-  glVertexPointer_c(3, GL_FLOAT, 0, 0);
-  glEnableClientState(GL_COLOR_ARRAY);
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{color_buf});
-  glColorPointer_c(3, GL_FLOAT, 0, 0);
-  glDrawArrays(GL_LINES, 0, $points->nelem / $points->dim(0));
-  glBindBuffer($_, 0) for GL_ARRAY_BUFFER;
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_COLOR_ARRAY);
 }
