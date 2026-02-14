@@ -50,12 +50,9 @@ sub delete_graph {
 }
 
 sub resize {
-  my($this,$x0,$y0,$w,$h) = @_;
-  $this->{X0} = $x0;
-  $this->{Y0} = $y0;
-  $this->{W} = $w;
-  $this->{H} = $h;
-  return $this;
+  my $this = shift;
+  @$this{qw(X0 Y0 W H)} = @_;
+  $this;
 }
 
 sub add_resizecommand {

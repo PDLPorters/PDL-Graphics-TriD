@@ -50,6 +50,7 @@ sub gl_update_list {
 sub gl_call_list {
   my($this) = @_;
   print "CALLIST ",$this->{Impl}{List}//'undef',"!\n" if $PDL::Graphics::TriD::verbose;
+  PDL::barf "Called with undefined List" if !defined $this->{Impl}{List};
   glCallList($this->{Impl}{List});
 }
 sub delete_displist {
@@ -442,6 +443,7 @@ sub reshape {
 	  my $ny0 = $vp->{Y0} + ($y-$ph) * $vp->{Y0}/$ph;
 	  print "reshape: resizing viewport to $nx0,$ny0,$nw,$nh\n" if($PDL::Graphics::TriD::verbose);
 	  $vp->resize($nx0,$ny0,$nw,$nh);
+	  $vp->{Impl}{highlight}{IsValid} = 0;
 	}
 }
 
@@ -593,7 +595,7 @@ sub event {
   if ($type eq 'motion') {
     return if (my $but = $args[0]) < 0;
     print "MOTION $args[0]\n" if $PDL::Graphics::TriD::verbose;
-    if ($this->{Buttons}[$but] and $this->{VP}->{Active}) {
+    if ($this->{Buttons}[$but] and $this->{VP}{Active}) {
       print "calling ".($this->{Buttons}[$but])."->mouse_moved ($this->{X},$this->{Y},$args[1],$args[2])...\n" if $PDL::Graphics::TriD::verbose;
       $retval = $this->{Buttons}[$but]->mouse_moved(@$this{qw(X Y)}, @args[1,2]);
     }
@@ -631,38 +633,37 @@ package # hide from PAUSE
 
 use OpenGL::Modern qw/
   glLoadIdentity glMatrixMode glOrtho glFrustum
-  glEnable glDisable glLineWidth glViewport
-  glVertexPointer_c glNormalPointer_c glColorPointer_c glDrawArrays
-  glEnableClientState glDisableClientState
-  GL_LIGHTING GL_MODELVIEW GL_PROJECTION
-  GL_VERTEX_ARRAY GL_COLOR_ARRAY
-  GL_FLOAT GL_LINE_LOOP
+  glViewport
+  GL_MODELVIEW GL_PROJECTION
 /;
+
+unshift @PDL::Graphics::TriD::GL::Highlight::ISA, qw(PDL::Graphics::TriD::Lines);
+sub PDL::Graphics::TriD::GL::Highlight::primitive {OpenGL::Modern::GL_LINE_LOOP}
 
 sub highlight {
   my ($vp) = @_;
-  my $pts = PDL->new(PDL::float, [[0,0,0],
-		      [$vp->{W},0,0],
-		      [$vp->{W},$vp->{H},0],
-		      [0,$vp->{H},0],
-		      ]);
-  my $colors = PDL->new(PDL::float, [1,1,1])->dummy(1,$pts->dim(1));
-  glDisable(GL_LIGHTING);
+  if (!defined $vp->{Impl}{highlight}) {
+    my $hl = $vp->{Impl}{highlight} = PDL::Graphics::TriD::GL::Highlight->new(
+      PDL->new(PDL::float, [[0,0,0], [$vp->{W},0,0], [$vp->{W},$vp->{H},0],
+        [0,$vp->{H},0]]),
+      PDL->new(PDL::float, [1,1,1]),
+      { LineWidth => 4 },
+    );
+    $hl->togl_setup;
+    $hl->{IsValid} = 1;
+  }
+  if (!(my $hl = $vp->{Impl}{highlight})->{IsValid}) {
+    $hl->{Points} .= PDL->new(PDL::float, [[0,0,0], [$vp->{W},0,0],
+      [$vp->{W},$vp->{H},0], [0,$vp->{H},0]]),
+    $hl->togl_setup;
+    $hl->{IsValid} = 1;
+  }
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glOrtho(0,$vp->{W},0,$vp->{H},-1,1);
-  glLineWidth(4);
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glVertexPointer_c(3, GL_FLOAT, 0, $pts->make_physical->address_data);
-  glEnableClientState(GL_COLOR_ARRAY);
-  glColorPointer_c(3, GL_FLOAT, 0, $colors->make_physical->address_data);
-  glDrawArrays(GL_LINE_LOOP, 0, $pts->nelem / $pts->dim(0));
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_COLOR_ARRAY);
-  glLineWidth(1);
-  glEnable(GL_LIGHTING);
+  $vp->{Impl}{highlight}->togl;
 }
 
 use constant PI => 3.1415926535897932384626433832795;
