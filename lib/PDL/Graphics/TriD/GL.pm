@@ -139,6 +139,10 @@ sub load_buffer {
   # physicalise on nbytes not on second use so nbytes is correct
   glBufferData_c($target, $pdl->make_physical->nbytes, $pdl->address_data, $usage);
 }
+sub load_idx_buffer {
+  my ($this, $idname, $pdl, $usage) = @_;
+  $this->load_buffer($idname, $pdl, GL_ELEMENT_ARRAY_BUFFER, $usage);
+}
 sub togl_bind {
   my ($this) = @_;
   if (defined $this->{Impl}{tex_id}) {
@@ -253,18 +257,17 @@ sub gdraw {
 
 { package PDL::Graphics::TriD::Triangles;
 use OpenGL::Modern qw(
-  glShadeModel
-  glColorMaterial glEnable glDisable
+  glShadeModel glColorMaterial glEnable glDisable
   glDrawElements_c
   GL_FLAT GL_SMOOTH GL_FRONT_AND_BACK GL_DIFFUSE GL_COLOR_MATERIAL
-  GL_ELEMENT_ARRAY_BUFFER GL_TRIANGLES GL_UNSIGNED_INT
+  GL_TRIANGLES GL_UNSIGNED_INT
 );
 sub togl_setup {
   my ($this,$points) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
   $this->load_buffer(vert_buf => $points);
   $this->load_buffer(color_buf => $this->{Colors});
-  $this->load_buffer(indx_buf => $this->{Faceidx}, GL_ELEMENT_ARRAY_BUFFER);
+  $this->load_idx_buffer(indx_buf => $this->{Faceidx});
   $this->load_buffer(norm_buf => $this->{Normals}) if $this->{Options}{Shading} > 2;
   $this->togl_unbind;
 }
@@ -287,16 +290,13 @@ sub gdraw {
 }
 
 { package PDL::Graphics::TriD::DrawMulti;
-use OpenGL::Modern qw(
-  glMultiDrawElements_c
-  GL_ELEMENT_ARRAY_BUFFER GL_UNSIGNED_INT
-);
+use OpenGL::Modern qw(glMultiDrawElements_c GL_UNSIGNED_INT);
 sub togl_setup {
   my ($this,$points) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
   $this->load_buffer(vert_buf => $points);
   $this->load_buffer(color_buf => $this->{Colors});
-  $this->load_buffer(indx_buf => $this->{Indices}, GL_ELEMENT_ARRAY_BUFFER);
+  $this->load_idx_buffer(indx_buf => $this->{Indices});
   $this->togl_unbind;
   $this->{Impl}{Starts4} = $this->{Starts}->indx * PDL::Core::howbig(PDL::ulong->enum); # byte offset into GPU buffer, not elements
 }
@@ -316,7 +316,6 @@ use OpenGL::Modern qw(
   glGenTextures_p glBindTexture glTexImage2D_c glTexParameteri
   glMatrixMode glLoadIdentity glOrtho
   glDrawElements_c
-  GL_ELEMENT_ARRAY_BUFFER
   GL_MODELVIEW GL_PROJECTION
   GL_FLOAT GL_TRIANGLE_STRIP GL_UNSIGNED_BYTE GL_RGB
   GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
@@ -336,7 +335,7 @@ sub togl_setup {
     [0, $yd/$tyd]
   ]);
   $this->load_buffer(texc_buf => $texvert);
-  $this->load_buffer(indx_buf => $this->{Impl}{inds} = PDL->new(PDL::byte, [1,2,0,3]), GL_ELEMENT_ARRAY_BUFFER) if !defined $this->{Impl}{indx_buf};
+  $this->load_idx_buffer(indx_buf => $this->{Impl}{inds} = PDL->new(PDL::byte, [1,2,0,3])) if !defined $this->{Impl}{indx_buf};
   # ||= as only need one, even if re-setup
   glBindTexture(GL_TEXTURE_2D, $this->{Impl}{tex_id} ||= glGenTextures_p(1));
   glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->make_physical->address_data);
