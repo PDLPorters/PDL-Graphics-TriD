@@ -384,7 +384,7 @@ package # hide from PAUSE
 use OpenGL::Modern qw/
   glPixelStorei glReadPixels_c
   glClear glClearColor glEnable
-  glShadeModel glColor3f glPushMatrix glPopMatrix glMatrixMode
+  glShadeModel glPushMatrix glPopMatrix glMatrixMode
   glPushAttrib glPopAttrib
   GL_UNPACK_ALIGNMENT GL_PACK_ALIGNMENT GL_RGB GL_UNSIGNED_BYTE
   GL_FLAT GL_NORMALIZE GL_MODELVIEW
@@ -415,7 +415,6 @@ sub gdriver {
   glClearColor(0,0,0,1);
   glShadeModel(GL_FLAT);
   glEnable(GL_NORMALIZE);
-  glColor3f(1,1,1);
   print "STARTED OPENGL!\n" if $PDL::Graphics::TriD::verbose;
   if($PDL::Graphics::TriD::offline) {
     $this->doconfig($options->{width}, $options->{height});
