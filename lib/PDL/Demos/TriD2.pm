@@ -74,7 +74,7 @@ my @demo = (
 
 	# And plot it in the picture ;) ;)
 	hold3d(); 	# You remember, we leave the previous one in...
-	$o0 = imagrgb3d($pic, {Points => [[0,0,0],[0,1,0],[0,1,1],[0,0,1]]});
+	$o0 = imagrgb3d($pic, {Points => [[0,1,0],[0,1,1],[0,0,0],[0,0,1]]});
 
 	# Because we have the data in $pic, we could just as easily
 	# save it in a jpeg using the PDL::IO::Pic module - or read
@@ -90,7 +90,7 @@ my @demo = (
 
 	# And plot it in the picture ;) ;)
 	hold3d(); 	# You remember, we leave the previous one in...
-	$o1 = imagrgb3d($pic1, {Points => [[0,0,0],[1,0,0],[1,0,1],[0,0,1]]});
+	$o1 = imagrgb3d($pic1, {Points => [[1,0,0],[1,0,1],[0,0,0],[0,0,1]]});
         # [press 'q' in the graphics window when done]
 |],
 

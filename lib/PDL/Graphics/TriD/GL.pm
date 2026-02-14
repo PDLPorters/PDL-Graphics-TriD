@@ -329,9 +329,9 @@ sub gdraw {
 { package PDL::Graphics::TriD::Image;
 use OpenGL::Modern qw(
   glMatrixMode glLoadIdentity glOrtho
-  glDrawElements_c
+  glDrawArrays
   GL_MODELVIEW GL_PROJECTION
-  GL_TRIANGLE_STRIP GL_UNSIGNED_BYTE GL_RGB
+  GL_TRIANGLE_STRIP GL_RGB
 );
 sub togl_setup {
   my ($this,$points) = @_;
@@ -341,13 +341,12 @@ sub togl_setup {
   $this->load_buffer(vert_buf => $points);
   # assume proportions could change each time
   my $texvert = PDL->new(PDL::float, [
-    [0,0],
     [$xd/$txd, 0],
     [$xd/$txd, $yd/$tyd],
+    [0,0],
     [0, $yd/$tyd]
   ]);
   $this->load_buffer(texc_buf => $texvert);
-  $this->load_idx_buffer(indx_buf => $this->{Impl}{inds} = PDL->new(PDL::byte, [1,2,0,3])) if !defined $this->{Impl}{indx_buf};
   $this->load_texture(tex_id => $p, GL_RGB, $txd, $tyd, GL_RGB);
   $this->togl_unbind;
 }
@@ -364,7 +363,7 @@ sub gdraw {
     glOrtho(0,1,0,1,-1,1);
   }
   $this->togl_bind;
-  glDrawElements_c(GL_TRIANGLE_STRIP, $this->{Impl}{inds}->nelem, GL_UNSIGNED_BYTE, 0);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, $points->nelem / $points->dim(0));
   $this->togl_unbind;
 }
 }

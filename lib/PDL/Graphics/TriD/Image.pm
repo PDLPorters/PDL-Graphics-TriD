@@ -14,9 +14,9 @@ use base qw/PDL::Graphics::TriD::GObject/;
 use PDL::Lite;
 
 my $defaultvert = PDL->pdl([
-	[0,0,0],
 	[1,0,0],
 	[1,1,0],
+	[0,0,0],
 	[0,1,0]
 ]);
 sub get_valid_options { +{
