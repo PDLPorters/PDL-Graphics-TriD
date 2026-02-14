@@ -115,6 +115,39 @@ pp_def(
   @internal
 );
 
+pp_def(
+  'gl_font_texture',
+  GenericTypes => ['B'],
+  Pars => '[o] texture(width=CALC(pdl_3d_bitmapFontWidth()),height=CALC(pdl_3d_bitmapHeight()));
+    int [o] rightbound(c=CALC(pdl_3d_bitmapFontQuantity())); float [o] orig(o=2)',
+  CHeader => <<'EOF',
+int pdl_3d_bitmapFontWidth(void);
+int pdl_3d_bitmapHeight(void);
+int pdl_3d_bitmapFontQuantity(void);
+void pdl_3d_bitmapFontBounds(int32_t *out);
+const GLubyte* pdl_3d_bitmapFontChar(unsigned char i);
+float pdl_3d_bitmapFontXOrig(void);
+float pdl_3d_bitmapFontYOrig(void);
+EOF
+  Code => <<'EOF',
+pdl_3d_bitmapFontBounds($P(rightbound));
+loop (c) %{
+  const GLubyte *d = pdl_3d_bitmapFontChar(c);
+  PDL_Indx left = !c ? 0 : $rightbound(c=>c-1)+1, right = $rightbound()+1,
+    bytesperrow = (7 + right - left) / 8;
+  loop (height,width=left:right) %{
+    PDL_Indx whichcol = width - left, whichbit = 7 - (whichcol % 8),
+      whichbyte = height * bytesperrow + (whichcol / 8);
+    GLubyte thebyte = d[whichbyte + 1];
+    $texture() = (thebyte & (1 << whichbit)) ? 1 : 0;
+  %}
+%}
+$orig(o=>0) = pdl_3d_bitmapFontXOrig();
+$orig(o=>1) = pdl_3d_bitmapFontYOrig();
+EOF
+  @internal
+);
+
 pp_def('gen_arrowheads',
   Pars => 'coords(tri=3,v); uint fromto(ft=2,n); [o] trivertices(tri,nv=CALC(5*$SIZE(n))); uint [o] triindices(trivert=3,ni=CALC(4*$SIZE(n)))',
   OtherPars => 'float headlen; float width;',

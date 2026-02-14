@@ -23,6 +23,7 @@
  */
 
 #include <stddef.h>
+#include <stdint.h>
 
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
@@ -423,4 +424,41 @@ int pdl_3d_bitmapHeight( void )
 {
     SFG_Font* font = &fgFontHelvetica12;
     return font->Height;
+}
+
+int pdl_3d_bitmapFontWidth(void) {
+  int i, width = 0;
+  SFG_Font* font = &fgFontHelvetica12;
+  for (i = 0; i < font->Quantity; i++) {
+    width += font->Characters[i][0];
+  }
+  return width;
+}
+
+int pdl_3d_bitmapFontQuantity(void) {
+  SFG_Font* font = &fgFontHelvetica12;
+  return font->Quantity;
+}
+
+void pdl_3d_bitmapFontBounds(int32_t *out) {
+  int i, width = 0;
+  SFG_Font* font = &fgFontHelvetica12;
+  for (i = 0; i < font->Quantity; i++) {
+    out[i] = (width += font->Characters[i][0]) - 1;
+  }
+}
+
+const GLubyte* pdl_3d_bitmapFontChar(unsigned char i) {
+  SFG_Font* font = &fgFontHelvetica12;
+  return font->Characters[i];
+}
+
+float pdl_3d_bitmapFontXOrig(void) {
+  SFG_Font* font = &fgFontHelvetica12;
+  return font->xorig;
+}
+
+float pdl_3d_bitmapFontYOrig(void) {
+  SFG_Font* font = &fgFontHelvetica12;
+  return font->yorig;
 }
