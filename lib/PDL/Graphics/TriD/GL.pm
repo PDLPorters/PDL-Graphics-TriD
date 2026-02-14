@@ -2,23 +2,9 @@ use strict;
 use warnings;
 no warnings 'redefine';
 use OpenGL::Modern qw/
-  glRotatef
-  glMatrixMode glLoadIdentity glOrtho glTranslatef
-  glVertexPointer_c glNormalPointer_c glColorPointer_c glDrawElements_c
-  glTexCoordPointer_c
-  glEnableClientState glDisableClientState
-  glEnable glDisable
-  glGenBuffers_p glBindBuffer glBufferData_c
-  glGenTextures_p glBindTexture
-  glTexImage2D_c glTexParameteri
-  GL_LINE_STRIP GL_TRIANGLE_STRIP GL_LINES GL_POINTS GL_LINE_LOOP
+  glRotatef glTranslatef
+  GL_LINE_STRIP GL_LINE_LOOP
   GL_MODELVIEW GL_PROJECTION
-  GL_RGB GL_FLOAT GL_UNSIGNED_INT GL_UNSIGNED_BYTE
-  GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
-  GL_NEAREST GL_CLAMP_TO_EDGE GL_TEXTURE_WRAP_S GL_TEXTURE_WRAP_T
-  GL_VERTEX_ARRAY GL_COLOR_ARRAY GL_TEXTURE_COORD_ARRAY
-  GL_ARRAY_BUFFER GL_STATIC_DRAW
-  GL_ELEMENT_ARRAY_BUFFER
 /;
 use PDL::Core qw(barf);
 
@@ -291,7 +277,6 @@ sub gdraw {
 use OpenGL::Modern qw(
   glGenBuffers_p glBindBuffer glBufferData_c
   glEnableClientState glDisableClientState
-  glColorMaterial glEnable glDisable
   glVertexPointer_c glColorPointer_c
   glMultiDrawElements_c
   GL_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER GL_STATIC_DRAW
@@ -330,7 +315,23 @@ sub gdraw {
 }
 
 # A special construct which has a mode to face the display and take the entire window
-sub PDL::Graphics::TriD::Image::togl_setup {
+{ package PDL::Graphics::TriD::Image;
+use OpenGL::Modern qw(
+  glGenBuffers_p glBindBuffer glBufferData_c
+  glGenTextures_p glBindTexture glTexImage2D_c glTexParameteri
+  glMatrixMode glLoadIdentity glOrtho
+  glEnableClientState glDisableClientState
+  glEnable glDisable
+  glVertexPointer_c glTexCoordPointer_c
+  glDrawElements_c
+  GL_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER GL_STATIC_DRAW
+  GL_MODELVIEW GL_PROJECTION
+  GL_VERTEX_ARRAY GL_COLOR_ARRAY GL_TEXTURE_COORD_ARRAY
+  GL_FLOAT GL_TRIANGLE_STRIP GL_UNSIGNED_BYTE GL_RGB
+  GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
+  GL_NEAREST GL_CLAMP_TO_EDGE GL_TEXTURE_WRAP_S GL_TEXTURE_WRAP_T
+);
+sub togl_setup {
   my ($this,$points) = @_;
   $points //= $this->{Points};
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
@@ -361,10 +362,10 @@ sub PDL::Graphics::TriD::Image::togl_setup {
   glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
   glBindTexture(GL_TEXTURE_2D, 0);
 }
-sub PDL::Graphics::TriD::Image::gdraw {
+sub gdraw {
   my ($this,$points) = @_;
   $points //= $this->{Points};
-  barf "Need 3,4 vert"
+  PDL::barf "Need 3,4 vert"
     if grep $_->dim(1) < 4 || $_->dim(0) != 3, $points;
   if ($this->{Options}{FullScreen}) {
     glMatrixMode(GL_MODELVIEW);
@@ -388,6 +389,7 @@ sub PDL::Graphics::TriD::Image::gdraw {
   glDisableClientState(GL_VERTEX_ARRAY);
   glBindTexture(GL_TEXTURE_2D, 0);
   glDisable(GL_TEXTURE_2D);
+}
 }
 
 sub PDL::Graphics::TriD::SimpleController::togl {
