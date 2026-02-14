@@ -121,12 +121,15 @@ use OpenGL::Modern qw(
   glEnable glDisable
   glGetIntegerv_p
   glGenBuffers_p glBindBuffer glDeleteBuffers_p glBufferData_c
-  glBindTexture glDeleteTextures_p
+  glGenTextures_p glBindTexture glDeleteTextures_p
+  glTexImage2D_c glTexParameteri
   GL_VERTEX_ARRAY GL_COLOR_ARRAY GL_TEXTURE_COORD_ARRAY GL_NORMAL_ARRAY
   GL_LIGHTING_BIT GL_ENABLE_BIT GL_DEPTH_TEST GL_LIGHTING GL_LIGHT0
   GL_LIGHT_MODEL_TWO_SIDE GL_TRUE GL_POSITION
   GL_ARRAY_BUFFER GL_ARRAY_BUFFER_BINDING
   GL_ELEMENT_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER_BINDING
+  GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
+  GL_NEAREST GL_CLAMP_TO_EDGE GL_TEXTURE_WRAP_S GL_TEXTURE_WRAP_T
   GL_TEXTURE_2D GL_TEXTURE_BINDING_2D
   GL_FLOAT GL_STATIC_DRAW
 );
@@ -142,6 +145,18 @@ sub load_buffer {
 sub load_idx_buffer {
   my ($this, $idname, $pdl, $usage) = @_;
   $this->load_buffer($idname, $pdl, GL_ELEMENT_ARRAY_BUFFER, $usage);
+}
+sub load_texture {
+  my ($this, $idname, $pdl, $iformat, $x, $y, $format, $type, $target) = @_;
+  $type //= GL_FLOAT;
+  $target //= GL_TEXTURE_2D;
+  # ||= as only need one, even if re-setup
+  glBindTexture($target, $this->{Impl}{$idname} ||= glGenTextures_p(1));
+  glTexImage2D_c($target, 0, $iformat, $x, $y, 0, $format, $type, $pdl->make_physical->address_data);
+  glTexParameteri($target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri($target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri($target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri($target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
 sub togl_bind {
   my ($this) = @_;
@@ -310,16 +325,13 @@ sub gdraw {
 }
 }
 
-# A special construct which has a mode to face the display and take the entire window
+# has a mode to face the display and take the entire window
 { package PDL::Graphics::TriD::Image;
 use OpenGL::Modern qw(
-  glGenTextures_p glBindTexture glTexImage2D_c glTexParameteri
   glMatrixMode glLoadIdentity glOrtho
   glDrawElements_c
   GL_MODELVIEW GL_PROJECTION
-  GL_FLOAT GL_TRIANGLE_STRIP GL_UNSIGNED_BYTE GL_RGB
-  GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
-  GL_NEAREST GL_CLAMP_TO_EDGE GL_TEXTURE_WRAP_S GL_TEXTURE_WRAP_T
+  GL_TRIANGLE_STRIP GL_UNSIGNED_BYTE GL_RGB
 );
 sub togl_setup {
   my ($this,$points) = @_;
@@ -336,13 +348,7 @@ sub togl_setup {
   ]);
   $this->load_buffer(texc_buf => $texvert);
   $this->load_idx_buffer(indx_buf => $this->{Impl}{inds} = PDL->new(PDL::byte, [1,2,0,3])) if !defined $this->{Impl}{indx_buf};
-  # ||= as only need one, even if re-setup
-  glBindTexture(GL_TEXTURE_2D, $this->{Impl}{tex_id} ||= glGenTextures_p(1));
-  glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->make_physical->address_data);
-  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+  $this->load_texture(tex_id => $p, GL_RGB, $txd, $tyd, GL_RGB);
   $this->togl_unbind;
 }
 sub gdraw {
