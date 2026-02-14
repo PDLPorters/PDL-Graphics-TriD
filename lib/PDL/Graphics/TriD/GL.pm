@@ -116,16 +116,62 @@ use OpenGL::Modern qw(
   glPushAttrib glPopAttrib
   glLineWidth glPointSize
   glLightfv_p glLightModeli
+  glEnableClientState glDisableClientState
+  glVertexPointer_c glColorPointer_c glTexCoordPointer_c glNormalPointer_c
   glEnable glDisable
   glGetIntegerv_p
   glBindBuffer glDeleteBuffers_p
   glBindTexture glDeleteTextures_p
+  GL_VERTEX_ARRAY GL_COLOR_ARRAY GL_TEXTURE_COORD_ARRAY GL_NORMAL_ARRAY
   GL_LIGHTING_BIT GL_ENABLE_BIT GL_DEPTH_TEST GL_LIGHTING GL_LIGHT0
   GL_LIGHT_MODEL_TWO_SIDE GL_TRUE GL_POSITION
   GL_ARRAY_BUFFER GL_ARRAY_BUFFER_BINDING
   GL_ELEMENT_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER_BINDING
   GL_TEXTURE_2D GL_TEXTURE_BINDING_2D
+  GL_FLOAT
 );
+sub togl_bind {
+  my ($this) = @_;
+  if (defined $this->{Impl}{tex_id}) {
+    glBindTexture(GL_TEXTURE_2D, $this->{Impl}{tex_id});
+    glEnable(GL_TEXTURE_2D);
+  }
+  if (defined $this->{Impl}{vert_buf}) {
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
+    glVertexPointer_c(3, GL_FLOAT, 0, 0);
+  }
+  if (defined $this->{Impl}{color_buf}) {
+    glEnableClientState(GL_COLOR_ARRAY);
+    glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{color_buf});
+    glColorPointer_c(3, GL_FLOAT, 0, 0);
+  }
+  if (defined $this->{Impl}{texc_buf}) {
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{texc_buf});
+    glTexCoordPointer_c(2, GL_FLOAT, 0, 0);
+  }
+  if (defined $this->{Impl}{norm_buf}) {
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{norm_buf});
+    glNormalPointer_c(GL_FLOAT, 0, 0);
+  }
+  if (defined $this->{Impl}{indx_buf}) {
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, $this->{Impl}{indx_buf}); # unbind the VAO before you unbind the Index Buffer
+  }
+}
+sub togl_unbind {
+  my ($this) = @_;
+  glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER;
+  glDisableClientState(GL_VERTEX_ARRAY) if defined $this->{Impl}{vert_buf};
+  glDisableClientState(GL_COLOR_ARRAY) if defined $this->{Impl}{color_buf};
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY) if defined $this->{Impl}{texc_buf};
+  glDisableClientState(GL_NORMAL_ARRAY) if defined $this->{Impl}{norm_buf};
+  if (defined $this->{Impl}{tex_id}) {
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
+  }
+}
 sub togl {
   my ($this, $points) = @_;
   print "togl $this\n" if $PDL::Graphics::TriD::verbose;
@@ -167,11 +213,8 @@ sub DESTROY {
 { package PDL::Graphics::TriD::GL::Primitive;
 use OpenGL::Modern qw(
   glGenBuffers_p glBindBuffer glBufferData_c
-  glEnableClientState glDisableClientState
-  glVertexPointer_c glColorPointer_c
   glDrawArrays
-  GL_ARRAY_BUFFER GL_STATIC_DRAW GL_VERTEX_ARRAY GL_COLOR_ARRAY
-  GL_FLOAT
+  GL_ARRAY_BUFFER GL_STATIC_DRAW
 );
 sub togl_setup {
   my ($this,$points) = @_;
@@ -186,16 +229,9 @@ sub togl_setup {
 }
 sub gdraw {
   my($this,$points) = @_;
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
-  glVertexPointer_c(3, GL_FLOAT, 0, 0);
-  glEnableClientState(GL_COLOR_ARRAY);
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{color_buf});
-  glColorPointer_c(3, GL_FLOAT, 0, 0);
+  $this->togl_bind;
   glDrawArrays($this->primitive, 0, $points->nelem / $points->dim(0));
-  glBindBuffer($_, 0) for GL_ARRAY_BUFFER;
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_COLOR_ARRAY);
+  $this->togl_unbind;
 }
 }
 
@@ -217,14 +253,11 @@ sub gdraw {
 use OpenGL::Modern qw(
   glGenBuffers_p glBindBuffer glBufferData_c
   glShadeModel
-  glEnableClientState glDisableClientState
   glColorMaterial glEnable glDisable
-  glVertexPointer_c glColorPointer_c glNormalPointer_c
   glDrawElements_c
   GL_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER GL_STATIC_DRAW
   GL_FLAT GL_SMOOTH GL_FRONT_AND_BACK GL_DIFFUSE GL_COLOR_MATERIAL
-  GL_VERTEX_ARRAY GL_COLOR_ARRAY GL_NORMAL_ARRAY
-  GL_FLOAT GL_TRIANGLES GL_UNSIGNED_INT
+  GL_TRIANGLES GL_UNSIGNED_INT
 );
 sub togl_setup {
   my ($this,$points) = @_;
@@ -248,40 +281,25 @@ sub gdraw {
   my $options = $this->{Options};
   my $shading = $options->{Shading};
   glShadeModel($shading == 1 ? GL_FLAT : GL_SMOOTH) if $shading;
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
-  glVertexPointer_c(3, GL_FLOAT, 0, 0);
-  glEnableClientState(GL_COLOR_ARRAY);
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{color_buf});
-  glColorPointer_c(3, GL_FLOAT, 0, 0);
   if ($shading > 2) {
     glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
     glEnable(GL_COLOR_MATERIAL);
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{norm_buf});
-    glNormalPointer_c(GL_FLOAT, 0, 0);
   }
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, $this->{Impl}{indx_buf});
+  $this->togl_bind;
   glDrawElements_c(GL_TRIANGLES, $this->{Faceidx}->nelem, GL_UNSIGNED_INT, 0);
-  glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER;
   if ($shading > 2) {
     glDisable(GL_COLOR_MATERIAL);
-    glDisableClientState(GL_NORMAL_ARRAY);
   }
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_COLOR_ARRAY);
+  $this->togl_unbind;
 }
 }
 
 { package PDL::Graphics::TriD::DrawMulti;
 use OpenGL::Modern qw(
   glGenBuffers_p glBindBuffer glBufferData_c
-  glEnableClientState glDisableClientState
-  glVertexPointer_c glColorPointer_c
   glMultiDrawElements_c
   GL_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER GL_STATIC_DRAW
-  GL_VERTEX_ARRAY GL_COLOR_ARRAY
-  GL_FLOAT GL_UNSIGNED_INT
+  GL_UNSIGNED_INT
 );
 sub togl_setup {
   my ($this,$points) = @_;
@@ -299,18 +317,10 @@ sub togl_setup {
 sub gdraw {
   my ($this,$points) = @_;
   my $mode = $mode2enum{$this->{Mode}} || PDL::barf "DrawMulti unknown mode";
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
+  $this->togl_bind;
   # switch to glPrimitiveRestartindex when 3.1 available
-  glVertexPointer_c(3, GL_FLOAT, 0, 0);
-  glEnableClientState(GL_COLOR_ARRAY);
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{color_buf});
-  glColorPointer_c(3, GL_FLOAT, 0, 0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, $this->{Impl}{indx_buf});
   glMultiDrawElements_c($mode, $this->{Counts}->make_physical->address_data, GL_UNSIGNED_INT, $this->{Impl}{Starts4}->make_physical->address_data, $this->{Counts}->nelem);
-  glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER; # unbind the VAO before you unbind the Index Buffer
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_COLOR_ARRAY);
+  $this->togl_unbind;
 }
 }
 
@@ -320,13 +330,9 @@ use OpenGL::Modern qw(
   glGenBuffers_p glBindBuffer glBufferData_c
   glGenTextures_p glBindTexture glTexImage2D_c glTexParameteri
   glMatrixMode glLoadIdentity glOrtho
-  glEnableClientState glDisableClientState
-  glEnable glDisable
-  glVertexPointer_c glTexCoordPointer_c
   glDrawElements_c
   GL_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER GL_STATIC_DRAW
   GL_MODELVIEW GL_PROJECTION
-  GL_VERTEX_ARRAY GL_COLOR_ARRAY GL_TEXTURE_COORD_ARRAY
   GL_FLOAT GL_TRIANGLE_STRIP GL_UNSIGNED_BYTE GL_RGB
   GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
   GL_NEAREST GL_CLAMP_TO_EDGE GL_TEXTURE_WRAP_S GL_TEXTURE_WRAP_T
@@ -374,21 +380,9 @@ sub gdraw {
     glLoadIdentity();
     glOrtho(0,1,0,1,-1,1);
   }
-  glBindTexture(GL_TEXTURE_2D, $this->{Impl}{tex_id});
-  glEnable(GL_TEXTURE_2D);
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
-  glVertexPointer_c(3, GL_FLOAT, 0, 0);
-  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-  glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{texc_buf});
-  glTexCoordPointer_c(2, GL_FLOAT, 0, 0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, $this->{Impl}{indx_buf});
+  $this->togl_bind;
   glDrawElements_c(GL_TRIANGLE_STRIP, $this->{Impl}{inds}->nelem, GL_UNSIGNED_BYTE, 0);
-  glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER;
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glDisable(GL_TEXTURE_2D);
+  $this->togl_unbind;
 }
 }
 
