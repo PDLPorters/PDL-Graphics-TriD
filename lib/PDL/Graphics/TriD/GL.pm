@@ -99,10 +99,11 @@ sub PDL::Graphics::TriD::Quaternion::togl {
 
 { package PDL::Graphics::TriD::Labels;
 use OpenGL::Modern qw(glColor3d);
+use PDL::Graphics::OpenGLQ;
 sub gdraw {
   my ($this,$points) = @_;
   glColor3d(1,1,1);
-  PDL::Graphics::OpenGLQ::gl_texts($points,@{$this->{Options}}{qw(Strings)});
+  gl_texts($points,@{$this->{Options}}{qw(Strings)});
 }
 }
 
@@ -263,6 +264,7 @@ sub PDL::Graphics::TriD::Lines::primitive {OpenGL::Modern::GL_LINES}
 
 { package PDL::Graphics::TriD::Spheres;
 use OpenGL::Modern qw(glShadeModel GL_SMOOTH);
+use PDL::Graphics::OpenGLQ;
 sub gdraw {
    my($this,$points) = @_;
    glShadeModel(GL_SMOOTH);
@@ -636,7 +638,6 @@ use OpenGL::Modern qw/
   GL_VERTEX_ARRAY GL_COLOR_ARRAY
   GL_FLOAT GL_LINE_LOOP
 /;
-use PDL::Graphics::OpenGLQ;
 
 sub highlight {
   my ($vp) = @_;
