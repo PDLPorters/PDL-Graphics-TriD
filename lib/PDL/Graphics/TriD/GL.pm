@@ -6,13 +6,12 @@ use OpenGL::Modern qw/
   glMatrixMode glLoadIdentity glOrtho glTranslatef
   glVertexPointer_c glNormalPointer_c glColorPointer_c glDrawElements_c
   glTexCoordPointer_c
-  glDrawArrays glMultiDrawElements_c
   glEnableClientState glDisableClientState
   glEnable glDisable
   glGenBuffers_p glBindBuffer glBufferData_c
   glGenTextures_p glBindTexture
   glTexImage2D_c glTexParameteri
-  GL_LINE_STRIP GL_TRIANGLE_STRIP GL_TRIANGLES GL_LINES GL_POINTS GL_LINE_LOOP
+  GL_LINE_STRIP GL_TRIANGLE_STRIP GL_LINES GL_POINTS GL_LINE_LOOP
   GL_MODELVIEW GL_PROJECTION
   GL_RGB GL_FLOAT GL_UNSIGNED_INT GL_UNSIGNED_BYTE
   GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
@@ -288,7 +287,18 @@ sub gdraw {
 }
 }
 
-sub PDL::Graphics::TriD::DrawMulti::togl_setup {
+{ package PDL::Graphics::TriD::DrawMulti;
+use OpenGL::Modern qw(
+  glGenBuffers_p glBindBuffer glBufferData_c
+  glEnableClientState glDisableClientState
+  glColorMaterial glEnable glDisable
+  glVertexPointer_c glColorPointer_c
+  glMultiDrawElements_c
+  GL_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER GL_STATIC_DRAW
+  GL_VERTEX_ARRAY GL_COLOR_ARRAY
+  GL_FLOAT GL_UNSIGNED_INT
+);
+sub togl_setup {
   my ($this,$points) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
   @{ $this->{Impl} }{qw(vert_buf color_buf indx_buf)} = glGenBuffers_p(3) if !$this->{Impl}{vert_buf};
@@ -301,7 +311,7 @@ sub PDL::Graphics::TriD::DrawMulti::togl_setup {
   glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER;
   $this->{Impl}{Starts4} = $this->{Starts}->indx * PDL::Core::howbig(PDL::ulong->enum); # byte offset into GPU buffer, not elements
 }
-sub PDL::Graphics::TriD::DrawMulti::gdraw {
+sub gdraw {
   my ($this,$points) = @_;
   my $mode = $mode2enum{$this->{Mode}} || PDL::barf "DrawMulti unknown mode";
   glEnableClientState(GL_VERTEX_ARRAY);
@@ -316,6 +326,7 @@ sub PDL::Graphics::TriD::DrawMulti::gdraw {
   glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER; # unbind the VAO before you unbind the Index Buffer
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_COLOR_ARRAY);
+}
 }
 
 # A special construct which has a mode to face the display and take the entire window
