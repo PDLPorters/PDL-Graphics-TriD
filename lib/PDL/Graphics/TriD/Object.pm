@@ -97,7 +97,7 @@ sub clear {
 	for(@{$this->{Objects}}) {
 		$_->clear();
 	}
-	$this->delete_displist();
+	delete $this->{Impl};
 	delete $this->{ChangedSub};
 	delete $this->{Objects};
 }

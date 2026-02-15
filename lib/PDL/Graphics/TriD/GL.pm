@@ -25,40 +25,6 @@ sub togl {
 $PDL::Graphics::TriD::verbose //= 0;
 
 { package PDL::Graphics::TriD::Object;
-use OpenGL::Modern qw(
-  glpSetAutoCheckErrors
-  glGenLists glDeleteLists glNewList glEndList glCallList
-  GL_COMPILE
-);
-sub gl_update_list {
-  my ($this) = @_;
-  glpSetAutoCheckErrors(1);
-  glDeleteLists($this->{Impl}{List},1) if $this->{Impl}{List};
-  $this->{Impl}{List} = my $lno = glGenLists(1);
-  print "GENLIST $this $lno\n" if $PDL::Graphics::TriD::verbose;
-  $this->togl_setup;
-  glNewList($lno,GL_COMPILE);
-  eval {
-    $this->togl;
-    print "EGENLIST $lno\n" if $PDL::Graphics::TriD::verbose;
-  };
-  { local $@; glEndList(); }
-  die if $@;
-  print "VALID1 $this\n" if $PDL::Graphics::TriD::verbose;
-  $this->{IsValid} = 1;
-}
-sub gl_call_list {
-  my($this) = @_;
-  print "CALLIST ",$this->{Impl}{List}//'undef',"!\n" if $PDL::Graphics::TriD::verbose;
-  PDL::barf "Called with undefined List" if !defined $this->{Impl}{List};
-  glCallList($this->{Impl}{List});
-}
-sub delete_displist {
-  my($this) = @_;
-  return if !$this->{Impl}{List};
-  glDeleteLists($this->{Impl}{List},1);
-  delete $this->{Impl};
-}
 sub togl_setup {
   print "togl_setup $_[0]\n" if $PDL::Graphics::TriD::verbose;
   $_->togl_setup for $_[0]->contained_objects;
@@ -385,6 +351,7 @@ package # hide from PAUSE
   PDL::Graphics::TriD::Window;
 
 use OpenGL::Modern qw/
+  glpSetAutoCheckErrors
   glPixelStorei glReadPixels_c
   glClear glClearColor glEnable
   glShadeModel glPushMatrix glPopMatrix glMatrixMode
@@ -547,8 +514,13 @@ sub display {
       $vp->{Transformer}->togl();
     }
     print "VALID $this=$this->{IsValid}\n" if $PDL::Graphics::TriD::verbose;
-    $vp->gl_update_list if !$vp->{IsValid};
-    $vp->gl_call_list();
+    if (!$vp->{IsValid}) {
+      glpSetAutoCheckErrors(1);
+      $vp->togl_setup;
+      print "VALID1 $vp\n" if $PDL::Graphics::TriD::verbose;
+      $vp->{IsValid} = 1;
+    }
+    $vp->togl;
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
     glPopAttrib();
