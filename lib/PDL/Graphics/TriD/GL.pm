@@ -104,7 +104,7 @@ use PDL::Graphics::OpenGLQ;
 sub gdraw {
   my ($this,$points) = @_;
   glColor3d(1,1,1);
-  gl_texts($points,@{$this->{Options}}{qw(Strings)});
+  gl_texts($points,@$this{qw(Strings)});
 }
 }
 

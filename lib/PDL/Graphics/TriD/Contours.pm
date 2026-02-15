@@ -158,7 +158,7 @@ sub new {
       push @strlist, ($cvals->slice("($i)")) x $lp2->dim(1);
       $lp = $lp->glue(1,$lp2);
     }
-    $this->add_object(PDL::Graphics::TriD::Labels->new($lp, {Strings=>\@strlist})) if $lp->nelem;
+    $this->add_object(PDL::Graphics::TriD::Labels->new($lp, \@strlist)) if $lp->nelem;
   }
 
   $this;

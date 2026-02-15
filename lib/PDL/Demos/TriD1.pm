@@ -207,7 +207,7 @@ my @demo = (
   my $graph = PDL::Graphics::TriD::get_new_graph(); # also clears
   hold3d();
   nokeeptwiddling3d();
-  my $lab = labels3d($c, {Strings => \@names});
+  my $lab = labels3d($c, \@names);
   my $lin = arrows3d($c, {FromTo => $fromto});
   my $sph = spheres3d($c);
   my $ind = 0;

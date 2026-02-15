@@ -540,14 +540,14 @@ Implemented by L<PDL::Graphics::TriD::Labels>.
 
 =for usage
 
- labels3d ndarray(3,x), {OPTIONS}
- labels3d [CONTEXT], {OPTIONS}
+ labels3d ndarray(3,x), \@strings, {OPTIONS}
+ labels3d [CONTEXT], \@strings, {OPTIONS}
 
 =for example
 
 Example:
 
- pdl> $coords = yvals(3)->append(zeroes 2); labels3d $coords, {Strings=>[0..2]}
+ pdl> $coords = yvals(3)->append(zeroes 2); labels3d $coords, [0..2]
 
 =head2 arrows3d
 

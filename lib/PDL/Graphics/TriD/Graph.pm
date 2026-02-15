@@ -151,8 +151,8 @@ sub new {
   $points = $points->glue(1, $starts->append($ends))->splitdim(0,3)->clump(1,2);
   $this->{NDiv} = $ndiv;
   $this->add_object(PDL::Graphics::TriD::Lines->new($points));
-  $this->add_object(PDL::Graphics::TriD::Labels->new($id3, {Strings=>$options->{Names}}));
-  $this->add_object($this->{AxisLabelsObj} = PDL::Graphics::TriD::Labels->new($ends, {Strings=>$options->{Names}}));
+  $this->add_object(PDL::Graphics::TriD::Labels->new($id3, $options->{Names}));
+  $this->add_object($this->{AxisLabelsObj} = PDL::Graphics::TriD::Labels->new($ends, [('') x (3*($ndiv+1))]));
   $this;
 }
 

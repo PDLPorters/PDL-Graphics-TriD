@@ -301,14 +301,27 @@ sub new {
 package # hide from PAUSE
   PDL::Graphics::TriD::Labels;
 use base qw/PDL::Graphics::TriD::GObject/;
+use fields qw/Strings/;
 sub get_valid_options { +{
   UseDefcols => 0,
-  Strings => [],
   Lighting => 0,
 }}
+sub new {
+  my $options = ref($_[-1]) eq 'HASH' ? pop : {};
+  my $strings = ref($_[-1]) eq 'ARRAY' ? pop : PDL::barf "Labels: no strings given";
+  my ($class, $points, $colors) = @_;
+  my $this = $class->SUPER::new($points, $colors, $options);
+  $points = $this->{Points};
+  my $num_points = $points->nelem / $points->dim(0);
+  PDL::barf "Labels: got @{[0+@$strings]} strings (@$strings) but $num_points points (@{[$points->info]}" if @$strings != $num_points;
+  @$this{qw(Strings)} = $strings;
+  $this;
+}
 sub set_labels {
-  my ($this, $array) = @_;
-  $this->{Options}{Strings} = $array;
+  my ($this, $strings) = @_;
+  my $num_points = $this->{Points}->nelem / $this->{Points}->dim(0);
+  PDL::barf "Labels: got @{[0+@$strings]} strings but $num_points points" if @$strings != $num_points;
+  $this->{Strings} = $strings;
 }
 
 package # hide from PAUSE
