@@ -104,6 +104,8 @@ pp_def(
     if (!(SvROK(sv) && SvTYPE(SvRV(sv))==SVt_PVAV))
       $CROAK("gl_texts requires an array ref");
     AV *arr = (AV *)SvRV(sv);
+    if (av_len(arr)+1 != $SIZE(x))
+      $CROAK("gl_texts given %d strings but %td pointss", av_len(arr)+1, $SIZE(x));
     loop(x) %{
       SV *elem = *(av_fetch(arr, x, 0));
       if (!elem) continue;
