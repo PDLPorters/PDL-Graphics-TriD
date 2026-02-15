@@ -9,6 +9,7 @@ use PDL::Graphics::TriD::ViewPort;
 use Data::Dumper;
 
 $PDL::Graphics::TriD::verbose //= 0;
+our ($DEFAULT_WIDTH, $DEFAULT_HEIGHT) = (600, 600);
 
 sub new {
   my($arg,$options) = @_;
@@ -16,8 +17,8 @@ sub new {
   my $this = $arg->SUPER::new();
   print "PDL::Graphics::TriD::Window - got back $this\n" if($PDL::Graphics::TriD::verbose);
   # Make sure the Graphics has been initialized
-  $options->{width} //= 600;
-  $options->{height} //= 600;
+  $options->{width} //= $DEFAULT_WIDTH;
+  $options->{height} //= $DEFAULT_HEIGHT;
   $this->{Width} = $options->{width};
   $this->{Height} = $options->{height};
   print "PDL::Graphics::TriD::Window: calling gdriver....\n" if $PDL::Graphics::TriD::verbose;
