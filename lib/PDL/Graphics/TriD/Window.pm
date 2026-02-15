@@ -181,24 +181,9 @@ sub set_eventhandler {
 #  }
 #}
 
-sub AUTOLOAD {
+sub set_material {
   my ($self,@args)=@_;
-  use vars qw($AUTOLOAD);
-  my $sub = $AUTOLOAD;
-  return if $sub =~ /::DESTROY$/;
-# If an unrecognized function is called for window it trys to apply it
-# to all of the defined ViewPorts
-  $sub =~ s/.*:://;
-  print "AUTOLOAD: $sub at ",__FILE__," line ", __LINE__  ,".\n" 
-	 if($PDL::Graphics::TriD::verbose);
-  print "Window AUTOLOADing '$sub': self=$self, args='".join("','",@args),"'\n" if($PDL::Graphics::TriD::verbose);
-  if($sub =~ /^gl/ && defined  $self->{_GLObject}){
-	 return  $self->{_GLObject}->$sub(@args);
-  }
-  for(@{$self->{_ViewPorts}}) {
-    next unless defined $_;
-	 $_->$sub(@args);
-  }
+  $_->set_material(@args) for grep defined, @{$self->{_ViewPorts}};
 }
 
 1;
