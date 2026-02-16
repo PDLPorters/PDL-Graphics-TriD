@@ -501,17 +501,3 @@ int calc_numVertIdxsPerPart(GLint slices) {
 int calc_nIdx(GLint slices, GLint stacks) {
   return calc_numVertIdxsPerPart(slices)*stacks;
 }
-
-void pdl_3d_solidSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *vertices, GLfloat *normals, int nVert, GLuint *stripIdx)
-{
-    /* First, generate vertex index arrays for drawing with glDrawElements
-     * All stacks, including top and bottom are covered with a triangle
-     * strip.
-     */
-    int numVertIdxsPerPart = calc_numVertIdxsPerPart(slices);
-    /* Create index vector */
-    calc_strip_idx(stripIdx, slices, stacks, nVert);
-
-    /* draw */
-    fghDrawGeometrySolid(vertices,normals,NULL,nVert,stripIdx,stacks,numVertIdxsPerPart);
-}

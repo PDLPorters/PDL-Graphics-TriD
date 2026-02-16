@@ -68,17 +68,27 @@ pp_def(
     uint [t] stripIdx(nIdx=CALC(calc_nIdx($COMP(slices),$COMP(stacks))));',
   OtherPars => 'float radius; int slices; int stacks;',
   CHeader => <<'EOF',
-void pdl_3d_solidSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *vertices, GLfloat *normals, int nVert, GLuint *stripIdx);
+void fghDrawGeometrySolid(GLfloat *vertices, GLfloat *normals, GLfloat *textcs,
+  GLsizei numVertices, GLuint *vertIdxs, GLsizei numParts,
+  GLsizei numVertIdxsPerPart);
 char *fghGenerateSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *vertices, GLfloat *normals, int nVert);
+void calc_strip_idx(GLuint  *stripIdx, GLint slices, GLint stacks, int nVert);
 int calc_nVert(GLint slices, GLint stacks);
 int calc_nIdx(GLint slices, GLint stacks);
+int calc_numVertIdxsPerPart(GLint slices);
 EOF
   Code => <<'EOF',
 /* Generate vertices and normals */
 char *err = fghGenerateSphere($COMP(radius), $COMP(slices), $COMP(stacks), $P(vertices), $P(normals), $SIZE(nVert));
 if (err) $CROAK("%s", err);
+/* First, generate vertex index arrays for drawing with glDrawElements
+ * All stacks, including top and bottom are covered with a triangle
+ * strip.
+ */
+calc_strip_idx($P(stripIdx), $COMP(slices), $COMP(stacks), $SIZE(nVert));
 broadcastloop %{
 float oldcoord0 = 0.0, oldcoord1 = 0.0, oldcoord2 = 0.0;
+int numVertIdxsPerPart = calc_numVertIdxsPerPart($COMP(slices));
 glPushMatrix();
 loop(n) %{
   glTranslatef(
@@ -86,7 +96,7 @@ loop(n) %{
     $coords(tri=>1) - oldcoord1,
     $coords(tri=>2) - oldcoord2
   );
-  pdl_3d_solidSphere($COMP(radius), $COMP(slices), $COMP(stacks), $P(vertices), $P(normals), $SIZE(nVert), $P(stripIdx));
+  fghDrawGeometrySolid($P(vertices),$P(normals),NULL,$SIZE(nVert),$P(stripIdx),$COMP(stacks),numVertIdxsPerPart);
   oldcoord0 = $coords(tri=>0), oldcoord1 = $coords(tri=>1), oldcoord2 = $coords(tri=>2);
 %}
 glPopMatrix();
