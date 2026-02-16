@@ -502,15 +502,8 @@ int calc_nIdx(GLint slices, GLint stacks) {
   return calc_numVertIdxsPerPart(slices)*stacks;
 }
 
-char *pdl_3d_solidSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *vertices, GLfloat *normals, GLuint *stripIdx)
+char *pdl_3d_solidSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *vertices, GLfloat *normals, int nVert, GLuint *stripIdx)
 {
-    int i,j,idx, nVert = calc_nVert(slices, stacks);
-    if (nVert == 0)
-    {
-        /* nothing to generate */
-        return NULL;
-    }
-
     /* Generate vertices and normals */
     char *err = fghGenerateSphere(radius,slices,stacks,vertices,normals,nVert);
     if (err) return err;
