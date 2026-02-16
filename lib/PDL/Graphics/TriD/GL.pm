@@ -302,10 +302,22 @@ sub PDL::Graphics::TriD::Lines::primitive {OpenGL::Modern::GL_LINES}
 { package PDL::Graphics::TriD::Spheres;
 use OpenGL::Modern qw(glShadeModel GL_SMOOTH);
 use PDL::Graphics::OpenGLQ;
+my %SPHERE;
+my @KEYS = qw(vertices normals idx);
+sub togl_setup {
+  my ($this,$points) = @_;
+  print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
+  if (!keys %SPHERE) {
+    @SPHERE{@KEYS} = gl_sphere(0.025, 15, 15);
+  }
+  @{ $this->{Impl} }{@KEYS} = @SPHERE{@KEYS};
+}
 sub gdraw {
-   my($this,$points) = @_;
-   glShadeModel(GL_SMOOTH);
-   PDL::gl_spheres($points, 0.025, 15, 15);
+  my($this,$points) = @_;
+  $this->togl_bind;
+  glShadeModel(GL_SMOOTH);
+  PDL::gl_spheres($points, @{ $this->{Impl} }{@KEYS}, 15, 15);
+  $this->togl_unbind;
 }
 }
 
