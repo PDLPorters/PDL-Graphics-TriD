@@ -405,7 +405,7 @@ int calc_nVert(GLint slices, GLint stacks) {
     return slices*(stacks-1)+2;
 }
 
-static char *fghGenerateSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat **vertices, GLfloat **normals, int nVert)
+char *fghGenerateSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *vertices, GLfloat *normals, int nVert)
 {
     int i,j;
     int idx = 0;    /* idx into vertex/normal buffer */
@@ -432,23 +432,13 @@ static char *fghGenerateSphere(GLfloat radius, GLint slices, GLint stacks, GLflo
     err = fghCircleTable(&sint2,&cost2, stacks,GL_TRUE);
     if (err) return err;
 
-    /* Allocate vertex and normal buffers, bail out if memory allocation fails */
-    *vertices = malloc(nVert*3*sizeof(GLfloat));
-    *normals  = malloc(nVert*3*sizeof(GLfloat));
-    if (!(*vertices) || !(*normals))
-    {
-        free(*vertices);
-        free(*normals);
-        return "Failed to allocate memory in fghGenerateSphere";
-    }
-
     /* top */
-    (*vertices)[0] = 0.f;
-    (*vertices)[1] = 0.f;
-    (*vertices)[2] = radius;
-    (*normals )[0] = 0.f;
-    (*normals )[1] = 0.f;
-    (*normals )[2] = 1.f;
+    vertices[0] = 0.f;
+    vertices[1] = 0.f;
+    vertices[2] = radius;
+    normals [0] = 0.f;
+    normals [1] = 0.f;
+    normals [2] = 1.f;
     idx = 3;
 
     /* each stack */
@@ -460,22 +450,22 @@ static char *fghGenerateSphere(GLfloat radius, GLint slices, GLint stacks, GLflo
             y = sint1[j]*sint2[i];
             z = cost2[i];
 
-            (*vertices)[idx  ] = x*radius;
-            (*vertices)[idx+1] = y*radius;
-            (*vertices)[idx+2] = z*radius;
-            (*normals )[idx  ] = x;
-            (*normals )[idx+1] = y;
-            (*normals )[idx+2] = z;
+            vertices[idx  ] = x*radius;
+            vertices[idx+1] = y*radius;
+            vertices[idx+2] = z*radius;
+            normals [idx  ] = x;
+            normals [idx+1] = y;
+            normals [idx+2] = z;
         }
     }
 
     /* bottom */
-    (*vertices)[idx  ] =  0.f;
-    (*vertices)[idx+1] =  0.f;
-    (*vertices)[idx+2] = -radius;
-    (*normals )[idx  ] =  0.f;
-    (*normals )[idx+1] =  0.f;
-    (*normals )[idx+2] = -1.f;
+    vertices[idx  ] =  0.f;
+    vertices[idx+1] =  0.f;
+    vertices[idx+2] = -radius;
+    normals [idx  ] =  0.f;
+    normals [idx+1] =  0.f;
+    normals [idx+2] = -1.f;
 
     /* Done creating vertices, release sin and cos tables */
     free(sint1);
@@ -535,9 +525,18 @@ static char *fghSphere( GLfloat radius, GLint slices, GLint stacks )
          */
         return "fghSphere: too many slices or stacks requested, indices will wrap";
 
+    /* Allocate vertex and normal buffers, bail out if memory allocation fails */
+    GLfloat *vertices = malloc(nVert*3*sizeof(GLfloat));
+    GLfloat *normals  = malloc(nVert*3*sizeof(GLfloat));
+    if (!vertices || !normals)
+    {
+        free(vertices);
+        free(normals);
+        return "Failed to allocate memory in fghSphere";
+    }
+
     /* Generate vertices and normals */
-    GLfloat *vertices, *normals;
-    char *err = fghGenerateSphere(radius,slices,stacks,&vertices,&normals,nVert);
+    char *err = fghGenerateSphere(radius,slices,stacks,vertices,normals,nVert);
     if (err) return err;
 
     /* only solid */
