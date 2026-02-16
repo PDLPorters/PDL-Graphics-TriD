@@ -89,25 +89,8 @@ void fghDrawGeometrySolid(GLfloat *vertices, GLfloat *normals, GLfloat *textcs, 
                           GLuint *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart)
 {
     GLint attribute_v_coord, attribute_v_normal, attribute_v_texture;
-#if 0 /* hook for shader stuff */
-    if(win) {
-        attribute_v_coord   = win->Window.attribute_v_coord;
-        attribute_v_normal  = win->Window.attribute_v_normal;
-        attribute_v_texture = win->Window.attribute_v_texture;
-    } else
-#endif
         attribute_v_coord = attribute_v_normal = attribute_v_texture = -1;
 
-#if 0 /* shader stuff */
-    if (fgState.HasOpenGL20 && (attribute_v_coord != -1 || attribute_v_normal != -1))
-    {
-        /* User requested a 2.0 draw */
-        fghDrawGeometrySolid20(vertices, normals, textcs, numVertices,
-                               vertIdxs, numParts, numVertIdxsPerPart,
-                               attribute_v_coord, attribute_v_normal, attribute_v_texture);
-    }
-    else
-#endif
     {
         fghDrawGeometrySolid11(vertices, normals, textcs, numVertices,
                                vertIdxs, numParts, numVertIdxsPerPart);
@@ -205,127 +188,6 @@ static void fghDrawGeometrySolid11(GLfloat *vertices, GLfloat *normals, GLfloat 
 	fghDrawGeometrySolid10(vertices, normals, textcs, numVertices, vertIdxs, numParts, numVertIdxsPerPart);
 #endif
 }
-
-
-#if 0 /* shader stuff */
-/* Version for OpenGL (ES) >= 2.0 */
-static void fghDrawGeometrySolid20(GLfloat *vertices, GLfloat *normals, GLfloat *textcs, GLsizei numVertices,
-                                   GLuint *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart,
-                                   GLint attribute_v_coord, GLint attribute_v_normal, GLint attribute_v_texture)
-{
-#if defined(GL_VERSION_1_1) || defined(GL_VERSION_ES_CM_1_0)
-    GLuint vbo_coords = 0, vbo_normals = 0, vbo_textcs = 0, ibo_elements = 0;
-    GLsizei numVertIdxs = numParts * numVertIdxsPerPart;
-    int i;
-
-    if (numVertices > 0 && attribute_v_coord != -1) {
-        glGenBuffers(1, &vbo_coords);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo_coords);
-        glBufferData(GL_ARRAY_BUFFER, numVertices * 3 * sizeof(vertices[0]),
-                      vertices, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
-
-    if (numVertices > 0 && attribute_v_normal != -1) {
-        glGenBuffers(1, &vbo_normals);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
-        glBufferData(GL_ARRAY_BUFFER, numVertices * 3 * sizeof(normals[0]),
-                      normals, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
-
-    if (numVertices > 0 && attribute_v_texture != -1 && textcs) {
-        glGenBuffers(1, &vbo_textcs);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo_textcs);
-        glBufferData(GL_ARRAY_BUFFER, numVertices * 2 * sizeof(textcs[0]),
-                      textcs, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
-
-    if (vertIdxs != NULL) {
-        glGenBuffers(1, &ibo_elements);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_elements);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, numVertIdxs * sizeof(vertIdxs[0]),
-                      vertIdxs, GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    }
-
-    if (vbo_coords) {
-        glEnableVertexAttribArray(attribute_v_coord);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo_coords);
-        glVertexAttribPointer(
-            attribute_v_coord,  /* attribute */
-            3,                  /* number of elements per vertex, here (x,y,z) */
-            GL_FLOAT,           /* the type of each element */
-            GL_FALSE,           /* take our values as-is */
-            0,                  /* no extra data between each position */
-            0                   /* offset of first element */
-        );
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    };
-
-    if (vbo_normals) {
-        glEnableVertexAttribArray(attribute_v_normal);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
-        glVertexAttribPointer(
-            attribute_v_normal, /* attribute */
-            3,                  /* number of elements per vertex, here (x,y,z) */
-            GL_FLOAT,           /* the type of each element */
-            GL_FALSE,           /* take our values as-is */
-            0,                  /* no extra data between each position */
-            0                   /* offset of first element */
-        );
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    };
-
-    if (vbo_textcs) {
-        glEnableVertexAttribArray(attribute_v_texture);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo_textcs);
-        glVertexAttribPointer(
-            attribute_v_texture,/* attribute */
-            2,                  /* number of elements per vertex, here (s,t) */
-            GL_FLOAT,           /* the type of each element */
-            GL_FALSE,           /* take our values as-is */
-            0,                  /* no extra data between each position */
-            0                   /* offset of first element */
-            );
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    };
-
-    if (vertIdxs == NULL) {
-        glDrawArrays(GL_TRIANGLES, 0, numVertices);
-    } else {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_elements);
-        if (numParts>1) {
-            for (i=0; i<numParts; i++) {
-                glDrawElements(GL_TRIANGLE_STRIP, numVertIdxsPerPart, GL_UNSIGNED_SHORT, (GLvoid*)(sizeof(vertIdxs[0])*i*numVertIdxsPerPart));
-            }
-        } else {
-            glDrawElements(GL_TRIANGLES, numVertIdxsPerPart, GL_UNSIGNED_SHORT, 0);
-        }
-        /* Clean existing bindings before clean-up */
-        /* Android showed instability otherwise */
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    }
-
-    if (vbo_coords != 0)
-        glDisableVertexAttribArray(attribute_v_coord);
-    if (vbo_normals != 0)
-        glDisableVertexAttribArray(attribute_v_normal);
-    if (vbo_textcs != 0)
-        glDisableVertexAttribArray(attribute_v_texture);
-
-    if (vbo_coords != 0)
-        glDeleteBuffers(1, &vbo_coords);
-    if (vbo_normals != 0)
-        glDeleteBuffers(1, &vbo_normals);
-    if (vbo_textcs != 0)
-        glDeleteBuffers(1, &vbo_textcs);
-    if (ibo_elements != 0)
-        glDeleteBuffers(1, &ibo_elements);
-#endif	/* GL version at least 1.1 */
-}
-#endif
 
 /*
  * Compute lookup table of cos and sin values forming a circle
