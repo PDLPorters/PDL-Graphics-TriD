@@ -478,6 +478,42 @@ static char *fghGenerateSphere(GLfloat radius, GLint slices, GLint stacks, GLflo
     return NULL;
 }
 
+void calc_strip_idx(GLushort  *stripIdx, GLint slices, GLint stacks, int nVert) {
+  int i,j,idx;
+  GLushort offset;
+  /* top stack */
+  for (j=0, idx=0;  j<slices;  j++, idx+=2)
+  {
+    stripIdx[idx  ] = j+1;              /* 0 is top vertex, 1 is first for first stack */
+    stripIdx[idx+1] = 0;
+  }
+  stripIdx[idx  ] = 1;                    /* repeat first slice's idx for closing off shape */
+  stripIdx[idx+1] = 0;
+  idx+=2;
+  /* middle stacks: */
+  /* Strip indices are relative to first index belonging to strip, NOT relative to first vertex/normal pair in array */
+  for (i=0; i<stacks-2; i++, idx+=2)
+  {
+    offset = 1+i*slices;                    /* triangle_strip indices start at 1 (0 is top vertex), and we advance one stack down as we go along */
+    for (j=0; j<slices; j++, idx+=2)
+    {
+      stripIdx[idx  ] = offset+j+slices;
+      stripIdx[idx+1] = offset+j;
+    }
+    stripIdx[idx  ] = offset+slices;        /* repeat first slice's idx for closing off shape */
+    stripIdx[idx+1] = offset;
+  }
+  /* bottom stack */
+  offset = 1+(stacks-2)*slices;               /* triangle_strip indices start at 1 (0 is top vertex), and we advance one stack down as we go along */
+  for (j=0; j<slices; j++, idx+=2)
+  {
+    stripIdx[idx  ] = nVert-1;              /* zero based index, last element in array (bottom vertex)... */
+    stripIdx[idx+1] = offset+j;
+  }
+  stripIdx[idx  ] = nVert-1;                  /* repeat first slice's idx for closing off shape */
+  stripIdx[idx+1] = offset;
+}
+
 static char *fghSphere( GLfloat radius, GLint slices, GLint stacks )
 {
     int i,j,idx, nVert;
@@ -499,7 +535,6 @@ static char *fghSphere( GLfloat radius, GLint slices, GLint stacks )
          */
         GLushort  *stripIdx;
         /* Create index vector */
-        GLushort offset;
 
         /* Allocate buffers for indices, bail out if memory allocation fails */
         stripIdx = malloc((slices+1)*2*(stacks)*sizeof(GLushort));
@@ -508,41 +543,7 @@ static char *fghSphere( GLfloat radius, GLint slices, GLint stacks )
             free(stripIdx);
             return "Failed to allocate memory in fghSphere";
         }
-
-        /* top stack */
-        for (j=0, idx=0;  j<slices;  j++, idx+=2)
-        {
-            stripIdx[idx  ] = j+1;              /* 0 is top vertex, 1 is first for first stack */
-            stripIdx[idx+1] = 0;
-        }
-        stripIdx[idx  ] = 1;                    /* repeat first slice's idx for closing off shape */
-        stripIdx[idx+1] = 0;
-        idx+=2;
-
-        /* middle stacks: */
-        /* Strip indices are relative to first index belonging to strip, NOT relative to first vertex/normal pair in array */
-        for (i=0; i<stacks-2; i++, idx+=2)
-        {
-            offset = 1+i*slices;                    /* triangle_strip indices start at 1 (0 is top vertex), and we advance one stack down as we go along */
-            for (j=0; j<slices; j++, idx+=2)
-            {
-                stripIdx[idx  ] = offset+j+slices;
-                stripIdx[idx+1] = offset+j;
-            }
-            stripIdx[idx  ] = offset+slices;        /* repeat first slice's idx for closing off shape */
-            stripIdx[idx+1] = offset;
-        }
-
-        /* bottom stack */
-        offset = 1+(stacks-2)*slices;               /* triangle_strip indices start at 1 (0 is top vertex), and we advance one stack down as we go along */
-        for (j=0; j<slices; j++, idx+=2)
-        {
-            stripIdx[idx  ] = nVert-1;              /* zero based index, last element in array (bottom vertex)... */
-            stripIdx[idx+1] = offset+j;
-        }
-        stripIdx[idx  ] = nVert-1;                  /* repeat first slice's idx for closing off shape */
-        stripIdx[idx+1] = offset;
-
+        calc_strip_idx(stripIdx, slices, stacks, nVert);
 
         /* draw */
         fghDrawGeometrySolid(vertices,normals,NULL,nVert,stripIdx,stacks,(slices+1)*2);
