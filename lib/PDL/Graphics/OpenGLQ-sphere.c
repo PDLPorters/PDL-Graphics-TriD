@@ -511,6 +511,14 @@ void calc_strip_idx(GLushort  *stripIdx, GLint slices, GLint stacks, int nVert) 
   stripIdx[idx+1] = offset;
 }
 
+int calc_numVertIdxsPerPart(GLint slices) {
+  return (slices+1)*2;
+}
+
+int calc_nIdx(GLint slices, GLint stacks) {
+  return calc_numVertIdxsPerPart(slices)*stacks;
+}
+
 static char *fghSphere( GLfloat radius, GLint slices, GLint stacks )
 {
     int i,j,idx, nVert = calc_nVert(slices, stacks);
@@ -545,20 +553,19 @@ static char *fghSphere( GLfloat radius, GLint slices, GLint stacks )
          * All stacks, including top and bottom are covered with a triangle
          * strip.
          */
-        GLushort  *stripIdx;
-        /* Create index vector */
-
+        int nIdx = calc_nIdx(slices, stacks), numVertIdxsPerPart = calc_numVertIdxsPerPart(slices);
         /* Allocate buffers for indices, bail out if memory allocation fails */
-        stripIdx = malloc((slices+1)*2*(stacks)*sizeof(GLushort));
+        GLushort  *stripIdx = malloc(nIdx*sizeof(GLushort));
         if (!(stripIdx))
         {
             free(stripIdx);
             return "Failed to allocate memory in fghSphere";
         }
+        /* Create index vector */
         calc_strip_idx(stripIdx, slices, stacks, nVert);
 
         /* draw */
-        fghDrawGeometrySolid(vertices,normals,NULL,nVert,stripIdx,stacks,(slices+1)*2);
+        fghDrawGeometrySolid(vertices,normals,NULL,nVert,stripIdx,stacks,numVertIdxsPerPart);
 
         /* cleanup allocated memory */
         free(stripIdx);
