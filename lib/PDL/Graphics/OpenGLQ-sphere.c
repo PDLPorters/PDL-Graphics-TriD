@@ -395,7 +395,17 @@ static char *fghCircleTable(GLfloat **sint, GLfloat **cost, const int n, const G
     return NULL;
 }
 
-static char *fghGenerateSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat **vertices, GLfloat **normals, int* nVert)
+int calc_nVert(GLint slices, GLint stacks) {
+    /* number of unique vertices */
+    if (slices==0 || stacks<2)
+    {
+        /* nothing to generate */
+        return 0;
+    }
+    return slices*(stacks-1)+2;
+}
+
+static char *fghGenerateSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat **vertices, GLfloat **normals, int nVert)
 {
     int i,j;
     int idx = 0;    /* idx into vertex/normal buffer */
@@ -405,15 +415,12 @@ static char *fghGenerateSphere(GLfloat radius, GLint slices, GLint stacks, GLflo
     GLfloat *sint1,*cost1;
     GLfloat *sint2,*cost2;
 
-    /* number of unique vertices */
-    if (slices==0 || stacks<2)
+    if (nVert == 0)
     {
         /* nothing to generate */
-        *nVert = 0;
         return NULL;
     }
-    *nVert = slices*(stacks-1)+2;
-    if ((*nVert) > 65535)
+    if (nVert > 65535)
         /*
          * limit of glushort, that's 256*256 subdivisions, should be enough in practice. See note above
          */
@@ -426,8 +433,8 @@ static char *fghGenerateSphere(GLfloat radius, GLint slices, GLint stacks, GLflo
     if (err) return err;
 
     /* Allocate vertex and normal buffers, bail out if memory allocation fails */
-    *vertices = malloc((*nVert)*3*sizeof(GLfloat));
-    *normals  = malloc((*nVert)*3*sizeof(GLfloat));
+    *vertices = malloc(nVert*3*sizeof(GLfloat));
+    *normals  = malloc(nVert*3*sizeof(GLfloat));
     if (!(*vertices) || !(*normals))
     {
         free(*vertices);
@@ -516,16 +523,22 @@ void calc_strip_idx(GLushort  *stripIdx, GLint slices, GLint stacks, int nVert) 
 
 static char *fghSphere( GLfloat radius, GLint slices, GLint stacks )
 {
-    int i,j,idx, nVert;
-    GLfloat *vertices, *normals;
+    int i,j,idx, nVert = calc_nVert(slices, stacks);
+    if (nVert == 0)
+    {
+        /* nothing to generate */
+        return NULL;
+    }
+    if (nVert > 65535)
+        /*
+         * limit of glushort, that's 256*256 subdivisions, should be enough in practice. See note above
+         */
+        return "fghSphere: too many slices or stacks requested, indices will wrap";
 
     /* Generate vertices and normals */
-    char *err = fghGenerateSphere(radius,slices,stacks,&vertices,&normals,&nVert);
+    GLfloat *vertices, *normals;
+    char *err = fghGenerateSphere(radius,slices,stacks,&vertices,&normals,nVert);
     if (err) return err;
-
-    if (nVert==0)
-        /* nothing to draw */
-        return NULL;
 
     /* only solid */
     {
