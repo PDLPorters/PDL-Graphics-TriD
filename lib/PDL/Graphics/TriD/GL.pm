@@ -311,12 +311,15 @@ sub togl_setup {
     @SPHERE{@KEYS} = gl_sphere(0.025, 15, 15);
   }
   @{ $this->{Impl} }{@KEYS} = @SPHERE{@KEYS};
+  $this->load_buffer(vert_buf => $this->{Impl}{vertices});
+  $this->load_buffer(norm_buf => $this->{Impl}{normals});
+  $this->togl_unbind;
 }
 sub gdraw {
   my($this,$points) = @_;
   $this->togl_bind;
   glShadeModel(GL_SMOOTH);
-  PDL::gl_spheres($points, @{ $this->{Impl} }{@KEYS});
+  PDL::gl_spheres($points, $this->{Impl}{idx});
   $this->togl_unbind;
 }
 }
