@@ -65,10 +65,10 @@ pp_def(
   Pars => 'coords(tri=3,n);
     float [t] vertices(tri,nVert=CALC(calc_nVert($COMP(slices),$COMP(stacks))));
     float [t] normals(tri,nVert);
-    ushort [t] stripIdx(nIdx=CALC(calc_nIdx($COMP(slices),$COMP(stacks))));',
+    uint [t] stripIdx(nIdx=CALC(calc_nIdx($COMP(slices),$COMP(stacks))));',
   OtherPars => 'float radius; int slices; int stacks;',
   CHeader => <<'EOF',
-char *pdl_3d_solidSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *vertices, GLfloat *normals, GLushort *stripIdx);
+char *pdl_3d_solidSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *vertices, GLfloat *normals, GLuint *stripIdx);
 int calc_nVert(GLint slices, GLint stacks);
 int calc_nIdx(GLint slices, GLint stacks);
 EOF

@@ -30,28 +30,16 @@
 #include <GL/gl.h>
 #endif
 
-/*
- * A note: We do not use the GLuint data type for vertex index arrays
- * in this code as Open GL ES1 only supports GLushort. This affects the
- * cylindrical objects only (Torus, Sphere, Cylinder and Cone) and limits
- * their number of vertices to 65535 (2^16-1). That's about 256*256
- * subdivisions, which is sufficient for just about any usage case, so
- * I am not going to worry about it for now.
- * One could do compile time detection of the gluint type through CMake,
- * but it is likely that we'll eventually move to runtime selection
- * of OpenGL or GLES1/2, which would make that strategy useless...
- */
-
 /* declare for drawing using the different OpenGL versions here so we can
    have a nice code order below */
 #ifndef GL_VERSION_1_1
 static void fghDrawGeometrySolid10(GLfloat *varr, GLfloat *narr, GLfloat *tarr,
-		GLsizei nverts, GLushort *iarr, GLsizei nparts, GLsizei npartverts);
+		GLsizei nverts, GLuint *iarr, GLsizei nparts, GLsizei npartverts);
 #endif
 static void fghDrawGeometrySolid11(GLfloat *vertices, GLfloat *normals, GLfloat *textcs, GLsizei numVertices,
-                                   GLushort *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart);
+                                   GLuint *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart);
 static void fghDrawGeometrySolid20(GLfloat *vertices, GLfloat *normals, GLfloat *textcs, GLsizei numVertices,
-                                   GLushort *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart,
+                                   GLuint *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart,
                                    GLint attribute_v_coord, GLint attribute_v_normal, GLint attribute_v_texture);
 
 /* Drawing geometry:
@@ -77,7 +65,7 @@ static void fghDrawGeometrySolid20(GLfloat *vertices, GLfloat *normals, GLfloat 
  * GLfloat *vertices, GLfloat *normals, GLfloat *textcs, GLsizei numVertices
  *   The vertex coordinate, normal and texture coordinate buffers, and the
  *   number of entries in those
- * GLushort *vertIdxs
+ * GLuint *vertIdxs
  *   a vertex indices buffer, optional (not passed for the polyhedra with
  *   triangular faces)
  * GLsizei numParts, GLsizei numVertPerPart
@@ -98,7 +86,7 @@ static void fghDrawGeometrySolid20(GLfloat *vertices, GLfloat *normals, GLfloat 
  *     array vertIdxs
  */
 void fghDrawGeometrySolid(GLfloat *vertices, GLfloat *normals, GLfloat *textcs, GLsizei numVertices,
-                          GLushort *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart)
+                          GLuint *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart)
 {
     GLint attribute_v_coord, attribute_v_normal, attribute_v_texture;
 #if 0 /* hook for shader stuff */
@@ -129,11 +117,11 @@ void fghDrawGeometrySolid(GLfloat *vertices, GLfloat *normals, GLfloat *textcs, 
 #ifndef GL_VERSION_1_1
 
 static void fghDrawGeometrySolid10(GLfloat *varr, GLfloat *narr, GLfloat *tarr,
-		GLsizei nverts, GLushort *iarr, GLsizei nparts, GLsizei npartverts)
+		GLsizei nverts, GLuint *iarr, GLsizei nparts, GLsizei npartverts)
 {
     int i, j;
 	GLfloat *vptr, *nptr, *tptr;
-	GLushort *iptr;
+	GLuint *iptr;
 
 	if(!iarr) {
 		vptr = varr;
@@ -183,7 +171,7 @@ static void fghDrawGeometrySolid10(GLfloat *varr, GLfloat *narr, GLfloat *tarr,
 #endif
 
 static void fghDrawGeometrySolid11(GLfloat *vertices, GLfloat *normals, GLfloat *textcs, GLsizei numVertices,
-                                   GLushort *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart)
+                                   GLuint *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart)
 {
 #if defined(GL_VERSION_1_1) || defined(GL_VERSION_ES_CM_1_0)
     int i;
@@ -222,7 +210,7 @@ static void fghDrawGeometrySolid11(GLfloat *vertices, GLfloat *normals, GLfloat 
 #if 0 /* shader stuff */
 /* Version for OpenGL (ES) >= 2.0 */
 static void fghDrawGeometrySolid20(GLfloat *vertices, GLfloat *normals, GLfloat *textcs, GLsizei numVertices,
-                                   GLushort *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart,
+                                   GLuint *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart,
                                    GLint attribute_v_coord, GLint attribute_v_normal, GLint attribute_v_texture)
 {
 #if defined(GL_VERSION_1_1) || defined(GL_VERSION_ES_CM_1_0)
@@ -420,11 +408,6 @@ char *fghGenerateSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *ver
         /* nothing to generate */
         return NULL;
     }
-    if (nVert > 65535)
-        /*
-         * limit of glushort, that's 256*256 subdivisions, should be enough in practice. See note above
-         */
-        return "fghGenerateSphere: too many slices or stacks requested, indices will wrap";
 
     /* precompute values on unit circle */
     char *err = fghCircleTable(&sint1,&cost1,-slices,GL_FALSE);
@@ -475,9 +458,9 @@ char *fghGenerateSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *ver
     return NULL;
 }
 
-void calc_strip_idx(GLushort  *stripIdx, GLint slices, GLint stacks, int nVert) {
+void calc_strip_idx(GLuint  *stripIdx, GLint slices, GLint stacks, int nVert) {
   int i,j,idx;
-  GLushort offset;
+  GLuint offset;
   /* top stack */
   for (j=0, idx=0;  j<slices;  j++, idx+=2)
   {
@@ -519,7 +502,7 @@ int calc_nIdx(GLint slices, GLint stacks) {
   return calc_numVertIdxsPerPart(slices)*stacks;
 }
 
-char *pdl_3d_solidSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *vertices, GLfloat *normals, GLushort *stripIdx)
+char *pdl_3d_solidSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *vertices, GLfloat *normals, GLuint *stripIdx)
 {
     int i,j,idx, nVert = calc_nVert(slices, stacks);
     if (nVert == 0)
@@ -527,11 +510,6 @@ char *pdl_3d_solidSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *ve
         /* nothing to generate */
         return NULL;
     }
-    if (nVert > 65535)
-        /*
-         * limit of glushort, that's 256*256 subdivisions, should be enough in practice. See note above
-         */
-        return "fghSphere: too many slices or stacks requested, indices will wrap";
 
     /* Generate vertices and normals */
     char *err = fghGenerateSphere(radius,slices,stacks,vertices,normals,nVert);
