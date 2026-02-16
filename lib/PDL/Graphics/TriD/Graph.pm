@@ -193,7 +193,13 @@ sub transform {
   return $point;
 }
 
-# projects from the sphere to a cylinder
+# projects from the sphere to a cylinder, with x & y in degrees, z = value
+# to try: set axis class on line 'Euclid3' to this
+# use PDL; use PDL::Graphics::TriD;
+# $size = 160;
+# $x = (xvals($size+1,$size+1) - $size/2);
+# $y = (yvals($size+1,$size+1) - $size/2);
+# $z = $x->random * 100 + 800; points3d [$x,$y,$z];
 package PDL::Graphics::TriD::CylindricalEquidistantAxes;
 use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/Name Scale/;
