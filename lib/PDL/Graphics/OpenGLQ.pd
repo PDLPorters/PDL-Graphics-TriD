@@ -62,24 +62,33 @@ my @internal = (Doc => 'internal', NoPthread => 1);
 pp_def(
   'gl_spheres',
   GenericTypes => $F,
-  Pars => 'coords(tri=3,n);',
-  OtherPars => 'double radius; int slices; int stacks;',
-  CHeader => "char *pdl_3d_solidSphere(double radius, GLint slices, GLint stacks);\n",
-  Code => '
-    float oldcoord0 = 0.0, oldcoord1 = 0.0, oldcoord2 = 0.0;
-    glPushMatrix();
-    loop(n) %{
-      glTranslatef(
-	$coords(tri=>0) - oldcoord0,
-	$coords(tri=>1) - oldcoord1,
-	$coords(tri=>2) - oldcoord2
-      );
-      char *err = pdl_3d_solidSphere($COMP(radius), $COMP(slices), $COMP(stacks));
-      if (err) $CROAK("%s", err);
-      oldcoord0 = $coords(tri=>0), oldcoord1 = $coords(tri=>1), oldcoord2 = $coords(tri=>2);
-    %}
-    glPopMatrix();
-  ',
+  Pars => 'coords(tri=3,n);
+    float [t] vertices(tri,nVert=CALC(calc_nVert($COMP(slices),$COMP(stacks))));
+    float [t] normals(tri,nVert);
+    ushort [t] stripIdx(nIdx=CALC(calc_nIdx($COMP(slices),$COMP(stacks))));',
+  OtherPars => 'float radius; int slices; int stacks;',
+  CHeader => <<'EOF',
+char *pdl_3d_solidSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *vertices, GLfloat *normals, GLushort *stripIdx);
+int calc_nVert(GLint slices, GLint stacks);
+int calc_nIdx(GLint slices, GLint stacks);
+EOF
+  Code => <<'EOF',
+broadcastloop %{
+float oldcoord0 = 0.0, oldcoord1 = 0.0, oldcoord2 = 0.0;
+glPushMatrix();
+loop(n) %{
+  glTranslatef(
+    $coords(tri=>0) - oldcoord0,
+    $coords(tri=>1) - oldcoord1,
+    $coords(tri=>2) - oldcoord2
+  );
+  char *err = pdl_3d_solidSphere($COMP(radius), $COMP(slices), $COMP(stacks), $P(vertices), $P(normals), $P(stripIdx));
+  if (err) $CROAK("%s", err);
+  oldcoord0 = $coords(tri=>0), oldcoord1 = $coords(tri=>1), oldcoord2 = $coords(tri=>2);
+%}
+glPopMatrix();
+%}
+EOF
   @internal
 );
 

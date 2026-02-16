@@ -519,7 +519,7 @@ int calc_nIdx(GLint slices, GLint stacks) {
   return calc_numVertIdxsPerPart(slices)*stacks;
 }
 
-static char *fghSphere( GLfloat radius, GLint slices, GLint stacks )
+char *pdl_3d_solidSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *vertices, GLfloat *normals, GLushort *stripIdx)
 {
     int i,j,idx, nVert = calc_nVert(slices, stacks);
     if (nVert == 0)
@@ -533,54 +533,20 @@ static char *fghSphere( GLfloat radius, GLint slices, GLint stacks )
          */
         return "fghSphere: too many slices or stacks requested, indices will wrap";
 
-    /* Allocate vertex and normal buffers, bail out if memory allocation fails */
-    GLfloat *vertices = malloc(nVert*3*sizeof(GLfloat));
-    GLfloat *normals  = malloc(nVert*3*sizeof(GLfloat));
-    if (!vertices || !normals)
-    {
-        free(vertices);
-        free(normals);
-        return "Failed to allocate memory in fghSphere";
-    }
-
     /* Generate vertices and normals */
     char *err = fghGenerateSphere(radius,slices,stacks,vertices,normals,nVert);
     if (err) return err;
 
-    /* only solid */
-    {
-        /* First, generate vertex index arrays for drawing with glDrawElements
-         * All stacks, including top and bottom are covered with a triangle
-         * strip.
-         */
-        int nIdx = calc_nIdx(slices, stacks), numVertIdxsPerPart = calc_numVertIdxsPerPart(slices);
-        /* Allocate buffers for indices, bail out if memory allocation fails */
-        GLushort  *stripIdx = malloc(nIdx*sizeof(GLushort));
-        if (!(stripIdx))
-        {
-            free(stripIdx);
-            return "Failed to allocate memory in fghSphere";
-        }
-        /* Create index vector */
-        calc_strip_idx(stripIdx, slices, stacks, nVert);
+    /* First, generate vertex index arrays for drawing with glDrawElements
+     * All stacks, including top and bottom are covered with a triangle
+     * strip.
+     */
+    int numVertIdxsPerPart = calc_numVertIdxsPerPart(slices);
+    /* Create index vector */
+    calc_strip_idx(stripIdx, slices, stacks, nVert);
 
-        /* draw */
-        fghDrawGeometrySolid(vertices,normals,NULL,nVert,stripIdx,stacks,numVertIdxsPerPart);
+    /* draw */
+    fghDrawGeometrySolid(vertices,normals,NULL,nVert,stripIdx,stacks,numVertIdxsPerPart);
 
-        /* cleanup allocated memory */
-        free(stripIdx);
-    }
-
-    /* cleanup allocated memory */
-    free(vertices);
-    free(normals);
     return NULL;
-}
-
-/*
- * Draws a solid sphere
- */
-char *pdl_3d_solidSphere(double radius, GLint slices, GLint stacks)
-{
-    return fghSphere((GLfloat)radius, slices, stacks );
 }
