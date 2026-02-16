@@ -30,11 +30,6 @@
 #include <GL/gl.h>
 #endif
 
-/* declare for drawing using the different OpenGL versions here so we can
-   have a nice code order below */
-static void fghDrawGeometrySolid11(GLfloat *vertices, GLfloat *normals, GLfloat *textcs, GLsizei numVertices,
-                                   GLuint *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart);
-
 /* Drawing geometry:
  * Explanation of the functions has to be separate for the polyhedra and
  * the non-polyhedra (objects with a circular cross-section).
@@ -80,18 +75,6 @@ static void fghDrawGeometrySolid11(GLfloat *vertices, GLfloat *normals, GLfloat 
  */
 void fghDrawGeometrySolid(GLfloat *vertices, GLfloat *normals, GLfloat *textcs, GLsizei numVertices,
                           GLuint *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart)
-{
-    GLint attribute_v_coord, attribute_v_normal, attribute_v_texture;
-        attribute_v_coord = attribute_v_normal = attribute_v_texture = -1;
-
-    {
-        fghDrawGeometrySolid11(vertices, normals, textcs, numVertices,
-                               vertIdxs, numParts, numVertIdxsPerPart);
-    }
-}
-
-static void fghDrawGeometrySolid11(GLfloat *vertices, GLfloat *normals, GLfloat *textcs, GLsizei numVertices,
-                                   GLuint *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart)
 {
     int i;
 
