@@ -84,11 +84,8 @@ void fghDrawGeometrySolid(GLfloat *vertices, GLfloat *normals, GLsizei numVertic
     glVertexPointer(3, GL_FLOAT, 0, vertices);
     glNormalPointer(GL_FLOAT, 0, normals);
 
-    if (numParts>1)
-        for (i=0; i<numParts; i++)
-            glDrawElements(GL_TRIANGLE_STRIP, numVertIdxsPerPart, GL_UNSIGNED_SHORT, vertIdxs+i*numVertIdxsPerPart);
-    else
-        glDrawElements(GL_TRIANGLES, numVertIdxsPerPart, GL_UNSIGNED_SHORT, vertIdxs);
+    for (i=0; i<numParts; i++)
+        glDrawElements(GL_TRIANGLE_STRIP, numVertIdxsPerPart, GL_UNSIGNED_INT, vertIdxs+i*numVertIdxsPerPart);
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
