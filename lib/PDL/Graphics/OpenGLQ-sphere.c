@@ -22,74 +22,9 @@
 
 #include <stddef.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <math.h>
 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
-
-/* Drawing geometry:
- * Explanation of the functions has to be separate for the polyhedra and
- * the non-polyhedra (objects with a circular cross-section).
- * Non-polyhedra:
- *   - We have implemented the sphere, cylinder, cone, and torus.
- *   - All shapes are characterized by two parameters: the number of
- *     subdivisions along two axes used to construct the shape's vertices
- *     (e.g. stacks and slices for the sphere).
- *     As different subdivisions are most suitable for different shapes,
- *     and are thus also named differently, I won't provide general comments
- *     on them here.
- *   - Solids are drawn using glDrawArrays and GL_TRIANGLE_STRIP. Each
- *     strip covers one revolution around one of the two subdivision axes
- *     of the shape.
- */
-
-
-/* Draw the geometric shape with filled triangles
- *
- * Arguments:
- * GLfloat *vertices, GLfloat *normals, GLfloat *textcs, GLsizei numVertices
- *   The vertex coordinate, normal and texture coordinate buffers, and the
- *   number of entries in those
- * GLuint *vertIdxs
- *   a vertex indices buffer, optional (not passed for the polyhedra with
- *   triangular faces)
- * GLsizei numParts, GLsizei numVertPerPart
- *   polyhedra: not used for polyhedra with triangular faces
-       (numEdgePerFace==3), as each vertex+normal pair is drawn only once,
-       so no vertex indices are used.
-       Else, the shape was triangulated (DECOMPOSE_TO_TRIANGLE), leading to
-       reuse of some vertex+normal pairs, and thus the need to draw with
-       glDrawElements. numParts is always 1 in this case (we can draw the
-       whole object with one call to glDrawElements as the vertex index
-       array contains separate triangles), and numVertPerPart indicates
-       the number of vertex indices in the vertex array.
- *   non-polyhedra: number of parts (GL_TRIANGLE_STRIPs) to be drawn
-       separately (numParts calls to glDrawElements) to create the object.
-       numVertPerPart indicates the number of vertex indices to be
-       processed at each draw call.
- *   numParts * numVertPerPart gives the number of entries in the vertex
- *     array vertIdxs
- */
-void fghDrawGeometrySolid(GLfloat *vertices, GLfloat *normals, GLsizei numVertices,
-                          GLuint *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart)
-{
-    int i;
-
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
-
-    glVertexPointer(3, GL_FLOAT, 0, vertices);
-    glNormalPointer(GL_FLOAT, 0, normals);
-
-    for (i=0; i<numParts; i++)
-        glDrawElements(GL_TRIANGLE_STRIP, numVertIdxsPerPart, GL_UNSIGNED_INT, vertIdxs+i*numVertIdxsPerPart);
-
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
-}
 
 /*
  * Compute lookup table of cos and sin values forming a circle
@@ -101,7 +36,7 @@ void fghDrawGeometrySolid(GLfloat *vertices, GLfloat *normals, GLsizei numVertic
  *    The last entry is exactly the same as the first
  *    The sign of n can be flipped to get the reverse loop
  */
-static char *fghCircleTable(GLfloat **sint, GLfloat **cost, const int n, const GLboolean halfCircle)
+static char *fghCircleTable(float **sint, float **cost, const int n, const char halfCircle)
 {
     int i;
 
@@ -109,11 +44,11 @@ static char *fghCircleTable(GLfloat **sint, GLfloat **cost, const int n, const G
     const int size = abs(n);
 
     /* Determine the angle between samples */
-    const GLfloat angle = (halfCircle?1:2)*(GLfloat)M_PI/(GLfloat)( ( n == 0 ) ? 1 : n );
+    const float angle = (halfCircle?1:2)*(float)M_PI/(float)( ( n == 0 ) ? 1 : n );
 
     /* Allocate memory for n samples, plus duplicate of first entry at the end */
-    *sint = malloc(sizeof(GLfloat) * (size+1));
-    *cost = malloc(sizeof(GLfloat) * (size+1));
+    *sint = malloc(sizeof(float) * (size+1));
+    *cost = malloc(sizeof(float) * (size+1));
 
     if (!(*sint) || !(*cost))
     {
@@ -128,8 +63,8 @@ static char *fghCircleTable(GLfloat **sint, GLfloat **cost, const int n, const G
 
     for (i=1; i<size; i++)
     {
-        (*sint)[i] = (GLfloat)sin(angle*i);
-        (*cost)[i] = (GLfloat)cos(angle*i);
+        (*sint)[i] = (float)sin(angle*i);
+        (*cost)[i] = (float)cos(angle*i);
     }
 
 
@@ -147,7 +82,7 @@ static char *fghCircleTable(GLfloat **sint, GLfloat **cost, const int n, const G
     return NULL;
 }
 
-int calc_nVert(GLint slices, GLint stacks) {
+int calc_nVert(int slices, int stacks) {
     /* number of unique vertices */
     if (slices==0 || stacks<2)
     {
@@ -157,15 +92,15 @@ int calc_nVert(GLint slices, GLint stacks) {
     return slices*(stacks-1)+2;
 }
 
-char *fghGenerateSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *vertices, GLfloat *normals, int nVert)
+char *fghGenerateSphere(float radius, int slices, int stacks, float *vertices, float *normals, int nVert)
 {
     int i,j;
     int idx = 0;    /* idx into vertex/normal buffer */
-    GLfloat x,y,z;
+    float x,y,z;
 
     /* Pre-computed circle */
-    GLfloat *sint1,*cost1;
-    GLfloat *sint2,*cost2;
+    float *sint1,*cost1;
+    float *sint2,*cost2;
 
     if (nVert == 0)
     {
@@ -174,9 +109,9 @@ char *fghGenerateSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *ver
     }
 
     /* precompute values on unit circle */
-    char *err = fghCircleTable(&sint1,&cost1,-slices,GL_FALSE);
+    char *err = fghCircleTable(&sint1,&cost1,-slices,0);
     if (err) return err;
-    err = fghCircleTable(&sint2,&cost2, stacks,GL_TRUE);
+    err = fghCircleTable(&sint2,&cost2, stacks,1);
     if (err) return err;
 
     /* top */
@@ -222,9 +157,9 @@ char *fghGenerateSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *ver
     return NULL;
 }
 
-void calc_strip_idx(GLuint  *stripIdx, GLint slices, GLint stacks, int nVert) {
+void calc_strip_idx(uint32_t  *stripIdx, int slices, int stacks, int nVert) {
   int i,j,idx;
-  GLuint offset;
+  uint32_t offset;
   /* top stack */
   for (j=0, idx=0;  j<slices;  j++, idx+=2)
   {
@@ -258,10 +193,10 @@ void calc_strip_idx(GLuint  *stripIdx, GLint slices, GLint stacks, int nVert) {
   stripIdx[idx+1] = offset;
 }
 
-int calc_numVertIdxsPerPart(GLint slices) {
+int calc_numVertIdxsPerPart(int slices) {
   return (slices+1)*2;
 }
 
-int calc_nIdx(GLint slices, GLint stacks) {
+int calc_nIdx(int slices, int stacks) {
   return calc_numVertIdxsPerPart(slices)*stacks;
 }

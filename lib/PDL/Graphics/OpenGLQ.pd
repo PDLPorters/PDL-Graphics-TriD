@@ -68,14 +68,11 @@ pp_def(
     uint [t] stripIdx(nIdx=CALC(calc_nIdx($COMP(slices),$COMP(stacks))));',
   OtherPars => 'float radius; int slices; int stacks;',
   CHeader => <<'EOF',
-void fghDrawGeometrySolid(GLfloat *vertices, GLfloat *normals,
-  GLsizei numVertices, GLuint *vertIdxs, GLsizei numParts,
-  GLsizei numVertIdxsPerPart);
-char *fghGenerateSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *vertices, GLfloat *normals, int nVert);
-void calc_strip_idx(GLuint  *stripIdx, GLint slices, GLint stacks, int nVert);
-int calc_nVert(GLint slices, GLint stacks);
-int calc_nIdx(GLint slices, GLint stacks);
-int calc_numVertIdxsPerPart(GLint slices);
+char *fghGenerateSphere(float radius, int slices, int stacks, float *vertices, float *normals, int nVert);
+void calc_strip_idx(uint32_t *stripIdx, int slices, int stacks, int nVert);
+int calc_nVert(int slices, int stacks);
+int calc_nIdx(int slices, int stacks);
+int calc_numVertIdxsPerPart(int slices);
 EOF
   Code => <<'EOF',
 /* Generate vertices and normals */
@@ -86,9 +83,14 @@ if (err) $CROAK("%s", err);
  * strip.
  */
 calc_strip_idx($P(stripIdx), $COMP(slices), $COMP(stacks), $SIZE(nVert));
+glEnableClientState(GL_VERTEX_ARRAY);
+glEnableClientState(GL_NORMAL_ARRAY);
+glVertexPointer(3, GL_FLOAT, 0, $P(vertices));
+glNormalPointer(GL_FLOAT, 0, $P(normals));
+int i, numVertIdxsPerPart = calc_numVertIdxsPerPart($COMP(slices));
+PDL_ULong *stripIdx = $P(stripIdx);
 broadcastloop %{
 float oldcoord0 = 0.0, oldcoord1 = 0.0, oldcoord2 = 0.0;
-int numVertIdxsPerPart = calc_numVertIdxsPerPart($COMP(slices));
 glPushMatrix();
 loop(n) %{
   glTranslatef(
@@ -96,10 +98,13 @@ loop(n) %{
     $coords(tri=>1) - oldcoord1,
     $coords(tri=>2) - oldcoord2
   );
-  fghDrawGeometrySolid($P(vertices),$P(normals),$SIZE(nVert),$P(stripIdx),$COMP(stacks),numVertIdxsPerPart);
+  for (i=0; i<$COMP(stacks); i++)
+    glDrawElements(GL_TRIANGLE_STRIP, numVertIdxsPerPart, GL_UNSIGNED_INT, stripIdx+i*numVertIdxsPerPart);
   oldcoord0 = $coords(tri=>0), oldcoord1 = $coords(tri=>1), oldcoord2 = $coords(tri=>2);
 %}
 glPopMatrix();
+glDisableClientState(GL_VERTEX_ARRAY);
+glDisableClientState(GL_NORMAL_ARRAY);
 %}
 EOF
   @internal
