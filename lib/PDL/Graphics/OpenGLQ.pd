@@ -113,7 +113,6 @@ loop (c) %{
 $orig(o=>0) = pdl_3d_bitmapFontXOrig();
 $orig(o=>1) = pdl_3d_bitmapFontYOrig();
 EOF
-  @internal
 );
 
 pp_def('gen_arrowheads',
