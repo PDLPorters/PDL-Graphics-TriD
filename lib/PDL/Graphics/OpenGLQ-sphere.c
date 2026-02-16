@@ -73,7 +73,7 @@
  *   numParts * numVertPerPart gives the number of entries in the vertex
  *     array vertIdxs
  */
-void fghDrawGeometrySolid(GLfloat *vertices, GLfloat *normals, GLfloat *textcs, GLsizei numVertices,
+void fghDrawGeometrySolid(GLfloat *vertices, GLfloat *normals, GLsizei numVertices,
                           GLuint *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart)
 {
     int i;
@@ -84,25 +84,14 @@ void fghDrawGeometrySolid(GLfloat *vertices, GLfloat *normals, GLfloat *textcs, 
     glVertexPointer(3, GL_FLOAT, 0, vertices);
     glNormalPointer(GL_FLOAT, 0, normals);
 
-    if (textcs)
-    {
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        glTexCoordPointer(2, GL_FLOAT, 0, textcs);
-    }
-
-    if (!vertIdxs)
-        glDrawArrays(GL_TRIANGLES, 0, numVertices);
+    if (numParts>1)
+        for (i=0; i<numParts; i++)
+            glDrawElements(GL_TRIANGLE_STRIP, numVertIdxsPerPart, GL_UNSIGNED_SHORT, vertIdxs+i*numVertIdxsPerPart);
     else
-        if (numParts>1)
-            for (i=0; i<numParts; i++)
-                glDrawElements(GL_TRIANGLE_STRIP, numVertIdxsPerPart, GL_UNSIGNED_SHORT, vertIdxs+i*numVertIdxsPerPart);
-        else
-            glDrawElements(GL_TRIANGLES, numVertIdxsPerPart, GL_UNSIGNED_SHORT, vertIdxs);
+        glDrawElements(GL_TRIANGLES, numVertIdxsPerPart, GL_UNSIGNED_SHORT, vertIdxs);
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
-    if (textcs)
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
 /*

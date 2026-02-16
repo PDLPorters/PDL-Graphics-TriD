@@ -68,7 +68,7 @@ pp_def(
     uint [t] stripIdx(nIdx=CALC(calc_nIdx($COMP(slices),$COMP(stacks))));',
   OtherPars => 'float radius; int slices; int stacks;',
   CHeader => <<'EOF',
-void fghDrawGeometrySolid(GLfloat *vertices, GLfloat *normals, GLfloat *textcs,
+void fghDrawGeometrySolid(GLfloat *vertices, GLfloat *normals,
   GLsizei numVertices, GLuint *vertIdxs, GLsizei numParts,
   GLsizei numVertIdxsPerPart);
 char *fghGenerateSphere(GLfloat radius, GLint slices, GLint stacks, GLfloat *vertices, GLfloat *normals, int nVert);
@@ -96,7 +96,7 @@ loop(n) %{
     $coords(tri=>1) - oldcoord1,
     $coords(tri=>2) - oldcoord2
   );
-  fghDrawGeometrySolid($P(vertices),$P(normals),NULL,$SIZE(nVert),$P(stripIdx),$COMP(stacks),numVertIdxsPerPart);
+  fghDrawGeometrySolid($P(vertices),$P(normals),$SIZE(nVert),$P(stripIdx),$COMP(stacks),numVertIdxsPerPart);
   oldcoord0 = $coords(tri=>0), oldcoord1 = $coords(tri=>1), oldcoord2 = $coords(tri=>2);
 %}
 glPopMatrix();
