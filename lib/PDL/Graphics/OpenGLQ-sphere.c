@@ -32,15 +32,8 @@
 
 /* declare for drawing using the different OpenGL versions here so we can
    have a nice code order below */
-#ifndef GL_VERSION_1_1
-static void fghDrawGeometrySolid10(GLfloat *varr, GLfloat *narr, GLfloat *tarr,
-		GLsizei nverts, GLuint *iarr, GLsizei nparts, GLsizei npartverts);
-#endif
 static void fghDrawGeometrySolid11(GLfloat *vertices, GLfloat *normals, GLfloat *textcs, GLsizei numVertices,
                                    GLuint *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart);
-static void fghDrawGeometrySolid20(GLfloat *vertices, GLfloat *normals, GLfloat *textcs, GLsizei numVertices,
-                                   GLuint *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart,
-                                   GLint attribute_v_coord, GLint attribute_v_normal, GLint attribute_v_texture);
 
 /* Drawing geometry:
  * Explanation of the functions has to be separate for the polyhedra and
@@ -97,66 +90,9 @@ void fghDrawGeometrySolid(GLfloat *vertices, GLfloat *normals, GLfloat *textcs, 
     }
 }
 
-#ifndef GL_VERSION_1_1
-
-static void fghDrawGeometrySolid10(GLfloat *varr, GLfloat *narr, GLfloat *tarr,
-		GLsizei nverts, GLuint *iarr, GLsizei nparts, GLsizei npartverts)
-{
-    int i, j;
-	GLfloat *vptr, *nptr, *tptr;
-	GLuint *iptr;
-
-	if(!iarr) {
-		vptr = varr;
-		nptr = narr;
-		tptr = tarr;
-		glBegin(GL_TRIANGLES);
-		for(i=0; i<nverts; i++) {
-			if(tarr) {
-				glTexCoord2fv(tptr); tptr += 2;
-			}
-			glNormal3fv(nptr); nptr += 3;
-			glVertex3fv(vptr); vptr += 3;
-		}
-		glEnd();
-		return;
-	}
-
-	iptr = iarr;
-	if(nparts > 1) {
-		for(i=0; i<nparts; i++) {
-			glBegin(GL_TRIANGLE_STRIP);
-			for(j=0; j<npartverts; j++) {
-				int idx = *iptr++;
-				if(tarr) {
-					glTexCoord2fv(tarr + idx * 2);
-				}
-				idx = idx * 2 + idx;
-				glNormal3fv(narr + idx);
-				glVertex3fv(varr + idx);
-			}
-			glEnd();
-		}
-	} else {
-		glBegin(GL_TRIANGLES);
-		for(i=0; i<npartverts; i++) {
-			int idx = *iptr++;
-			if(tarr) {
-				glTexCoord2fv(tarr + idx * 2);
-			}
-			idx = idx * 2 + idx;
-			glNormal3fv(narr + idx);
-			glVertex3fv(varr + idx);
-		}
-		glEnd();
-	}
-}
-#endif
-
 static void fghDrawGeometrySolid11(GLfloat *vertices, GLfloat *normals, GLfloat *textcs, GLsizei numVertices,
                                    GLuint *vertIdxs, GLsizei numParts, GLsizei numVertIdxsPerPart)
 {
-#if defined(GL_VERSION_1_1) || defined(GL_VERSION_ES_CM_1_0)
     int i;
 
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -184,9 +120,6 @@ static void fghDrawGeometrySolid11(GLfloat *vertices, GLfloat *normals, GLfloat 
     glDisableClientState(GL_NORMAL_ARRAY);
     if (textcs)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-#else
-	fghDrawGeometrySolid10(vertices, normals, textcs, numVertices, vertIdxs, numParts, numVertIdxsPerPart);
-#endif
 }
 
 /*
