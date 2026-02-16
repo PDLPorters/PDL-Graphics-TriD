@@ -196,7 +196,3 @@ void calc_strip_idx(uint32_t  *stripIdx, int slices, int stacks, int nVert) {
 int calc_numVertIdxsPerPart(int slices) {
   return (slices+1)*2;
 }
-
-int calc_nIdx(int slices, int stacks) {
-  return calc_numVertIdxsPerPart(slices)*stacks;
-}

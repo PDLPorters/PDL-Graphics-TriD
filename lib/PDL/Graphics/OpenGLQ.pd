@@ -65,13 +65,13 @@ pp_def(
   Pars => '
     [o] vertices(tri=3,nVert=CALC(calc_nVert($COMP(slices),$COMP(stacks))));
     [o] normals(tri,nVert);
-    uint [o] stripIdx(nIdx=CALC(calc_nIdx($COMP(slices),$COMP(stacks))));',
-  OtherPars => 'float radius; int slices; int stacks;',
+    uint [o] stripIdx(nperpart=CALC(calc_numVertIdxsPerPart($COMP(slices))),nstacks);',
+  OtherPars => 'float radius; int slices; int stacks => nstacks;',
   CHeader => <<'EOF',
 char *fghGenerateSphere(float radius, int slices, int stacks, float *vertices, float *normals, int nVert);
 void calc_strip_idx(uint32_t *stripIdx, int slices, int stacks, int nVert);
 int calc_nVert(int slices, int stacks);
-int calc_nIdx(int slices, int stacks);
+int calc_numVertIdxsPerPart(int slices);
 EOF
   Code => <<'EOF',
 /* Generate vertices and normals */
@@ -89,18 +89,12 @@ EOF
 pp_def(
   'gl_spheres',
   GenericTypes => $F,
-  Pars => 'coords(tri=3,n); vertices(tri,nVert); normals(tri,nVert); uint stripIdx(nIdx);',
-  OtherPars => 'int slices; int stacks;',
-  CHeader => <<'EOF',
-int calc_numVertIdxsPerPart(int slices);
-EOF
+  Pars => 'coords(tri=3,n); vertices(tri,nVert); normals(tri,nVert); uint stripIdx(nperpart,nstacks);',
   Code => <<'EOF',
 glEnableClientState(GL_VERTEX_ARRAY);
 glEnableClientState(GL_NORMAL_ARRAY);
 glVertexPointer(3, GL_FLOAT, 0, $P(vertices));
 glNormalPointer(GL_FLOAT, 0, $P(normals));
-int i, numVertIdxsPerPart = calc_numVertIdxsPerPart($COMP(slices));
-PDL_ULong *stripIdx = $P(stripIdx);
 broadcastloop %{
 float oldcoord0 = 0.0, oldcoord1 = 0.0, oldcoord2 = 0.0;
 glPushMatrix();
@@ -110,8 +104,9 @@ loop(n) %{
     $coords(tri=>1) - oldcoord1,
     $coords(tri=>2) - oldcoord2
   );
-  for (i=0; i<$COMP(stacks); i++)
-    glDrawElements(GL_TRIANGLE_STRIP, numVertIdxsPerPart, GL_UNSIGNED_INT, stripIdx+i*numVertIdxsPerPart);
+  loop (nstacks) %{
+    glDrawElements(GL_TRIANGLE_STRIP, $SIZE(nperpart), GL_UNSIGNED_INT, &$stripIdx(nperpart=>0));
+  %}
   oldcoord0 = $coords(tri=>0), oldcoord1 = $coords(tri=>1), oldcoord2 = $coords(tri=>2);
 %}
 glPopMatrix();

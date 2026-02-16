@@ -316,7 +316,7 @@ sub gdraw {
   my($this,$points) = @_;
   $this->togl_bind;
   glShadeModel(GL_SMOOTH);
-  PDL::gl_spheres($points, @{ $this->{Impl} }{@KEYS}, 15, 15);
+  PDL::gl_spheres($points, @{ $this->{Impl} }{@KEYS});
   $this->togl_unbind;
 }
 }
