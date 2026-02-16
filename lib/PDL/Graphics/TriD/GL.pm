@@ -65,12 +65,81 @@ sub PDL::Graphics::TriD::Quaternion::togl {
 # Graph Objects
 
 { package PDL::Graphics::TriD::Labels;
-use OpenGL::Modern qw(glColor3d);
+use OpenGL::Modern qw(
+  glEnable glBlendFunc
+  glDrawElements_c
+  GL_BLEND GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+  GL_TRIANGLES GL_UNSIGNED_INT
+  GL_RGBA32F GL_RGBA
+);
 use PDL::Graphics::OpenGLQ;
-sub gdraw {
+my %FONT;
+sub _font_setup {
+  my ($fref) = @_;
+  my ($texture, $rightbound, $orig) = gl_font_texture();
+  $fref->{texture} = PDL::float(1,1,1,1) * $texture->dummy(0,1);
+  my $widthpix = $rightbound->numdiff; $widthpix->slice('0') += 1;
+  @{ $fref->{widthpix} } = $widthpix->list;
+  $fref->{heightpix} = $texture->dim(1);
+  $fref->{numchars} = my $numchars = $rightbound->nelem;
+  $fref->{texwidthm1} = my $texwidthm1 = $texture->dim(0) - 1;
+  $fref->{leftbound} = my $leftbound = $rightbound->rotate(1) + 1;
+    $leftbound->slice('0') .= 0; $leftbound->set_datatype(PDL::float->enum);
+  $fref->{rightbound} = $rightbound = $rightbound->float;
+  $_ /= $texwidthm1 for $leftbound, $rightbound;
+  @$fref{qw(xorig yorig)} = $orig->list;
+  $fref->{texture} = PDL::float(1,1,1,1) * $texture->dummy(0,1);
+  # 4 = top-left, bot-left, top-right, bot-right, triangle idx=012,213
+  $fref->{idx} = PDL->new(PDL::ulong, [0,1,2], [2,1,3]);
+  $fref->{texcoords} = my $texcoords = PDL->zeroes(PDL::float,2,4,$numchars);
+  $texcoords->slice('(0),0:1') .= $leftbound->dummy(0,1);  # u of left
+  $texcoords->slice('(0),2:3') .= $rightbound->dummy(0,1); # u of right
+  $texcoords->slice('(1),0::2') .= 1;          # v of top, v bot=already 0
+}
+sub togl_setup {
   my ($this,$points) = @_;
-  glColor3d(1,1,1);
-  gl_texts($points,@$this{qw(Strings)});
+  print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
+  if (!keys %FONT) {
+    _font_setup(\%FONT);
+    $this->load_texture(font_id => $FONT{texture}, GL_RGBA32F, ($FONT{texture}->dims)[1,2], GL_RGBA);
+    $FONT{font_id} = $this->{Impl}{font_id};
+  } else {
+    $this->{Impl}{font_id} = $FONT{font_id};
+  }
+  $points //= $this->{Points}; # as Labels is used in Graph
+  my $numchars = $FONT{numchars};
+  my $vert_template = PDL->new(PDL::float, [0,0,1], [0,0,0], [1,0,1], [1,0,0]);
+  my $dwidth = $PDL::Graphics::TriD::Window::DEFAULT_WIDTH / 1.5;
+  my $dheight = $PDL::Graphics::TriD::Window::DEFAULT_HEIGHT / 1.5;
+  $vert_template *= PDL::float(1 / $dwidth, 1, $FONT{heightpix} / $dheight);
+  my (@codes) = map [map ord, split //], @{ $this->{Strings} };
+  my ($total_chars, @i, @v, @tc) = 0;
+  for (0..$#codes) {
+    my ($l, $point, $xoffset) = ($codes[$_], $points->dice_axis(1, $_), 0);
+    for (0..$#$l) {
+      my $c = $l->[$_];
+      PDL::barf "Codepoint $c >= $numchars" if $c >= $numchars;
+      my $thiswidth = $FONT{widthpix}[$c];
+      push @i, $FONT{idx} + 4*$total_chars;
+      push @v, $point + PDL::float($xoffset,0,0) + ($vert_template * PDL::float($thiswidth,1,1));
+      push @tc, $FONT{texcoords}->slice(",,($c)");
+      $xoffset += $thiswidth / $dwidth;
+      $total_chars++;
+    }
+  }
+  $this->{Impl}{idx} = PDL::cat(@i)->clump(1,2);
+  $this->load_buffer(vert_buf => my $v = PDL::cat(@v)->clump(1,2));
+  $this->load_buffer(texc_buf => my $tc = PDL::cat(@tc)->clump(1,2));
+  $this->load_idx_buffer(indx_buf => $this->{Impl}{idx});
+  $this->togl_unbind;
+}
+sub gdraw {
+  my($this,$points) = @_;
+  $this->togl_bind;
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glDrawElements_c(GL_TRIANGLES, $this->{Impl}{idx}->nelem, GL_UNSIGNED_INT, 0);
+  $this->togl_unbind;
 }
 }
 
@@ -128,8 +197,9 @@ sub load_texture {
 }
 sub togl_bind {
   my ($this) = @_;
-  if (defined $this->{Impl}{tex_id}) {
-    glBindTexture(GL_TEXTURE_2D, $this->{Impl}{tex_id});
+  # font_id doesn't get deleted in DESTROY
+  if (my ($id) = grep defined, @{ $this->{Impl} }{qw(tex_id font_id)}) {
+    glBindTexture(GL_TEXTURE_2D, $id);
     glEnable(GL_TEXTURE_2D);
   }
   if (defined $this->{Impl}{vert_buf}) {
@@ -505,7 +575,7 @@ sub display {
   print "display: calling glClear()\n" if $PDL::Graphics::TriD::verbose;
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
   for my $vp (@{$this->{_ViewPorts}}) {
-    glPushAttrib(GL_TRANSFORM_BIT);
+    glPushAttrib(GL_TRANSFORM_BIT|GL_COLOR_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     $vp->do_perspective();

@@ -83,40 +83,6 @@ pp_def(
   @internal
 );
 
-sub TRI {
-  my ($par, $suffix, $var) = @_;
-  $par .= $suffix if $suffix && !ref $suffix;
-  $var //= 'trivert';
-  my $extra_arg = ref $suffix ? "$var => $$suffix," : '';
-  join ',', map "$par(${extra_arg}tri => $_)", 0..2;
-}
-sub make_tri { shift()."(".TRI(@_).");\n" }
-sub RPOS { make_tri("glRasterPos3f",'$coords',@_) }
-
-pp_def(
-  'gl_texts',
-  GenericTypes => $F,
-  Pars => 'coords(tri=3,x); ',
-  OtherPars => 'SV *arr',
-  CHeader => "void pdl_3d_bitmapString( const unsigned char *string );\n",
-  Code => '
-    SV *sv = $COMP(arr);
-    if (!(SvROK(sv) && SvTYPE(SvRV(sv))==SVt_PVAV))
-      $CROAK("gl_texts requires an array ref");
-    AV *arr = (AV *)SvRV(sv);
-    if (av_len(arr)+1 != $SIZE(x))
-      $CROAK("gl_texts given %d strings but %td pointss", av_len(arr)+1, $SIZE(x));
-    loop(x) %{
-      SV *elem = *(av_fetch(arr, x, 0));
-      if (!elem) continue;
-      char *str = SvPV_nolen(elem);
-      '.RPOS().'
-      pdl_3d_bitmapString((const unsigned char *)str);
-    %}
-  ',
-  @internal
-);
-
 pp_def(
   'gl_font_texture',
   GenericTypes => ['B'],
