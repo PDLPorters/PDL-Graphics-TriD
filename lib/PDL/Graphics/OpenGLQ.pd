@@ -55,6 +55,7 @@ pp_addhdr('
     int i; \
     for (i = 0; i < 3; i++) v[i] *= fac; \
   }
+#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 ');
 
 my @internal = (Doc => 'internal', NoPthread => 1);
@@ -88,7 +89,8 @@ EOF
 pp_def(
   'gl_spheres',
   GenericTypes => $F,
-  Pars => 'coords(tri=3,n); uint stripIdx(nperpart,nstacks);',
+  Pars => 'coords(tri=3,n);',
+  OtherPars => 'int dim0; int dim1 => nstacks;',
   Code => <<'EOF',
 float oldcoord0 = 0.0, oldcoord1 = 0.0, oldcoord2 = 0.0;
 glPushMatrix();
@@ -99,7 +101,7 @@ loop(n) %{
     $coords(tri=>2) - oldcoord2
   );
   loop (nstacks) %{
-    glDrawElements(GL_TRIANGLE_STRIP, $SIZE(nperpart), GL_UNSIGNED_INT, &$stripIdx(nperpart=>0));
+    glDrawElements(GL_TRIANGLE_STRIP, $COMP(dim0), GL_UNSIGNED_INT, BUFFER_OFFSET(nstacks * $COMP(dim0) * sizeof(PDL_ULong)));
   %}
   oldcoord0 = $coords(tri=>0), oldcoord1 = $coords(tri=>1), oldcoord2 = $coords(tri=>2);
 %}

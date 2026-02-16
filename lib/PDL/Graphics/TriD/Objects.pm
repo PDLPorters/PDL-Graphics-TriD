@@ -95,7 +95,6 @@ use base qw/PDL::Graphics::TriD::GObject/;
 # need to add radius
 sub get_valid_options { +{
   UseDefcols => 0,
-  PointSize => 1,
   Lighting => 1,
 }}
 
