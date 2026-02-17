@@ -172,6 +172,7 @@ use OpenGL::Modern qw(
 );
 sub load_buffer {
   my ($this, $idname, $pdl, $target, $usage) = @_;
+  PDL::barf ref($this)."::load_buffer: undef ndarray" if !defined $pdl;
   $target //= GL_ARRAY_BUFFER;
   $usage //= GL_STATIC_DRAW;
   my $id = $this->{Impl}{$idname} //= glGenBuffers_p(1);
@@ -181,10 +182,12 @@ sub load_buffer {
 }
 sub load_idx_buffer {
   my ($this, $idname, $pdl, $usage) = @_;
+  PDL::barf ref($this)."::load_idx_buffer: undef ndarray" if !defined $pdl;
   $this->load_buffer($idname, $pdl, GL_ELEMENT_ARRAY_BUFFER, $usage);
 }
 sub load_texture {
   my ($this, $idname, $pdl, $iformat, $x, $y, $format, $type, $target) = @_;
+  PDL::barf ref($this)."::load_texture: undef ndarray" if !defined $pdl;
   $type //= GL_FLOAT;
   $target //= GL_TEXTURE_2D;
   # ||= as only need one, even if re-setup
