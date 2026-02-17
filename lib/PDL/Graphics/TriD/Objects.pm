@@ -263,6 +263,7 @@ sub new {
     my %less = %$options; delete @less{qw(Lines)};
     my @colordims = $colors->dims;
     PDL::barf "Lattice: colours must be 3,x,y: got (@colordims)" if @colordims != 3 or $colordims[0] != 3;
+    PDL::barf "Lattice: colours' x,y must equal points: got colour=(@colordims) points=($x,$y)" if $colordims[1] != $x or $colordims[2] != $y;
     $this->add_object(PDL::Graphics::TriD::Triangles->new($points->clump(1..2), $faceidx, $colors->clump(1..$colors->ndims-1), \%less));
   }
   if ($shading == 0 or $options->{Lines}) {
