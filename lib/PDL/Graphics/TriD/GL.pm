@@ -338,13 +338,18 @@ use OpenGL::Modern qw(
   glShadeModel glColorMaterial glEnable glDisable
   glDrawElements_c
   GL_FLAT GL_SMOOTH GL_FRONT_AND_BACK GL_DIFFUSE GL_COLOR_MATERIAL
-  GL_TRIANGLES GL_UNSIGNED_INT
+  GL_TRIANGLES GL_UNSIGNED_INT GL_RGB
 );
 sub togl_setup {
   my ($this,$points) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
   $this->load_buffer(vert_buf => $points);
-  $this->load_buffer(color_buf => $this->{Colors});
+  if (defined $this->{Colors}) {
+    $this->load_buffer(color_buf => $this->{Colors});
+  } else {
+    $this->load_buffer(texc_buf => $this->{TexCoord});
+    $this->load_texture(tex_id => $this->{TexColors}, GL_RGB, ($this->{TexColors}->dims)[1,2], GL_RGB);
+  }
   $this->load_idx_buffer(indx_buf => $this->{Faceidx});
   $this->load_buffer(norm_buf => $this->{Normals}) if $this->{Options}{Shading} > 2;
   $this->togl_unbind;

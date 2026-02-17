@@ -175,15 +175,20 @@ sub cdummies { $_[1]->dummy(1,$_[2]->getdim(1)); }
 package # hide from PAUSE
   PDL::Graphics::TriD::Triangles;
 use base qw/PDL::Graphics::TriD::GObject/;
-use fields qw/Faceidx Normals/;
+use fields qw/Faceidx Normals TexColors TexCoord/;
 use PDL::Graphics::OpenGLQ;
 sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : {};
   my ($type,$points,$faceidx,$colors) = @_;
   my $this = $type->SUPER::new($points,$colors,$options);
   $faceidx = $this->{Faceidx} = $faceidx->ulong; # (3,nfaces) indices
-  PDL::barf "Triangles error: broadcast dimensions forbidden for '$_' [@{[$this->{$_}->dims]}]" for grep $this->{$_}->ndims != 2, qw(Points Colors Faceidx);
-  PDL::barf "Triangles error: dimension mismatch between Points [@{[$this->{Points}->dims]}] and Colors [@{[$this->{Colors}->dims]}]" if $this->{Points}->ndims != $this->{Colors}->ndims or $this->{Points}->dim(1) != $this->{Colors}->dim(1);
+  if (ref $this->{Colors} eq 'REF') {
+    @$this{qw(TexColors TexCoord)} = @${ $this->{Colors} };
+    $this->{Colors} = undef;
+  }
+  PDL::barf "Triangles error: broadcast dimensions forbidden for '$_' [@{[$this->{$_}->dims]}]" for grep defined $this->{$_} && $this->{$_}->ndims != 2, qw(Points Colors Faceidx TexCoord);
+  my ($colour_cmp) = grep defined, @$this{qw(Colors TexCoord)};
+  PDL::barf "Triangles error: dimension mismatch between Points [@{[$this->{Points}->dims]}] and Colors/TexCoord [@{[$colour_cmp->dims]}]" if $this->{Points}->ndims != $colour_cmp->ndims or $this->{Points}->dim(1) != $colour_cmp->dim(1);
   $options = $this->{Options};
   my ($idxflat, $idx0, @idxdims) = ($faceidx->flat, $faceidx->dims);
   if ($options->{Shading} or $options->{ShowNormals}) {
@@ -264,7 +269,10 @@ sub new {
     my @colordims = $colors->dims;
     PDL::barf "Lattice: colours must be 3,x,y: got (@colordims)" if @colordims != 3 or $colordims[0] != 3;
     PDL::barf "Lattice: colours' x,y must equal points: got colour=(@colordims) points=($x,$y)" if $colordims[1] != $x or $colordims[2] != $y;
-    $this->add_object(PDL::Graphics::TriD::Triangles->new($points->clump(1..2), $faceidx, $colors->clump(1..$colors->ndims-1), \%less));
+    my $tc = PDL->zeroes(PDL::float, 2, @colordims[1,2]);
+    $tc->slice('(0)') .= $tc->slice('(0)')->xlinvals(0,1); # should be inplace but PDL bugfix not yet released XXX
+    $tc->slice('(1)') .= $tc->slice('(1)')->ylinvals(0,1);
+    $this->add_object(PDL::Graphics::TriD::Triangles->new($points->clump(1..2), $faceidx, \[$colors, $tc->clump(1..2)], \%less));
   }
   if ($shading == 0 or $options->{Lines}) {
     my $lcolors = $shading ? $this->cdummies(PDL::float(0,0,0),$points) : $colors;

@@ -19,6 +19,17 @@ sub new {
 
 sub normalise_as {
   my ($this, $as, $what, $points) = @_;
+  if (ref $what eq 'REF') {
+    die "Given scalar-ref but not as 'COLOR'" if $as ne "COLOR";
+    die "Given scalar-ref as 'COLOR' but not to array-ref" if ref $$what ne 'ARRAY';
+    die "Given \\[...] as 'COLOR' but not 2 elts" if @$$what != 2;
+    die "Given \\[\$x,\$y] as 'COLOR' but at least one is not ndarray" if grep !UNIVERSAL::isa($_, 'PDL'), @$$what;
+    my @xdims = $$what->[0]->dims;
+    die "Given \\[\$x,\$y] as 'COLOR' but \$x is not float(3,x,y)" if @xdims != 3 or $xdims[0] != 3 or $$what->[0]->type ne 'float';
+    my @ydims = $$what->[1]->dims;
+    die "Given \\[\$x,\$y] as 'COLOR' but \$y is not float(2,...)" if @ydims < 2 or $ydims[0] != 2 or $$what->[1]->type ne 'float';
+    return $what;
+  }
   if ($as eq "COLOR" and UNIVERSAL::isa($what, 'PDL') and $what->ndims == 1) {
     die "Given 1D ndarray as colour but no points to match" if !defined $points;
     return $this->cdummies($what->float,$points);
