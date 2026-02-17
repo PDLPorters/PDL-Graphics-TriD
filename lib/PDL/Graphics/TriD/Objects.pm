@@ -182,10 +182,10 @@ sub new {
   my ($type,$points,$faceidx,$colors) = @_;
   my $this = $type->SUPER::new($points,$colors,$options);
   $faceidx = $this->{Faceidx} = $faceidx->ulong; # (3,nfaces) indices
-  $options = $this->{Options};
-  my ($idxflat, $idx0, @idxdims) = ($faceidx->flat, $faceidx->dims);
   PDL::barf "Triangles error: broadcast dimensions forbidden for '$_' [@{[$this->{$_}->dims]}]" for grep $this->{$_}->ndims != 2, qw(Points Colors Faceidx);
   PDL::barf "Triangles error: dimension mismatch between Points [@{[$this->{Points}->dims]}] and Colors [@{[$this->{Colors}->dims]}]" if $this->{Points}->ndims != $this->{Colors}->ndims or $this->{Points}->dim(1) != $this->{Colors}->dim(1);
+  $options = $this->{Options};
+  my ($idxflat, $idx0, @idxdims) = ($faceidx->flat, $faceidx->dims);
   if ($options->{Shading} or $options->{ShowNormals}) {
     my ($fn, $vn) = triangle_normals($this->{Points}, $faceidx);
     if ($options->{ShowNormals}) {
