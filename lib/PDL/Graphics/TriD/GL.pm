@@ -262,12 +262,16 @@ sub togl {
 sub DESTROY {
   my ($this) = @_;
   print "DESTROY $this\n" if $PDL::Graphics::TriD::verbose;
-  my $bound = glGetIntegerv_p(GL_ARRAY_BUFFER_BINDING);
   my @array_bufs = grep defined, @{ $this->{Impl} }{qw(vert_buf color_buf norm_buf texc_buf)};
-  glBindBuffer(GL_ARRAY_BUFFER, 0) if grep $bound == $_, @array_bufs;
-  $bound = glGetIntegerv_p(GL_ELEMENT_ARRAY_BUFFER_BINDING);
+  if (@array_bufs) {
+    my $bound = glGetIntegerv_p(GL_ARRAY_BUFFER_BINDING);
+    glBindBuffer(GL_ARRAY_BUFFER, 0) if grep $bound == $_, @array_bufs;
+  }
   my @elt_bufs = grep defined, @{ $this->{Impl} }{qw(indx_buf)};
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0) if grep $bound == $_, @elt_bufs;
+  if (@elt_bufs) {
+    my $bound = glGetIntegerv_p(GL_ELEMENT_ARRAY_BUFFER_BINDING);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0) if grep $bound == $_, @elt_bufs;
+  }
   glDeleteBuffers_p(@array_bufs, @elt_bufs) if @array_bufs + @elt_bufs;
   if (defined(my $tex_id = $this->{Impl}{tex_id})) {
     glBindTexture(GL_TEXTURE_2D, 0) if glGetIntegerv_p(GL_TEXTURE_BINDING_2D) == $tex_id;
