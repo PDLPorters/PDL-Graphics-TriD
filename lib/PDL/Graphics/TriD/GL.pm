@@ -188,6 +188,7 @@ sub load_idx_buffer {
 sub load_texture {
   my ($this, $idname, $pdl, $iformat, $x, $y, $format, $type, $target) = @_;
   PDL::barf ref($this)."::load_texture: undef ndarray" if !defined $pdl;
+  PDL::barf ref($this)."::load_texture: undef \$x/\$y" if grep !defined, $x, $y;
   $type //= GL_FLOAT;
   $target //= GL_TEXTURE_2D;
   # ||= as only need one, even if re-setup
