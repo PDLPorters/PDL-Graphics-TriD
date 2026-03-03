@@ -215,7 +215,8 @@ sub new {
         $this->{Normals} = $vn;
       } else {
         $this->{Points} = $this->{Points}->dice_axis(1,$idxflat);
-        $this->{Colors} = $this->{Colors}->dice_axis(1,$idxflat);
+        my ($cols) = grep defined $this->{$_}, qw(Colors TexCoord);
+        $this->{$cols} = $this->{$cols}->dice_axis(1,$idxflat);
         $this->{Normals} = $fn->dummy(1,$idx0)->clump(1,2);
         $this->{Faceidx} = PDL->sequence(PDL::ulong,$idx0,@idxdims);
       }
