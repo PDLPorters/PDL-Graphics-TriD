@@ -155,7 +155,7 @@ sub new {
       next if $i % $labelint;
       my ($start, $end) = (@pi_ends > 1 ? $pi_ends[-2] : 0, $pi_ends[-1]);
       my $lp2 = $points->slice(":,$start:$end:$segint");
-      push @strlist, ($cvals->slice("($i)")) x $lp2->dim(1);
+      push @strlist, ($cvals->slice("($i)")->string('%7g')) x $lp2->dim(1);
       $lp = $lp->glue(1,$lp2);
     }
     $this->add_object(PDL::Graphics::TriD::Labels->new($lp, \@strlist)) if $lp->nelem;
