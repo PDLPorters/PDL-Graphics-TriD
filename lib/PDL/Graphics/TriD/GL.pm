@@ -376,6 +376,7 @@ sub gdraw {
 use OpenGL::Modern qw(glMultiDrawElements_c GL_UNSIGNED_INT);
 sub togl_setup {
   my ($this,$points) = @_;
+  $points //= $this->{Points}; # as Lattice is used in Graph for CylindricalEquidistantAxes
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
   $this->load_buffer(vert_buf => $points);
   $this->load_buffer(color_buf => $this->{Colors});
