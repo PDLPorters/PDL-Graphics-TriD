@@ -46,10 +46,9 @@ $|.__PACKAGE__.q|::we_opened = !defined $PDL::Graphics::TriD::current_window;
 # B/W Mandelbrot... [Tjl]
 
 use PDL; use PDL::Graphics::TriD; # NOTE all demos need this, only showing once
-$s=150;$r=xlinvals(-1.5,0.5,$s,$s);$i=ylinvals(-1,1,$s,$s);
-$t=$r;$u=$i;
-for(0..12){$q=$r**2-$i**2+$t;$h=2*$r*$i+$u;($r,$i)=map{$_->clip(-5,5)}($q,$h);}
-imagrgb[($r**2+$i**2)>2.0];
+$s = 150; $z = $c = czip(xlinvals(-1.5,0.5,$s,$s),ylinvals(-1,1,$s,$s));
+for (0..12) { $z = $z*$z + $c; $z->$_->inplace->clip(-5,5) for qw(re im); }
+imagrgb[$z->abs2 > 2.0];
 
 # [press 'q' in the graphics window when done]
 |],
@@ -57,12 +56,12 @@ imagrgb[($r**2+$i**2)>2.0];
 [actnw => q|
 # Greyscale Mandelbrot [Tjl]
 
-$x=zeroes 300,300; $r=$x->xlinvals(-1.5, 0.5);
-$i=$x->ylinvals(-1,1); $t=$r; $u=$i;
-for(1..30){
-  $q=$r**2-$i**2+$t; $h=2*$r*$i+$u;
-  $d=$r**2+$i**2; $x=lclip($x,$_*($d>2.0)*($x==0));
-  ($r,$i)=map $_->clip(-5,5), $q, $h;
+$s = 300; $x = zeroes $s,$s;
+$z = $c = czip($x->xlinvals(-1.5,0.5),$x->ylinvals(-1,1));
+for (1..30) {
+  $d = $z->abs2; $z = $z*$z + $c;
+  $x = lclip($x,$_*($d>2.0)*($x==0));
+  $z->$_->inplace->clip(-5,5) for qw(re im);
 }
 imagrgb[$x/30];
 
@@ -72,14 +71,12 @@ imagrgb[$x/30];
 [actnw => q|
 # Color Mandelbrot anim [Tjl]
 nokeeptwiddling3d();
-$x=zeroes 300,300;
-$t=$r=$x->xlinvals(-1.5,0.5);
-$u=$i=$x->ylinvals(-1,1);
-for(1..30) {
-  $q=$r**2-$i**2+$t; $h=2*$r*$i+$u; $d=$r**2+$i**2;
-  $x=lclip($x,$_*($d>2.0)*($x==0));
-  ($r,$i)=map $_->clip(-5,5), $q,$h;
-  imagrgb[($x==0)*($r/2+0.75),($x==0)*($i+1)/2,$x/30];
+$s = 300; $x = zeroes $s,$s;
+$z = $c = czip($x->xlinvals(-1.5,0.5),$x->ylinvals(-1,1));
+for (1..30) {
+  $d = $z->abs2; $z = $z*$z + $c;
+  $x = lclip($x,$_*($d>2.0)*($x==0));
+  imagrgb[($x==0)*($z->re/2+0.75),($x==0)*($z->im+1)/2,$x/30];
 }
 keeptwiddling3d();
 twiddle3d();
@@ -88,15 +85,15 @@ twiddle3d();
 
 [actnw => q|
 # Neat variation of color mandelbrot
-sub f {return abs(sin($_[0]*30))}
-$x=zeroes 300,300;
-$r=$x->xlinvals(-1.5, 0.5); $i=$x->ylinvals(-1,1); $t=$r; $u=$i;
+sub f {abs(sin($_[0]*30))}
+$s = 300; $x = zeroes $s,$s;
+$z = $c = czip($x->xlinvals(-1.5,0.5),$x->ylinvals(-1,1));
 nokeeptwiddling3d();
-for(1..30) {
-  $q=$r**2-$i**2+$t;
-  $h=2*$r*$i+$u; $d=$r**2+$i**2; $x=lclip($x,$_*($d>2.0)*($x==0));
-  ($r,$i)=map $_->clip(-5,5), $q,$h;
-  imagrgb[f(($x==0)*($r/2+0.75)),f(($x==0)*($i+1)/2),$x/30];
+for (1..30) {
+  $d = $z->abs2; $z = $z*$z + $c;
+  $x = lclip($x,$_*($d>2.0)*($x==0));
+  $z->$_->inplace->clip(-5,5) for qw(re im);
+  imagrgb[f(($x==0)*($z->re/2+0.75)),f(($x==0)*($z->im+1)/2),$x/30];
 }
 keeptwiddling3d();
 twiddle3d();
