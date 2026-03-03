@@ -270,9 +270,7 @@ sub new {
     my @colordims = $colors->dims;
     PDL::barf "Lattice: colours must be 3,x,y: got (@colordims)" if @colordims != 3 or $colordims[0] != 3;
     PDL::barf "Lattice: colours' x,y must equal points: got colour=(@colordims) points=($x,$y)" if $colordims[1] != $x or $colordims[2] != $y;
-    my $tc = PDL->zeroes(PDL::float, 2, @colordims[1,2]);
-    $tc->slice('(0)') .= $tc->slice('(0)')->xlinvals(0,1); # should be inplace but PDL bugfix not yet released XXX
-    $tc->slice('(1)') .= $tc->slice('(1)')->ylinvals(0,1);
+    my $tc = PDL::allaxislinvals(PDL::float, 0,1, @colordims[1,2]);
     $this->add_object(PDL::Graphics::TriD::Triangles->new($points->clump(1..2), $faceidx, \[$colors, $tc->clump(1..2)], \%less));
   }
   if ($shading == 0 or $options->{Lines}) {

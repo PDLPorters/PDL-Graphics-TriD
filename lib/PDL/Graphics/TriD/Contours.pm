@@ -111,8 +111,7 @@ sub new {
       print "ContourInt =  ",$options->{ContourInt},"\n"
                   if $PDL::Graphics::TriD::verbose;
     }
-    $cvals=zeroes(float(), int(($options->{ContourMax}-$options->{ContourMin})/$options->{ContourInt}+1));
-    $cvals = $cvals->xlinvals(@$options{qw(ContourMin ContourMax)});
+    $cvals = xlinvals(float(), @$options{qw(ContourMin ContourMax)}, int(($options->{ContourMax}-$options->{ContourMin})/$options->{ContourInt}+1));
   } else {
     $cvals = $options->{ContourVals};
     @$options{qw(ContourMin ContourMax)} = $cvals->minmax;

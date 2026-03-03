@@ -127,10 +127,9 @@ sub togl_setup {
       $total_chars++;
     }
   }
-  $this->{Impl}{idx} = PDL::cat(@i)->clump(1,2);
-  $this->load_buffer(vert_buf => my $v = PDL::cat(@v)->clump(1,2));
-  $this->load_buffer(texc_buf => my $tc = PDL::cat(@tc)->clump(1,2));
-  $this->load_idx_buffer(indx_buf => $this->{Impl}{idx});
+  $this->load_buffer(vert_buf => PDL::cat(@v)->clump(1,2));
+  $this->load_buffer(texc_buf => PDL::cat(@tc)->clump(1,2));
+  $this->load_idx_buffer(indx_buf => $this->{Impl}{idx} = PDL::cat(@i)->clump(1,2));
   $this->togl_unbind;
 }
 sub gdraw {

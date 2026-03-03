@@ -237,7 +237,7 @@ eval { # this is in case no NetPBM, i.e. can't load Earth images
   ($rgb, $rad) = map $rgbrad2->slice($_), '0:2', '3';
   ($w, $h) = map $rgbrad2->dim($_), 1, 2;
   $lonlat = cat(meshgrid(
-    zeroes($w)->xlinvals(-PI,PI), zeroes($h)->xlinvals(-PI/2,PI/2)
+    xlinvals(-PI,PI,$w), xlinvals(-PI/2,PI/2,$h)
   ))->mv(-1,0);
   $lonlatrad = $lonlat->append($rad);
   $sph = t_spherical()->inverse()->apply($lonlatrad);
@@ -267,8 +267,8 @@ $latinds = indx(($lats + 0.5) * $rgbrad->dim(2));
 $loninds = indx((($lons + 1) / 2) * $rgbrad->dim(1));
 $rgbrad3 = $rgbrad->slice(':', map [$_->list], $loninds, $latinds)->sever; # zoom
 $lonlat3 = cat(meshgrid(
-  zeroes($rgbrad3->dim(1))->xlinvals($lons->list),
-  zeroes($rgbrad3->dim(2))->xlinvals($lats->list),
+  xlinvals($lons->list,$rgbrad3->dim(1)),
+  xlinvals($lats->list,$rgbrad3->dim(2)),
 ))->mv(-1,0);
 ($rgb3, $rad3) = map $rgbrad3->slice($_), '0:2', '3';
 $lonlatrad3 = $lonlat3->append($rad3);

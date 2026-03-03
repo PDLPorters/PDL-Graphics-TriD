@@ -46,7 +46,7 @@ $|.__PACKAGE__.q|::we_opened = !defined $PDL::Graphics::TriD::current_window;
 # B/W Mandelbrot... [Tjl]
 
 use PDL; use PDL::Graphics::TriD; # NOTE all demos need this, only showing once
-$s=150;$x=zeroes $s,$s;$r=$x->xlinvals(-1.5,0.5);$i=$x->ylinvals(-1,1);
+$s=150;$r=xlinvals(-1.5,0.5,$s,$s);$i=ylinvals(-1,1,$s,$s);
 $t=$r;$u=$i;
 for(0..12){$q=$r**2-$i**2+$t;$h=2*$r*$i+$u;($r,$i)=map{$_->clip(-5,5)}($q,$h);}
 imagrgb[($r**2+$i**2)>2.0];
@@ -104,24 +104,24 @@ twiddle3d();
 
 [actnw => q|
 # Torus... (barrel) [Tjl]
-$s=40;$x=zeroes $s,$s;$t=$x->xlinvals(0,6.284);
-$u=$x->ylinvals(0,6.284);$o=5;$i=1;$v=$o+$i*sin$u;
+$s=40;$t=xlinvals(0,6.284,$s,$s);
+$u=ylinvals(0,6.284,$s,$s);$o=5;$i=1;$v=$o+$i*sin$u;
 imag3d([$v*sin$t,$v*cos$t,$i*cos$u]);
 # [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
 # Ripply torus [Tjl]
-$s=40; $x=zeroes 2*$s,$s/2; $t=$x->xlinvals(0,6.284);
-$u=$x->ylinvals(0,6.284); $o=5; $i=1; $v=$o+$i*sin $u;
+$s=40; $t=xlinvals(0,6.284,2*$s,$s/2);
+$u=ylinvals(0,6.284,2*$s,$s/2); $o=5; $i=1; $v=$o+$i*sin $u;
 imag3d([$v*sin$t,$v*cos$t,$i*cos($u)+$o*sin(3*$t)]);
 # [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
 # Ripply torus distorted [Tjl]
-$s=40;$x=zeroes 2*$s,$s/2;$t=$x->xlinvals(0,6.284);$u=$x->ylinvals(0,
-6.284); $o=5;$i=1;$v=$o-$o/2*sin(3*$t)+$i*sin$u;
+$s=40;$t=xlinvals(0,6.284,2*$s,$s/2);$u=ylinvals(0, 6.284,2*$s,$s/2);
+$o=5;$i=1;$v=$o-$o/2*sin(3*$t)+$i*sin$u;
 imag3d([$v*sin$t,$v*cos$t,$i*cos($u)+$o*sin(3*$t)]);
 # [press 'q' in the graphics window when done]
 |],

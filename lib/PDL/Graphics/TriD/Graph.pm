@@ -144,7 +144,7 @@ sub new {
   $options = $this->{Options};
   my $ndiv = $options->{NDiv};
   my $points = zeroes(PDL::float(),3,3)->append(my $id3 = identity(3));
-  my $starts = zeroes(PDL::float(),1,$ndiv+1)->ylinvals(0,1)->append(zeroes(PDL::float(),2,$ndiv+1));
+  my $starts = ylinvals(PDL::float(),0,1,1,$ndiv+1)->append(zeroes(PDL::float(),2));
   my $ends = $starts + append(0, ones 2) * -0.1;
   my $dupseq = yvals($ndiv+1,3)->flat;
   $_ = $_->dup(1,3)->rotate($dupseq) for $starts, $ends;
@@ -180,7 +180,7 @@ sub finish_scale {
   my ($min_big, $max_big, $shift) = map $_->dice_axis(0, $got_bigdiff), $min, $max, $diff;
   $shift = $shift * 0.05; # don't mutate
   $min_big -= $shift, $max_big += $shift;
-  my $axisvals = zeroes(PDL::float(),3,$this->{NDiv}+1)->ylinvals($this->{Scale}->dog)->t->flat->t;
+  my $axisvals = ylinvals(PDL::float(),$this->{Scale}->dog,3,$this->{NDiv}+1)->t->flat->t;
   $this->{AxisLabelsObj}->set_labels([map sprintf("%.3f", $_), @{ $axisvals->flat->unpdl }]);
 }
 
@@ -293,8 +293,8 @@ sub finish_scale {
   # can be changed to topo heights?
   my $verts = PDL->zeroes(PDL::float(),3,$ns[0],$ns[1]);
   $verts->slice("2") .= 1012.5;
-  $verts->slice("0") .= $verts->slice("0")->ylinvals($nc[0],$nc[0]+$nadd[0]*($ns[0]-1));
-  $verts->slice("1") .= $verts->slice("0")->zlinvals($nc[1],$nc[1]+$nadd[1]*($ns[1]-1));
+  $verts->slice("0")->inplace->ylinvals($nc[0],$nc[0]+$nadd[0]*($ns[0]-1));
+  $verts->slice("1")->inplace->zlinvals($nc[1],$nc[1]+$nadd[1]*($ns[1]-1));
   my $tverts = PDL->zeroes(PDL::float(),3,$ns[0],$ns[1]);
   $tverts = $this->transform($tverts,$verts,[0,1,2]);
   $this->add_object(PDL::Graphics::TriD::Lattice->new($tverts, {Shading=>0}));
