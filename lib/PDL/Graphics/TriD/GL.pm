@@ -8,7 +8,8 @@ use OpenGL::Modern qw/
 /;
 use PDL::Core qw(barf);
 
-{ package PDL::Graphics::TriD::Material;
+{ package # hide from PAUSE
+  PDL::Graphics::TriD::Material;
 use OpenGL::Modern qw(
   glMaterialfv_p
   GL_FRONT_AND_BACK GL_SHININESS GL_SPECULAR GL_AMBIENT GL_DIFFUSE
@@ -24,7 +25,8 @@ sub togl {
 
 $PDL::Graphics::TriD::verbose //= 0;
 
-{ package PDL::Graphics::TriD::Object;
+{ package # hide from PAUSE
+  PDL::Graphics::TriD::Object;
 sub togl_setup {
   print "togl_setup $_[0]\n" if $PDL::Graphics::TriD::verbose;
   $_->togl_setup for $_[0]->contained_objects;
@@ -64,7 +66,8 @@ sub PDL::Graphics::TriD::Quaternion::togl {
 ##################################
 # Graph Objects
 
-{ package PDL::Graphics::TriD::Labels;
+{ package # hide from PAUSE
+  PDL::Graphics::TriD::Labels;
 use OpenGL::Modern qw(
   glEnable glBlendFunc
   glDrawElements_c
@@ -147,7 +150,8 @@ my %mode2enum = (
   lineloop => GL_LINE_LOOP,
 );
 
-{ package PDL::Graphics::TriD::GObject;
+{ package # hide from PAUSE
+  PDL::Graphics::TriD::GObject;
 use OpenGL::Modern qw(
   glPushAttrib glPopAttrib
   glLineWidth glPointSize
@@ -283,7 +287,8 @@ sub DESTROY {
 }
 }
 
-{ package PDL::Graphics::TriD::GL::Primitive;
+{ package # hide from PAUSE
+  PDL::Graphics::TriD::GL::Primitive;
 use OpenGL::Modern qw(glDrawArrays);
 sub togl_setup {
   my ($this,$points) = @_;
@@ -306,7 +311,8 @@ sub PDL::Graphics::TriD::Points::primitive {OpenGL::Modern::GL_POINTS}
 unshift @PDL::Graphics::TriD::Lines::ISA, qw(PDL::Graphics::TriD::GL::Primitive);
 sub PDL::Graphics::TriD::Lines::primitive {OpenGL::Modern::GL_LINES}
 
-{ package PDL::Graphics::TriD::Spheres;
+{ package # hide from PAUSE
+  PDL::Graphics::TriD::Spheres;
 use OpenGL::Modern qw(glShadeModel GL_SMOOTH);
 use PDL::Graphics::OpenGLQ;
 my %SPHERE;
@@ -332,7 +338,8 @@ sub gdraw {
 }
 }
 
-{ package PDL::Graphics::TriD::Triangles;
+{ package # hide from PAUSE
+  PDL::Graphics::TriD::Triangles;
 use OpenGL::Modern qw(
   glShadeModel glColorMaterial glEnable glDisable
   glDrawElements_c
@@ -371,7 +378,8 @@ sub gdraw {
 }
 }
 
-{ package PDL::Graphics::TriD::DrawMulti;
+{ package # hide from PAUSE
+  PDL::Graphics::TriD::DrawMulti;
 use OpenGL::Modern qw(glMultiDrawElements_c GL_UNSIGNED_INT);
 sub togl_setup {
   my ($this,$points) = @_;
@@ -394,7 +402,8 @@ sub gdraw {
 }
 
 # has a mode to face the display and take the entire window
-{ package PDL::Graphics::TriD::Image;
+{ package # hide from PAUSE
+  PDL::Graphics::TriD::Image;
 use OpenGL::Modern qw(
   glMatrixMode glLoadIdentity glOrtho
   glDrawArrays
@@ -760,7 +769,8 @@ sub do_perspective {
   glLoadIdentity ();
 }
 
-package PDL::Graphics::TriD::GL;
+package # hide from PAUSE
+  PDL::Graphics::TriD::GL;
 
 use strict;
 use warnings;
