@@ -163,6 +163,13 @@ use OpenGL::Modern qw(
   glGenBuffers_p glBindBuffer glDeleteBuffers_p glBufferData_c
   glGenTextures_p glBindTexture glDeleteTextures_p
   glTexImage2D_c glTexParameteri
+  glCreateShader glDeleteShader glShaderSource_p glCompileShader
+  glAttachShader glDetachShader
+  glGetShaderiv_p glGetShaderInfoLog_p
+  glCreateProgram glDeleteProgram glLinkProgram glUseProgram
+  glGetProgramiv_p glGetProgramInfoLog_p
+  GL_COMPILE_STATUS GL_LINK_STATUS GL_FALSE
+  GL_VERTEX_SHADER GL_FRAGMENT_SHADER GL_CURRENT_PROGRAM
   GL_VERTEX_ARRAY GL_COLOR_ARRAY GL_TEXTURE_COORD_ARRAY GL_NORMAL_ARRAY
   GL_LIGHTING_BIT GL_ENABLE_BIT GL_DEPTH_TEST GL_LIGHTING GL_LIGHT0
   GL_LIGHT_MODEL_TWO_SIDE GL_TRUE GL_POSITION
@@ -232,6 +239,9 @@ sub togl_bind {
   if (defined $this->{Impl}{indx_buf}) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, $this->{Impl}{indx_buf}); # unbind the VAO before you unbind the Index Buffer
   }
+  if (my ($program_key) = grep /^program/, keys %{ $this->{Impl} }) {
+    glUseProgram($this->{Impl}{$program_key});
+  }
 }
 sub togl_unbind {
   my ($this) = @_;
@@ -244,6 +254,48 @@ sub togl_unbind {
     glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);
   }
+  glUseProgram(0) if grep /^program/, keys %{ $this->{Impl} };
+}
+sub compile_shader {
+  my ($this, $type, $src) = @_;
+  my $shader = glCreateShader($type);
+  glShaderSource_p($shader, $src);
+  glCompileShader($shader);
+  my $status = glGetShaderiv_p($shader, GL_COMPILE_STATUS);
+  if ($status == GL_FALSE) {
+    my $str = sprintf("%s shader compilation failed!\n",
+        $type == GL_VERTEX_SHADER ? "Vertex" : "Fragment");
+    $str .= glGetShaderInfoLog_p($shader);
+    glDeleteShader($shader);
+    die $str;
+  }
+  $shader;
+}
+sub compile_program {
+  my ($this, $vsrc, $fsrc, $prelink) = @_;
+  my $vShader = $this->compile_shader(GL_VERTEX_SHADER, $vsrc);
+  my $fShader = $fsrc && eval { $this->compile_shader(GL_FRAGMENT_SHADER, $fsrc) };
+  if (my $err = $@) {
+    glDeleteShader($vShader);
+    die $err;
+  }
+  my $program = glCreateProgram();
+  glAttachShader($program, $vShader);
+  glAttachShader($program, $fShader) if $fsrc;
+  $prelink->($program) if $prelink;
+  glLinkProgram($program);
+  my $status = glGetProgramiv_p($program, GL_LINK_STATUS);
+  glDetachShader($program, $vShader);
+  glDetachShader($program, $fShader) if $fsrc;
+  glDeleteShader($vShader);
+  glDeleteShader($fShader) if $fsrc;
+  if ($status == GL_FALSE) {
+    my $str = "Program linker failed.\n";
+    $str .= glGetProgramInfoLog_p($program);
+    glDeleteProgram($program);
+    die $str;
+  }
+  $program;
 }
 sub togl {
   my ($this, $points) = @_;
@@ -283,6 +335,10 @@ sub DESTROY {
   if (defined(my $tex_id = $this->{Impl}{tex_id})) {
     glBindTexture(GL_TEXTURE_2D, 0) if glGetIntegerv_p(GL_TEXTURE_BINDING_2D) == $tex_id;
     glDeleteTextures_p($tex_id);
+  }
+  if (my $program = $this->{Impl}{program}) {
+    glUseProgram(0) if glGetIntegerv_p(GL_CURRENT_PROGRAM) == $program;
+    glDeleteProgram($_) for grep $_, $program;
   }
 }
 }
