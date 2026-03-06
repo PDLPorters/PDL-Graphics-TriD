@@ -369,10 +369,46 @@ sub PDL::Graphics::TriD::Lines::primitive {OpenGL::Modern::GL_LINES}
 
 { package # hide from PAUSE
   PDL::Graphics::TriD::Spheres;
-use OpenGL::Modern qw(glShadeModel GL_SMOOTH);
 use PDL::Graphics::OpenGLQ;
+my $vertex_shader = <<'EOF';
+#version 120
+varying vec3 vNormal;
+varying vec4 vPosition;
+void main() {
+  vNormal = normalize(gl_NormalMatrix * gl_Normal);
+  vPosition = gl_ModelViewMatrix * gl_Vertex;
+  gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+}
+EOF
+my $fragment_shader = <<'EOF';
+#version 120
+varying vec3 vNormal;
+varying vec4 vPosition;
+
+/* modified from https://community.khronos.org/t/help-with-gouraud-phong-shading-in-shaders/73192/2 */
+void light(vec4 position, vec3 norm, out vec4 diffuse, out vec4 spec) {
+  vec3 n = normalize(norm);
+  vec3 s = vec3(normalize(gl_LightSource[0].position - position));
+  vec4 v = normalize(-position);
+  vec4 r = vec4(reflect(-s, n), 1);
+  float sDotN = max(dot(s, n), 0.0);
+  diffuse = gl_LightSource[0].diffuse * gl_FrontMaterial.diffuse * sDotN;
+  spec = gl_LightSource[0].specular * gl_FrontMaterial.specular * pow(max(dot(r,v), 0.0), gl_FrontMaterial.shininess);
+}
+
+void main() {
+  vec4 diffuse, spec;
+  if (gl_FrontFacing) {
+    light(vPosition, vNormal, diffuse, spec);
+  } else {
+    light(vPosition, -vNormal, diffuse, spec);
+  }
+  gl_FragColor = gl_FrontLightProduct[0].ambient + diffuse + spec;
+}
+EOF
 my %SPHERE;
 my @KEYS = qw(vertices normals idx);
+my $SHADER_PROGRAM;
 sub togl_setup {
   my ($this,$points) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
@@ -383,12 +419,13 @@ sub togl_setup {
   $this->load_buffer(vert_buf => $this->{Impl}{vertices});
   $this->load_buffer(norm_buf => $this->{Impl}{normals});
   $this->load_idx_buffer(indx_buf => $this->{Impl}{idx});
+  $SHADER_PROGRAM //= $this->compile_program($vertex_shader, $fragment_shader);
+  $this->{Impl}{program_nodestroy} = $SHADER_PROGRAM;
   $this->togl_unbind;
 }
 sub gdraw {
   my($this,$points) = @_;
   $this->togl_bind;
-  glShadeModel(GL_SMOOTH);
   PDL::gl_spheres($points, $this->{Impl}{idx}->dims);
   $this->togl_unbind;
 }
