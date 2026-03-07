@@ -168,6 +168,8 @@ use OpenGL::Modern qw(
   glGetShaderiv_p glGetShaderInfoLog_p
   glCreateProgram glDeleteProgram glLinkProgram glUseProgram
   glGetProgramiv_p glGetProgramInfoLog_p
+  glGetAttribLocation glEnableVertexAttribArray glDisableVertexAttribArray
+  glVertexAttribPointer_c
   GL_COMPILE_STATUS GL_LINK_STATUS GL_FALSE
   GL_VERTEX_SHADER GL_FRAGMENT_SHADER GL_CURRENT_PROGRAM
   GL_VERTEX_ARRAY GL_COLOR_ARRAY GL_TEXTURE_COORD_ARRAY GL_NORMAL_ARRAY
@@ -195,6 +197,17 @@ sub load_idx_buffer {
   my ($this, $idname, $pdl, $usage) = @_;
   PDL::barf ref($this)."::load_idx_buffer: undef ndarray" if !defined $pdl;
   $this->load_buffer($idname, $pdl, GL_ELEMENT_ARRAY_BUFFER, $usage);
+}
+sub load_attrib {
+  my ($this, $name, $pdl, $type, $usage) = @_;
+  $type //= GL_FLOAT;
+  PDL::barf "load_attrib: no program found" unless
+    my ($program) = grep defined, @{ $this->{Impl} }{qw(program program_nodestroy)};
+  PDL::barf "load_attrib: invalid name '$name'" if 0 >
+    (my $loc = glGetAttribLocation($program, $name));
+  my $idname = "attrib_$name";
+  my $id = $this->load_buffer($idname => $pdl, undef, $usage);
+  push @{ $this->{Impl}{attrib_indices} }, [ $id, $loc, $pdl->dim(0), $type ];
 }
 sub load_texture {
   my ($this, $idname, $pdl, $iformat, $x, $y, $format, $type, $target) = @_;
@@ -243,6 +256,11 @@ sub togl_bind {
   if (my ($program) = grep defined, @{ $this->{Impl} }{qw(program program_nodestroy)}) {
     glUseProgram($program);
   }
+  if (my $attribs = $this->{Impl}{attrib_indices}) {
+    glBindBuffer(GL_ARRAY_BUFFER, $_->[0]), # won't need this when VAO
+      glVertexAttribPointer_c(@$_[1..3], GL_FALSE, 0, 0),
+      glEnableVertexAttribArray($_->[1]) for @$attribs;
+  }
 }
 sub togl_unbind {
   my ($this) = @_;
@@ -256,6 +274,9 @@ sub togl_unbind {
     glDisable(GL_TEXTURE_2D);
   }
   glUseProgram(0) if grep defined, @{ $this->{Impl} }{qw(program program_nodestroy)};
+  if (my $attribs = $this->{Impl}{attrib_indices}) {
+    glDisableVertexAttribArray($_->[1]) for @$attribs;
+  }
 }
 sub compile_shader {
   my ($this, $type, $src) = @_;
@@ -373,12 +394,14 @@ sub PDL::Graphics::TriD::Lines::primitive {OpenGL::Modern::GL_LINES}
 use PDL::Graphics::OpenGLQ;
 my $vertex_shader = <<'EOF';
 #version 120
+attribute vec3 position;
+attribute vec3 normal;
 varying vec3 vNormal;
 varying vec4 vPosition;
 void main() {
-  vNormal = normalize(gl_NormalMatrix * gl_Normal);
-  vPosition = gl_ModelViewMatrix * gl_Vertex;
-  gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+  vNormal = normalize(gl_NormalMatrix * normal);
+  vPosition = gl_ModelViewMatrix * vec4(position, 1);
+  gl_Position = gl_ModelViewProjectionMatrix * vec4(position, 1);
 }
 EOF
 my $fragment_shader = <<'EOF';
@@ -419,8 +442,8 @@ sub togl_setup {
   @{ $this->{Impl} }{@KEYS} = @SPHERE{@KEYS};
   $SHADER_PROGRAM //= $this->compile_program($vertex_shader, $fragment_shader);
   $this->{Impl}{program_nodestroy} = $SHADER_PROGRAM;
-  $this->load_buffer(vert_buf => $this->{Impl}{vertices});
-  $this->load_buffer(norm_buf => $this->{Impl}{normals});
+  $this->load_attrib(position => $this->{Impl}{vertices});
+  $this->load_attrib(normal => $this->{Impl}{normals});
   $this->load_idx_buffer(indx_buf => $this->{Impl}{idx});
   $this->togl_unbind;
 }
