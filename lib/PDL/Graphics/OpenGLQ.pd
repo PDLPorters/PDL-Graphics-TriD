@@ -35,12 +35,6 @@ the copyright notice should be included in the file.
 EOD
 
 pp_addhdr('
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
-
 #define PDL_3D_CROSS(to, v1, v2) \
   { \
     to[0] = v1[1]*v2[2] - v2[1]*v1[2]; \
@@ -56,8 +50,6 @@ pp_addhdr('
     for (i = 0; i < 3; i++) v[i] *= fac; \
   }
 ');
-
-my @internal = (Doc => 'internal', NoPthread => 1);
 
 pp_def(
   'gl_sphere',
@@ -83,28 +75,6 @@ if (err) $CROAK("%s", err);
  */
 calc_strip_idx($P(stripIdx), $COMP(slices), $COMP(stacks), $SIZE(nVert));
 EOF
-);
-
-pp_def(
-  'gl_spheres',
-  GenericTypes => $F,
-  Pars => 'coords(tri=3,n);',
-  OtherPars => 'int dim0;',
-  Code => <<'EOF',
-float oldcoord0 = 0.0, oldcoord1 = 0.0, oldcoord2 = 0.0;
-glPushMatrix();
-loop(n) %{
-  glTranslatef(
-    $coords(tri=>0) - oldcoord0,
-    $coords(tri=>1) - oldcoord1,
-    $coords(tri=>2) - oldcoord2
-  );
-  glDrawElements(GL_TRIANGLE_STRIP, $COMP(dim0), GL_UNSIGNED_INT, 0);
-  oldcoord0 = $coords(tri=>0), oldcoord1 = $coords(tri=>1), oldcoord2 = $coords(tri=>2);
-%}
-glPopMatrix();
-EOF
-  @internal
 );
 
 pp_def(

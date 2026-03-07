@@ -3,13 +3,6 @@ use warnings;
 use ExtUtils::MakeMaker;
 use PDL::Core::Dev;
 
-use OpenGL::Modern::Config;
-my ($def, $inc, $libs) = ('', '', '');
-$libs = $OpenGL::Modern::Config->{LIBS} if $OpenGL::Modern::Config->{LIBS};
-$def .= ' '.$OpenGL::Modern::Config->{DEFINE} if $OpenGL::Modern::Config->{DEFINE};
-$inc .= ' '.$OpenGL::Modern::Config->{INC} if $OpenGL::Modern::Config->{INC};
-$libs .= ' -lm' if $libs !~ /\s-lm\b/;
-
 my $package_name = "PDL::Graphics::TriD";
 (my $repo = $package_name) =~ s#::#-#g;
 $repo = "PDLPorters/$repo";
@@ -21,7 +14,6 @@ WriteMakefile (
   CONFIGURE_REQUIRES => {
     'ExtUtils::MakeMaker' => '7.72',
     'PDL' => '2.103',
-    'OpenGL::Modern' => '0.0403',
   },
   PREREQ_PM => {
     'PDL' => '2.103', # allaxislinvals, fixed *linvals
@@ -31,9 +23,7 @@ WriteMakefile (
   TEST_REQUIRES => {
     'Test::More' => '0.88',
   },
-  !$def ? () : (DEFINE => $def),
-  !$inc ? () : (INC => $inc),
-  LIBS => [$libs],
+  LIBS => ['-lm'],
   META_MERGE => {
     "meta-spec" => { version => 2 },
     resources => {

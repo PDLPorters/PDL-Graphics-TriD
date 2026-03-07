@@ -208,6 +208,7 @@ sub load_attrib {
   my $idname = "attrib_$name";
   my $id = $this->load_buffer($idname => $pdl, undef, $usage);
   push @{ $this->{Impl}{attrib_indices} }, [ $id, $loc, $pdl->dim(0), $type ];
+  $loc;
 }
 sub load_texture {
   my ($this, $idname, $pdl, $iformat, $x, $y, $format, $type, $target) = @_;
@@ -392,16 +393,22 @@ sub PDL::Graphics::TriD::Lines::primitive {OpenGL::Modern::GL_LINES}
 { package # hide from PAUSE
   PDL::Graphics::TriD::Spheres;
 use PDL::Graphics::OpenGLQ;
+use OpenGL::Modern qw(
+  glVertexAttribDivisor glDrawElementsInstancedARB_c
+  GL_TRIANGLE_STRIP GL_UNSIGNED_INT
+);
 my $vertex_shader = <<'EOF';
 #version 120
 attribute vec3 position;
 attribute vec3 normal;
+attribute vec3 offset;
 varying vec3 vNormal;
 varying vec4 vPosition;
 void main() {
+  vec4 offset_position = vec4(position + offset, 1);
   vNormal = normalize(gl_NormalMatrix * normal);
-  vPosition = gl_ModelViewMatrix * vec4(position, 1);
-  gl_Position = gl_ModelViewProjectionMatrix * vec4(position, 1);
+  vPosition = gl_ModelViewMatrix * offset_position;
+  gl_Position = gl_ModelViewProjectionMatrix * offset_position;
 }
 EOF
 my $fragment_shader = <<'EOF';
@@ -444,13 +451,16 @@ sub togl_setup {
   $this->{Impl}{program_nodestroy} = $SHADER_PROGRAM;
   $this->load_attrib(position => $this->{Impl}{vertices});
   $this->load_attrib(normal => $this->{Impl}{normals});
+  $this->{Impl}{offset_loc} = $this->load_attrib(offset => $points);
+  $this->{Impl}{noffset} = $points->dim(1);
   $this->load_idx_buffer(indx_buf => $this->{Impl}{idx});
   $this->togl_unbind;
 }
 sub gdraw {
   my($this,$points) = @_;
   $this->togl_bind;
-  PDL::gl_spheres($points, $this->{Impl}{idx}->dims);
+  glVertexAttribDivisor($this->{Impl}{offset_loc}, 1);
+  glDrawElementsInstancedARB_c(GL_TRIANGLE_STRIP, $this->{Impl}{idx}->dim(0), GL_UNSIGNED_INT, 0, $this->{Impl}{noffset});
   $this->togl_unbind;
 }
 }
