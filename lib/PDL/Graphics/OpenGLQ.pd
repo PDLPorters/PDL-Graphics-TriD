@@ -55,7 +55,6 @@ pp_addhdr('
     int i; \
     for (i = 0; i < 3; i++) v[i] *= fac; \
   }
-#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 ');
 
 my @internal = (Doc => 'internal', NoPthread => 1);
@@ -66,13 +65,13 @@ pp_def(
   Pars => '
     [o] vertices(tri=3,nVert=CALC(calc_nVert($COMP(slices),$COMP(stacks))));
     [o] normals(tri,nVert);
-    uint [o] stripIdx(nperpart=CALC(calc_numVertIdxsPerPart($COMP(slices))),nstacks);',
-  OtherPars => 'float radius; int slices; int stacks => nstacks;',
+    uint [o] stripIdx(nidx=CALC(calc_numIdxs($COMP(slices),$COMP(stacks))));',
+  OtherPars => 'float radius; int slices; int stacks;',
   CHeader => <<'EOF',
 char *fghGenerateSphere(float radius, int slices, int stacks, float *vertices, float *normals, int nVert);
 void calc_strip_idx(uint32_t *stripIdx, int slices, int stacks, int nVert);
 int calc_nVert(int slices, int stacks);
-int calc_numVertIdxsPerPart(int slices);
+int calc_numIdxs(int slices, int stacks);
 EOF
   Code => <<'EOF',
 /* Generate vertices and normals */
@@ -90,7 +89,7 @@ pp_def(
   'gl_spheres',
   GenericTypes => $F,
   Pars => 'coords(tri=3,n);',
-  OtherPars => 'int dim0; int dim1 => nstacks;',
+  OtherPars => 'int dim0;',
   Code => <<'EOF',
 float oldcoord0 = 0.0, oldcoord1 = 0.0, oldcoord2 = 0.0;
 glPushMatrix();
@@ -100,9 +99,7 @@ loop(n) %{
     $coords(tri=>1) - oldcoord1,
     $coords(tri=>2) - oldcoord2
   );
-  loop (nstacks) %{
-    glDrawElements(GL_TRIANGLE_STRIP, $COMP(dim0), GL_UNSIGNED_INT, BUFFER_OFFSET(nstacks * $COMP(dim0) * sizeof(PDL_ULong)));
-  %}
+  glDrawElements(GL_TRIANGLE_STRIP, $COMP(dim0), GL_UNSIGNED_INT, 0);
   oldcoord0 = $coords(tri=>0), oldcoord1 = $coords(tri=>1), oldcoord2 = $coords(tri=>2);
 %}
 glPopMatrix();

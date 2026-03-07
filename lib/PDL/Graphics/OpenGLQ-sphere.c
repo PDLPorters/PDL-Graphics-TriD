@@ -174,6 +174,9 @@ void calc_strip_idx(uint32_t  *stripIdx, int slices, int stacks, int nVert) {
   for (i=0; i<stacks-2; i++, idx+=2)
   {
     offset = 1+i*slices;                    /* triangle_strip indices start at 1 (0 is top vertex), and we advance one stack down as we go along */
+    stripIdx[idx  ] = stripIdx[idx-1]; /* degenerate triangle part 1 */
+    stripIdx[idx+1] = offset+slices; /* degenerate triangle part 2 */
+    idx+=2;
     for (j=0; j<slices; j++, idx+=2)
     {
       stripIdx[idx  ] = offset+j+slices;
@@ -184,6 +187,9 @@ void calc_strip_idx(uint32_t  *stripIdx, int slices, int stacks, int nVert) {
   }
   /* bottom stack */
   offset = 1+(stacks-2)*slices;               /* triangle_strip indices start at 1 (0 is top vertex), and we advance one stack down as we go along */
+  stripIdx[idx  ] = stripIdx[idx-1]; /* degenerate triangle part 1 */
+  stripIdx[idx+1] = nVert-1; /* degenerate triangle part 2 */
+  idx+=2;
   for (j=0; j<slices; j++, idx+=2)
   {
     stripIdx[idx  ] = nVert-1;              /* zero based index, last element in array (bottom vertex)... */
@@ -193,6 +199,6 @@ void calc_strip_idx(uint32_t  *stripIdx, int slices, int stacks, int nVert) {
   stripIdx[idx+1] = offset;
 }
 
-int calc_numVertIdxsPerPart(int slices) {
-  return (slices+1)*2;
+int calc_numIdxs(int slices, int stacks) {
+  return (slices+1)*2*stacks + (stacks-1)*2;
 }
