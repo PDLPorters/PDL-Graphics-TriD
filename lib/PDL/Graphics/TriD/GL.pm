@@ -178,7 +178,7 @@ use OpenGL::Modern qw(
   GL_ARRAY_BUFFER GL_ARRAY_BUFFER_BINDING
   GL_ELEMENT_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER_BINDING
   GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
-  GL_NEAREST GL_CLAMP_TO_EDGE GL_TEXTURE_WRAP_S GL_TEXTURE_WRAP_T
+  GL_LINEAR GL_CLAMP_TO_EDGE GL_TEXTURE_WRAP_S GL_TEXTURE_WRAP_T
   GL_TEXTURE_2D GL_TEXTURE_BINDING_2D
   GL_FLOAT GL_STATIC_DRAW
 );
@@ -219,8 +219,8 @@ sub load_texture {
   # ||= as only need one, even if re-setup
   glBindTexture($target, $this->{Impl}{$idname} ||= glGenTextures_p(1));
   glTexImage2D_c($target, 0, $iformat, $x, $y, 0, $format, $type, $pdl->make_physical->address_data);
-  glTexParameteri($target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri($target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri($target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri($target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri($target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri($target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }

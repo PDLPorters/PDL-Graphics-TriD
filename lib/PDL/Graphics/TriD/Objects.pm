@@ -211,13 +211,12 @@ sub new {
       ));
     }
     if ($options->{Shading}) {
-      if ($options->{Smooth}) {
-        $this->{Normals} = $vn;
-      } else {
+      $this->{Normals} = $options->{Smooth} ? $vn : $fn->dummy(1,$idx0)->clump(1,2);
+      if (!$options->{Smooth}) {
         $this->{Points} = $this->{Points}->dice_axis(1,$idxflat);
         my ($cols) = grep defined $this->{$_}, qw(Colors TexCoord);
         $this->{$cols} = $this->{$cols}->dice_axis(1,$idxflat);
-        $this->{Normals} = $fn->dummy(1,$idx0)->clump(1,2);
+        $this->{$cols} = $this->{$cols}->splitdim(1,3)->t->avgover->dummy(1,3)->clump(1,2) if $options->{Shading} == 1;
         $this->{Faceidx} = PDL->sequence(PDL::ulong,$idx0,@idxdims);
       }
     }
