@@ -117,20 +117,20 @@ int pdl_3d_bitmapFontWidth(void);
 int pdl_3d_bitmapHeight(void);
 int pdl_3d_bitmapFontQuantity(void);
 void pdl_3d_bitmapFontBounds(int32_t *out);
-const GLubyte* pdl_3d_bitmapFontChar(unsigned char i);
+const uint8_t* pdl_3d_bitmapFontChar(unsigned char i);
 float pdl_3d_bitmapFontXOrig(void);
 float pdl_3d_bitmapFontYOrig(void);
 EOF
   Code => <<'EOF',
 pdl_3d_bitmapFontBounds($P(rightbound));
 loop (c) %{
-  const GLubyte *d = pdl_3d_bitmapFontChar(c);
+  const uint8_t *d = pdl_3d_bitmapFontChar(c);
   PDL_Indx left = !c ? 0 : $rightbound(c=>c-1)+1, right = $rightbound()+1,
     bytesperrow = (7 + right - left) / 8;
   loop (height,width=left:right) %{
     PDL_Indx whichcol = width - left, whichbit = 7 - (whichcol % 8),
       whichbyte = height * bytesperrow + (whichcol / 8);
-    GLubyte thebyte = d[whichbyte + 1];
+    uint8_t thebyte = d[whichbyte + 1];
     $texture() = (thebyte & (1 << whichbit)) ? 1 : 0;
   %}
 %}
