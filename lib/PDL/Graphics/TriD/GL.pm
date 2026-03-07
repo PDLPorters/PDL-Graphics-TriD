@@ -189,6 +189,7 @@ sub load_buffer {
   glBindBuffer($target, $id);
   # physicalise on nbytes not on second use so nbytes is correct
   glBufferData_c($target, $pdl->make_physical->nbytes, $pdl->address_data, $usage);
+  $id;
 }
 sub load_idx_buffer {
   my ($this, $idname, $pdl, $usage) = @_;
