@@ -239,8 +239,8 @@ sub togl_bind {
   if (defined $this->{Impl}{indx_buf}) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, $this->{Impl}{indx_buf}); # unbind the VAO before you unbind the Index Buffer
   }
-  if (my ($program_key) = grep /^program/, keys %{ $this->{Impl} }) {
-    glUseProgram($this->{Impl}{$program_key});
+  if (my ($program) = grep defined, @{ $this->{Impl} }{qw(program program_nodestroy)}) {
+    glUseProgram($program);
   }
 }
 sub togl_unbind {
@@ -254,7 +254,7 @@ sub togl_unbind {
     glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);
   }
-  glUseProgram(0) if grep /^program/, keys %{ $this->{Impl} };
+  glUseProgram(0) if grep defined, @{ $this->{Impl} }{qw(program program_nodestroy)};
 }
 sub compile_shader {
   my ($this, $type, $src) = @_;
@@ -416,11 +416,11 @@ sub togl_setup {
     @SPHERE{@KEYS} = gl_sphere(0.025, 15, 15);
   }
   @{ $this->{Impl} }{@KEYS} = @SPHERE{@KEYS};
+  $SHADER_PROGRAM //= $this->compile_program($vertex_shader, $fragment_shader);
+  $this->{Impl}{program_nodestroy} = $SHADER_PROGRAM;
   $this->load_buffer(vert_buf => $this->{Impl}{vertices});
   $this->load_buffer(norm_buf => $this->{Impl}{normals});
   $this->load_idx_buffer(indx_buf => $this->{Impl}{idx});
-  $SHADER_PROGRAM //= $this->compile_program($vertex_shader, $fragment_shader);
-  $this->{Impl}{program_nodestroy} = $SHADER_PROGRAM;
   $this->togl_unbind;
 }
 sub gdraw {
