@@ -57,7 +57,7 @@ my @demo = (
 	$c22 = cos(PI/8); $s22 = sin(PI/8);
 	$rot22 = pdl [$c22,$s22,0],[-$s22,$c22,0],[0,0,1]; # +22deg about vert
 	$vertices = ($vertices x $rotate_m x $rot22);
-	trigrid3d($vertices,$faceidx);
+	trigrid3d($vertices,$faceidx,{Smooth=>0});
 	# [press 'q' in the graphics window when done]
 |],
 
@@ -65,7 +65,7 @@ my @demo = (
 	# Show an owl loaded from an STL file
 	use PDL::IO::STL;
 	($vertices, $faceidx) = rstl $|.__PACKAGE__.q|::owlfile;
-	trigrid3d($vertices,$faceidx);
+	trigrid3d($vertices,$faceidx,{Smooth=>0});
 	# [press 'q' in the graphics window when done]
 |]),
 
