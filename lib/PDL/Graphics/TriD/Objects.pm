@@ -263,7 +263,7 @@ sub new {
   PDL::barf "Lattice: points must be 3,x,y: got ($x $y @extradims)" if @extradims or $tri != 3;
   if ($shading) {
     my $inds = PDL::ulong(0,1,$x,$x+1,$x,1)->slice(',*'.($x-1).',*'.($y-1));
-    my $indadd = PDL->sequence($x,$y)->slice('*1,:-2,:-2');
+    my $indadd = PDL->sequence(PDL::ulong,$x,$y)->slice('*1,:-2,:-2');
     my $faceidx = ($inds + $indadd)->splitdim(0,3)->clump(1..3);
     my %less = %$options; delete @less{qw(Lines)};
     my @colordims = $colors->dims;
