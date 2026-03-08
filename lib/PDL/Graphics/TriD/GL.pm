@@ -83,6 +83,8 @@ sub _font_setup {
   $fref->{texture} = PDL::float(1,1,1,1) * $texture->dummy(0,1);
   my $widthpix = $rightbound->numdiff; $widthpix->slice('0') += 1;
   @{ $fref->{widthpix} } = $widthpix->list;
+  $fref->{widthflt} = $widthpix->float;
+  $fref->{widthflt11} = $fref->{widthflt}->t->append([1,1])->dummy(1);
   $fref->{heightpix} = $texture->dim(1);
   $fref->{numchars} = my $numchars = $rightbound->nelem;
   $fref->{texwidthm1} = my $texwidthm1 = $texture->dim(0) - 1;
@@ -115,24 +117,21 @@ sub togl_setup {
   my $dwidth = $PDL::Graphics::TriD::Window::DEFAULT_WIDTH / 1.5;
   my $dheight = $PDL::Graphics::TriD::Window::DEFAULT_HEIGHT / 1.5;
   $vert_template *= PDL::float(1 / $dwidth, 1, $FONT{heightpix} / $dheight);
-  my (@codes) = map [map ord, split //], @{ $this->{Strings} };
-  my ($total_chars, @i, @v, @tc) = 0;
+  my @codes = map [map ord, split //], @{ $this->{Strings} };
+  my ($v2, @v1, @v3) = PDL->null;
   for (0..$#codes) {
-    my ($l, $point, $xoffset) = ($codes[$_], $points->dice_axis(1, $_), 0);
-    for (0..$#$l) {
-      my $c = $l->[$_];
-      PDL::barf "Codepoint $c >= $numchars" if $c >= $numchars;
-      my $thiswidth = $FONT{widthpix}[$c];
-      push @i, $FONT{idx} + 4*$total_chars;
-      push @v, $point + PDL::float($xoffset,0,0) + ($vert_template * PDL::float($thiswidth,1,1));
-      push @tc, $FONT{texcoords}->slice(",,($c)");
-      $xoffset += $thiswidth / $dwidth;
-      $total_chars++;
-    }
+    my ($l, $xoffset) = ($codes[$_], 0);
+    PDL::barf "Codepoint $_ >= $numchars" for grep $_ >= $numchars, @$l;
+    push @v1, ($_) x @$l;
+    push @v3, @$l;
+    $v2 = PDL::glue(0,$v2,$FONT{widthflt}->dice_axis(0,$l)->cumusumover);
   }
-  $this->load_buffer(vert_buf => PDL::cat(@v)->clump(1,2));
-  $this->load_buffer(texc_buf => PDL::cat(@tc)->clump(1,2));
-  $this->load_idx_buffer(indx_buf => $this->{Impl}{idx} = PDL::cat(@i)->clump(1,2));
+  my $v = $points->dice_axis(1, \@v1)->dummy(1) +
+    ($v2->t->append([0,0])->dummy(1) / $dwidth) +
+    $vert_template * $FONT{widthflt11}->dice_axis(2,\@v3);
+  $this->load_buffer(vert_buf => $v->clump(1,2));
+  $this->load_buffer(texc_buf => $FONT{texcoords}->dice_axis(2,\@v3)->clump(1,2));
+  $this->load_idx_buffer(indx_buf => $this->{Impl}{idx} = $FONT{idx}->flat + 4 * PDL->sequence(PDL::ulong,1,0+@v1));
   $this->togl_unbind;
 }
 sub gdraw {
