@@ -448,12 +448,14 @@ sub togl_setup {
   }
   @{ $this->{Impl} }{@KEYS} = @SPHERE{@KEYS};
   $SHADER_PROGRAM //= $this->compile_program($vertex_shader, $fragment_shader);
-  $this->{Impl}{program_nodestroy} = $SHADER_PROGRAM;
-  $this->load_attrib(position => $this->{Impl}{vertices});
-  $this->load_attrib(normal => $this->{Impl}{normals});
+  if (!defined $this->{Impl}{program_nodestroy}) {
+    $this->{Impl}{program_nodestroy} = $SHADER_PROGRAM;
+    $this->load_attrib(position => $this->{Impl}{vertices});
+    $this->load_attrib(normal => $this->{Impl}{normals});
+    $this->load_idx_buffer(indx_buf => $this->{Impl}{idx});
+  }
   $this->{Impl}{offset_loc} = $this->load_attrib(offset => $points);
   $this->{Impl}{noffset} = $points->dim(1);
-  $this->load_idx_buffer(indx_buf => $this->{Impl}{idx});
   $this->togl_unbind;
 }
 sub gdraw {
