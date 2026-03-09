@@ -65,6 +65,20 @@ sub PDL::Graphics::TriD::Quaternion::togl {
 ##################################
 # Graph Objects
 
+my %SHADERBITS = (
+  light => <<'EOF',
+void light(int lightIndex, vec4 position, vec3 norm, out vec4 diffuse, out vec4 spec) {
+  vec3 n = normalize(norm);
+  vec3 s = vec3(normalize(gl_LightSource[lightIndex].position - position));
+  vec4 v = normalize(-position);
+  vec4 r = vec4(reflect(-s, n), 1);
+  float sDotN = max(dot(s, n), 0.0);
+  diffuse = gl_LightSource[lightIndex].diffuse * gl_FrontMaterial.diffuse * sDotN;
+  spec = gl_LightSource[lightIndex].specular * gl_FrontMaterial.specular * pow(max(dot(r,v), 0.0), gl_FrontMaterial.shininess);
+}
+EOF
+);
+
 { package # hide from PAUSE
   PDL::Graphics::TriD::Labels;
 use OpenGL::Modern qw(
@@ -409,20 +423,12 @@ void main() {
   gl_Position = gl_ModelViewProjectionMatrix * offset_position;
 }
 EOF
-my $fragment_shader = <<'EOF';
+my $fragment_shader = sprintf <<'EOF', $SHADERBITS{light};
 #version 120
 varying vec3 vNormal;
 varying vec4 vPosition;
 /* modified from https://community.khronos.org/t/help-with-gouraud-phong-shading-in-shaders/73192/2 */
-void light(int lightIndex, vec4 position, vec3 norm, out vec4 diffuse, out vec4 spec) {
-  vec3 n = normalize(norm);
-  vec3 s = vec3(normalize(gl_LightSource[lightIndex].position - position));
-  vec4 v = normalize(-position);
-  vec4 r = vec4(reflect(-s, n), 1);
-  float sDotN = max(dot(s, n), 0.0);
-  diffuse = gl_LightSource[lightIndex].diffuse * gl_FrontMaterial.diffuse * sDotN;
-  spec = gl_LightSource[lightIndex].specular * gl_FrontMaterial.specular * pow(max(dot(r,v), 0.0), gl_FrontMaterial.shininess);
-}
+%s
 void main() {
   vec4 diffuse, spec;
   light(0, vPosition, gl_FrontFacing ? vNormal : -vNormal, diffuse, spec);
