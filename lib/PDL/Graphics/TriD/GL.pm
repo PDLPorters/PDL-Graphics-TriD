@@ -71,13 +71,13 @@ version => <<'EOF',
 EOF
 light => <<'EOF',
 /* modified from https://community.khronos.org/t/help-with-gouraud-phong-shading-in-shaders/73192/2 */
-void light(int lightIndex, vec4 position, vec3 norm, out vec4 diffuse, out vec4 spec) {
+void light(int lightIndex, vec4 position, vec3 norm, vec4 in_diffuse, out vec4 diffuse, out vec4 spec) {
   vec3 n = normalize(norm);
   vec3 s = vec3(normalize(gl_LightSource[lightIndex].position - position));
   vec4 v = normalize(-position);
   vec4 r = vec4(reflect(-s, n), 1);
   float sDotN = max(dot(s, n), 0.0);
-  diffuse = gl_LightSource[lightIndex].diffuse * gl_FrontMaterial.diffuse * sDotN;
+  diffuse = gl_LightSource[lightIndex].diffuse * in_diffuse * sDotN;
   spec = gl_LightSource[lightIndex].specular * gl_FrontMaterial.specular * pow(max(dot(r,v), 0.0), gl_FrontMaterial.shininess);
 }
 EOF
@@ -101,9 +101,12 @@ fs_in_light_decl => <<'EOF',
 varying vec3 vNormal;
 varying vec4 vPosition;
 EOF
+fs_diffuse_material => <<'EOF',
+  vec4 in_diffuse = gl_FrontMaterial.diffuse;
+EOF
 fs_out_light => <<'EOF',
   vec4 diffuse, spec;
-  light(0, vPosition, gl_FrontFacing ? vNormal : -vNormal, diffuse, spec);
+  light(0, vPosition, gl_FrontFacing ? vNormal : -vNormal, in_diffuse, diffuse, spec);
   gl_FragColor = gl_FrontLightProduct[0].ambient + diffuse + spec;
 EOF
 );
@@ -447,10 +450,10 @@ void main() {
 %s%s
 }
 EOF
-my $fragment_shader = sprintf <<'EOF', @SHADERBITS{qw(version fs_in_light_decl light fs_out_light)};
+my $fragment_shader = sprintf <<'EOF', @SHADERBITS{qw(version fs_in_light_decl light fs_diffuse_material fs_out_light)};
 %s%s%s
 void main() {
-%s
+%s%s
 }
 EOF
 my %SPHERE;
