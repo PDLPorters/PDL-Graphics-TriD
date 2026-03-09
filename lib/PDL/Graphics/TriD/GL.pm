@@ -414,25 +414,19 @@ my $fragment_shader = <<'EOF';
 #version 120
 varying vec3 vNormal;
 varying vec4 vPosition;
-
 /* modified from https://community.khronos.org/t/help-with-gouraud-phong-shading-in-shaders/73192/2 */
-void light(vec4 position, vec3 norm, out vec4 diffuse, out vec4 spec) {
+void light(int lightIndex, vec4 position, vec3 norm, out vec4 diffuse, out vec4 spec) {
   vec3 n = normalize(norm);
-  vec3 s = vec3(normalize(gl_LightSource[0].position - position));
+  vec3 s = vec3(normalize(gl_LightSource[lightIndex].position - position));
   vec4 v = normalize(-position);
   vec4 r = vec4(reflect(-s, n), 1);
   float sDotN = max(dot(s, n), 0.0);
-  diffuse = gl_LightSource[0].diffuse * gl_FrontMaterial.diffuse * sDotN;
-  spec = gl_LightSource[0].specular * gl_FrontMaterial.specular * pow(max(dot(r,v), 0.0), gl_FrontMaterial.shininess);
+  diffuse = gl_LightSource[lightIndex].diffuse * gl_FrontMaterial.diffuse * sDotN;
+  spec = gl_LightSource[lightIndex].specular * gl_FrontMaterial.specular * pow(max(dot(r,v), 0.0), gl_FrontMaterial.shininess);
 }
-
 void main() {
   vec4 diffuse, spec;
-  if (gl_FrontFacing) {
-    light(vPosition, vNormal, diffuse, spec);
-  } else {
-    light(vPosition, -vNormal, diffuse, spec);
-  }
+  light(0, vPosition, gl_FrontFacing ? vNormal : -vNormal, diffuse, spec);
   gl_FragColor = gl_FrontLightProduct[0].ambient + diffuse + spec;
 }
 EOF
