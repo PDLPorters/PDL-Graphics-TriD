@@ -22,9 +22,13 @@ my @objs = (
 );
 my $i = 0;
 @objs = map mk_trid($i++, @$_), @objs;
-my ($below_obj, $above_obj) = map mk_trid($_, 'LineStrip'), -1, 0+@objs;
+my ($below_obj, undef, $above_obj) = map mk_trid($_, 'LineStrip'), -1, @objs/2;
 
-sub mk_trid { "PDL::Graphics::TriD::$_[1]"->new($y+pdl(0,0,$_[0]),$c,$_[2]) }
+sub mk_trid {
+  my $class = "PDL::Graphics::TriD::$_[1]";
+  ($class->new($y+pdl(0,0,$_[0]),$c,$_[2]),
+    $class->new($y+pdl(0,0,$_[0]+0.5),undef,$_[2]));
+}
 
 my $win = PDL::Graphics::TriD::get_current_window();
 my $g = PDL::Graphics::TriD::Graph->new;

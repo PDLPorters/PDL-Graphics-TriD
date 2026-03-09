@@ -169,9 +169,7 @@ my @demo = (
 	# The reason for the [] around $x,$y,$z:
 	# 1. You can give all the coordinates and colors in one ndarray.
 	$c = zeroes 3,$size+1;
-	$coords =
-		sin((3+3*xvals $c)*yvals $c);
-	$colors = $coords;
+	$colors = $coords = sin((3+3*xvals $c)*yvals $c);
 	line3d $coords, $colors;        # Draw a curved line, colored
 					# (this works also for lattices, etc.)
 	# [press 'q' in the graphics window when done]
