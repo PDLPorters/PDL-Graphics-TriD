@@ -1,6 +1,5 @@
 use strict;
 use warnings;
-no warnings 'redefine';
 use OpenGL::Modern qw/
   glRotatef glTranslatef
   GL_LINE_STRIP GL_LINE_LOOP
