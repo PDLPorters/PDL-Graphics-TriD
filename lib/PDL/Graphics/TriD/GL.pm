@@ -66,7 +66,8 @@ sub PDL::Graphics::TriD::Quaternion::togl {
 # Graph Objects
 
 my %SHADERBITS = (
-  light => <<'EOF',
+light => <<'EOF',
+/* modified from https://community.khronos.org/t/help-with-gouraud-phong-shading-in-shaders/73192/2 */
 void light(int lightIndex, vec4 position, vec3 norm, out vec4 diffuse, out vec4 spec) {
   vec3 n = normalize(norm);
   vec3 s = vec3(normalize(gl_LightSource[lightIndex].position - position));
@@ -76,6 +77,31 @@ void light(int lightIndex, vec4 position, vec3 norm, out vec4 diffuse, out vec4 
   diffuse = gl_LightSource[lightIndex].diffuse * gl_FrontMaterial.diffuse * sDotN;
   spec = gl_LightSource[lightIndex].specular * gl_FrontMaterial.specular * pow(max(dot(r,v), 0.0), gl_FrontMaterial.shininess);
 }
+EOF
+vs_in_decl => <<'EOF',
+attribute vec3 position;
+EOF
+vs_in_light_decl => <<'EOF',
+attribute vec3 normal;
+EOF
+vs_in => <<'EOF',
+  vec4 the_position = vec4(position, 1);
+EOF
+vs_out => <<'EOF',
+  gl_Position = gl_ModelViewProjectionMatrix * the_position;
+EOF
+vs_out_light => <<'EOF',
+  vNormal = normalize(gl_NormalMatrix * normal);
+  vPosition = gl_ModelViewMatrix * the_position;
+EOF
+fs_in_light_decl => <<'EOF',
+varying vec3 vNormal;
+varying vec4 vPosition;
+EOF
+fs_out_light => <<'EOF',
+  vec4 diffuse, spec;
+  light(0, vPosition, gl_FrontFacing ? vNormal : -vNormal, diffuse, spec);
+  gl_FragColor = gl_FrontLightProduct[0].ambient + diffuse + spec;
 EOF
 );
 
@@ -409,30 +435,21 @@ use OpenGL::Modern qw(
   glVertexAttribDivisor glDrawElementsInstancedARB_c
   GL_TRIANGLE_STRIP GL_UNSIGNED_INT
 );
-my $vertex_shader = <<'EOF';
+my $vertex_shader = sprintf <<'EOF', @SHADERBITS{qw(vs_in_decl vs_in_light_decl fs_in_light_decl vs_in vs_out vs_out_light)};
 #version 120
-attribute vec3 position;
-attribute vec3 normal;
+%s%s%s
 attribute vec3 offset;
-varying vec3 vNormal;
-varying vec4 vPosition;
 void main() {
-  vec4 offset_position = vec4(position + offset, 1);
-  vNormal = normalize(gl_NormalMatrix * normal);
-  vPosition = gl_ModelViewMatrix * offset_position;
-  gl_Position = gl_ModelViewProjectionMatrix * offset_position;
+%s
+  the_position += vec4(offset, 0);
+%s%s
 }
 EOF
-my $fragment_shader = sprintf <<'EOF', $SHADERBITS{light};
+my $fragment_shader = sprintf <<'EOF', @SHADERBITS{qw(fs_in_light_decl light fs_out_light)};
 #version 120
-varying vec3 vNormal;
-varying vec4 vPosition;
-/* modified from https://community.khronos.org/t/help-with-gouraud-phong-shading-in-shaders/73192/2 */
-%s
+%s%s
 void main() {
-  vec4 diffuse, spec;
-  light(0, vPosition, gl_FrontFacing ? vNormal : -vNormal, diffuse, spec);
-  gl_FragColor = gl_FrontLightProduct[0].ambient + diffuse + spec;
+%s
 }
 EOF
 my %SPHERE;
