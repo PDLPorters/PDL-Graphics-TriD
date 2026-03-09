@@ -66,6 +66,9 @@ sub PDL::Graphics::TriD::Quaternion::togl {
 # Graph Objects
 
 my %SHADERBITS = (
+version => <<'EOF',
+#version 120
+EOF
 light => <<'EOF',
 /* modified from https://community.khronos.org/t/help-with-gouraud-phong-shading-in-shaders/73192/2 */
 void light(int lightIndex, vec4 position, vec3 norm, out vec4 diffuse, out vec4 spec) {
@@ -435,9 +438,8 @@ use OpenGL::Modern qw(
   glVertexAttribDivisor glDrawElementsInstancedARB_c
   GL_TRIANGLE_STRIP GL_UNSIGNED_INT
 );
-my $vertex_shader = sprintf <<'EOF', @SHADERBITS{qw(vs_in_decl vs_in_light_decl fs_in_light_decl vs_in vs_out vs_out_light)};
-#version 120
-%s%s%s
+my $vertex_shader = sprintf <<'EOF', @SHADERBITS{qw(version vs_in_decl vs_in_light_decl fs_in_light_decl vs_in vs_out vs_out_light)};
+%s%s%s%s
 attribute vec3 offset;
 void main() {
 %s
@@ -445,9 +447,8 @@ void main() {
 %s%s
 }
 EOF
-my $fragment_shader = sprintf <<'EOF', @SHADERBITS{qw(fs_in_light_decl light fs_out_light)};
-#version 120
-%s%s
+my $fragment_shader = sprintf <<'EOF', @SHADERBITS{qw(version fs_in_light_decl light fs_out_light)};
+%s%s%s
 void main() {
 %s
 }
