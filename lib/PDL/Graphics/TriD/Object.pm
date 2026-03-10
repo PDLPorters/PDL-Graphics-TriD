@@ -3,6 +3,7 @@ package PDL::Graphics::TriD::Object;
 use strict;
 use warnings;
 use Scalar::Util qw(weaken);
+use Carp 'confess';
 
 use fields qw(Objects IsValid ChangedSub Impl Options);
 
@@ -45,7 +46,7 @@ sub check_options {
   print "FETCHOPT: $this ".(join ',',%$opts)."\n" if $PDL::Graphics::TriD::verbose;
   my %newopts = (%$opts, %{$this->{Options}});
   my @invalid = grep !exists $opts->{$_}, keys %newopts;
-  die "$this: invalid options left: @invalid" if @invalid;
+  confess "$this: invalid options left: @invalid" if @invalid;
   $this->{Options} = \%newopts;
 }
 
