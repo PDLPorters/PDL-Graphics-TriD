@@ -364,14 +364,9 @@ sub compile_program {
   }
   $program;
 }
-sub togl {
-  my ($this, $points) = @_;
-  print "togl $this\n" if $PDL::Graphics::TriD::verbose;
-  glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
-  glLineWidth($this->{Options}{LineWidth} || 1);
-  glPointSize($this->{Options}{PointSize} || 1);
-  glEnable(GL_DEPTH_TEST);
-  if ($this->{Options}{Lighting}) {
+sub lighting {
+  my ($this, $bool) = @_;
+  if ($bool) {
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
@@ -379,6 +374,15 @@ sub togl {
   } else {
     glDisable(GL_LIGHTING);
   }
+}
+sub togl {
+  my ($this, $points) = @_;
+  print "togl $this\n" if $PDL::Graphics::TriD::verbose;
+  glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+  glLineWidth($this->{Options}{LineWidth} || 1);
+  glPointSize($this->{Options}{PointSize} || 1);
+  glEnable(GL_DEPTH_TEST);
+  $this->lighting($this->{Options}{Lighting});
   eval {
     $this->gdraw($points // $this->{Points});
   };
