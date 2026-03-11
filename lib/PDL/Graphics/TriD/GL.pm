@@ -112,89 +112,6 @@ EOF
 );
 
 { package # hide from PAUSE
-  PDL::Graphics::TriD::Labels;
-use OpenGL::Modern qw(
-  glEnable glBlendFunc
-  glDrawElements_c
-  GL_BLEND GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
-  GL_TRIANGLES GL_UNSIGNED_INT
-  GL_RGBA32F GL_RGBA
-);
-use PDL::Graphics::OpenGLQ;
-my %FONT;
-sub _font_setup {
-  my ($fref) = @_;
-  my ($texture, $rightbound, $orig) = gl_font_texture();
-  $fref->{texture} = PDL::float(1,1,1,1) * $texture->dummy(0,1);
-  my $widthpix = $rightbound->numdiff; $widthpix->slice('0') += 1;
-  @{ $fref->{widthpix} } = $widthpix->list;
-  $fref->{widthflt} = $widthpix->float;
-  $fref->{widthflt11} = $fref->{widthflt}->t->append([1,1])->dummy(1);
-  $fref->{heightpix} = $texture->dim(1);
-  $fref->{numchars} = my $numchars = $rightbound->nelem;
-  $fref->{texwidthm1} = my $texwidthm1 = $texture->dim(0) - 1;
-  $fref->{leftbound} = my $leftbound = $rightbound->rotate(1) + 1;
-    $leftbound->slice('0') .= 0; $leftbound->set_datatype(PDL::float->enum);
-  $fref->{rightbound} = $rightbound = $rightbound->float;
-  $_ /= $texwidthm1 for $leftbound, $rightbound;
-  @$fref{qw(xorig yorig)} = $orig->list;
-  $fref->{texture} = PDL::float(1,1,1,1) * $texture->dummy(0,1);
-  # 4 = top-left, bot-left, top-right, bot-right, triangle idx=012,213
-  $fref->{idx} = PDL->new(PDL::ulong, [0,1,2], [2,1,3]);
-  $fref->{texcoords} = my $texcoords = PDL->zeroes(PDL::float,2,4,$numchars);
-  $texcoords->slice('(0),0:1') .= $leftbound->dummy(0,1);  # u of left
-  $texcoords->slice('(0),2:3') .= $rightbound->dummy(0,1); # u of right
-  $texcoords->slice('(1),0::2') .= 1;          # v of top, v bot=already 0
-}
-sub togl_setup {
-  my ($this,$points) = @_;
-  print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
-  if (!keys %FONT) {
-    _font_setup(\%FONT);
-    $this->load_texture(font_id => $FONT{texture}, GL_RGBA32F, ($FONT{texture}->dims)[1,2], GL_RGBA);
-    $FONT{font_id} = $this->{Impl}{font_id};
-  } else {
-    $this->{Impl}{font_id} = $FONT{font_id};
-  }
-  $points //= $this->{Points}; # as Labels is used in Graph
-  my $numchars = $FONT{numchars};
-  my $vert_template = PDL->new(PDL::float, [0,0,1], [0,0,0], [1,0,1], [1,0,0]);
-  my $dwidth = $PDL::Graphics::TriD::Window::DEFAULT_WIDTH / 1.5;
-  my $dheight = $PDL::Graphics::TriD::Window::DEFAULT_HEIGHT / 1.5;
-  $vert_template *= PDL::float(1 / $dwidth, 1, $FONT{heightpix} / $dheight);
-  my @codes = map [map ord, split //], @{ $this->{Strings} };
-  my ($v2, @v1, @v3) = PDL->null;
-  for (0..$#codes) {
-    my ($l, $xoffset) = ($codes[$_], 0);
-    PDL::barf "Codepoint $_ >= $numchars" for grep $_ >= $numchars, @$l;
-    push @v1, ($_) x @$l;
-    push @v3, @$l;
-    $v2 = PDL::glue(0,$v2,$FONT{widthflt}->dice_axis(0,$l)->cumusumover);
-  }
-  my $v = $points->dice_axis(1, \@v1)->dummy(1) +
-    ($v2->t->append([0,0])->dummy(1) / $dwidth) +
-    $vert_template * $FONT{widthflt11}->dice_axis(2,\@v3);
-  $this->load_buffer(vert_buf => $v->clump(1,2));
-  $this->load_buffer(texc_buf => $FONT{texcoords}->dice_axis(2,\@v3)->clump(1,2));
-  $this->load_idx_buffer(indx_buf => $this->{Impl}{idx} = $FONT{idx}->flat + 4 * PDL->sequence(PDL::ulong,1,0+@v1));
-  $this->togl_unbind;
-}
-sub gdraw {
-  my($this,$points) = @_;
-  $this->togl_bind;
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glDrawElements_c(GL_TRIANGLES, $this->{Impl}{idx}->nelem, GL_UNSIGNED_INT, 0);
-  $this->togl_unbind;
-}
-}
-
-my %mode2enum = (
-  linestrip => GL_LINE_STRIP,
-  lineloop => GL_LINE_LOOP,
-);
-
-{ package # hide from PAUSE
   PDL::Graphics::TriD::GObject;
 use OpenGL::Modern qw(
   glPushAttrib glPopAttrib
@@ -415,6 +332,84 @@ sub DESTROY {
 }
 
 { package # hide from PAUSE
+  PDL::Graphics::TriD::Labels;
+use OpenGL::Modern qw(
+  glEnable glBlendFunc
+  glDrawElements_c
+  GL_BLEND GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+  GL_TRIANGLES GL_UNSIGNED_INT
+  GL_RGBA32F GL_RGBA
+);
+use PDL::Graphics::OpenGLQ;
+my %FONT;
+sub _font_setup {
+  my ($fref) = @_;
+  my ($texture, $rightbound, $orig) = gl_font_texture();
+  $fref->{texture} = PDL::float(1,1,1,1) * $texture->dummy(0,1);
+  my $widthpix = $rightbound->numdiff; $widthpix->slice('0') += 1;
+  @{ $fref->{widthpix} } = $widthpix->list;
+  $fref->{widthflt} = $widthpix->float;
+  $fref->{widthflt11} = $fref->{widthflt}->t->append([1,1])->dummy(1);
+  $fref->{heightpix} = $texture->dim(1);
+  $fref->{numchars} = my $numchars = $rightbound->nelem;
+  $fref->{texwidthm1} = my $texwidthm1 = $texture->dim(0) - 1;
+  $fref->{leftbound} = my $leftbound = $rightbound->rotate(1) + 1;
+    $leftbound->slice('0') .= 0; $leftbound->set_datatype(PDL::float->enum);
+  $fref->{rightbound} = $rightbound = $rightbound->float;
+  $_ /= $texwidthm1 for $leftbound, $rightbound;
+  @$fref{qw(xorig yorig)} = $orig->list;
+  $fref->{texture} = PDL::float(1,1,1,1) * $texture->dummy(0,1);
+  # 4 = top-left, bot-left, top-right, bot-right, triangle idx=012,213
+  $fref->{idx} = PDL->new(PDL::ulong, [0,1,2], [2,1,3]);
+  $fref->{texcoords} = my $texcoords = PDL->zeroes(PDL::float,2,4,$numchars);
+  $texcoords->slice('(0),0:1') .= $leftbound->dummy(0,1);  # u of left
+  $texcoords->slice('(0),2:3') .= $rightbound->dummy(0,1); # u of right
+  $texcoords->slice('(1),0::2') .= 1;          # v of top, v bot=already 0
+}
+sub togl_setup {
+  my ($this,$points) = @_;
+  print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
+  if (!keys %FONT) {
+    _font_setup(\%FONT);
+    $this->load_texture(font_id => $FONT{texture}, GL_RGBA32F, ($FONT{texture}->dims)[1,2], GL_RGBA);
+    $FONT{font_id} = $this->{Impl}{font_id};
+  } else {
+    $this->{Impl}{font_id} = $FONT{font_id};
+  }
+  $points //= $this->{Points}; # as Labels is used in Graph
+  my $numchars = $FONT{numchars};
+  my $vert_template = PDL->new(PDL::float, [0,0,1], [0,0,0], [1,0,1], [1,0,0]);
+  my $dwidth = $PDL::Graphics::TriD::Window::DEFAULT_WIDTH / 1.5;
+  my $dheight = $PDL::Graphics::TriD::Window::DEFAULT_HEIGHT / 1.5;
+  $vert_template *= PDL::float(1 / $dwidth, 1, $FONT{heightpix} / $dheight);
+  my @codes = map [map ord, split //], @{ $this->{Strings} };
+  my ($v2, @v1, @v3) = PDL->null;
+  for (0..$#codes) {
+    my ($l, $xoffset) = ($codes[$_], 0);
+    PDL::barf "Codepoint $_ >= $numchars" for grep $_ >= $numchars, @$l;
+    push @v1, ($_) x @$l;
+    push @v3, @$l;
+    $v2 = PDL::glue(0,$v2,$FONT{widthflt}->dice_axis(0,$l)->cumusumover);
+  }
+  my $v = $points->dice_axis(1, \@v1)->dummy(1) +
+    ($v2->t->append([0,0])->dummy(1) / $dwidth) +
+    $vert_template * $FONT{widthflt11}->dice_axis(2,\@v3);
+  $this->load_buffer(vert_buf => $v->clump(1,2));
+  $this->load_buffer(texc_buf => $FONT{texcoords}->dice_axis(2,\@v3)->clump(1,2));
+  $this->load_idx_buffer(indx_buf => $this->{Impl}{idx} = $FONT{idx}->flat + 4 * PDL->sequence(PDL::ulong,1,0+@v1));
+  $this->togl_unbind;
+}
+sub gdraw {
+  my($this,$points) = @_;
+  $this->togl_bind;
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glDrawElements_c(GL_TRIANGLES, $this->{Impl}{idx}->nelem, GL_UNSIGNED_INT, 0);
+  $this->togl_unbind;
+}
+}
+
+{ package # hide from PAUSE
   PDL::Graphics::TriD::GL::Primitive;
 use OpenGL::Modern qw(glDrawArrays);
 sub togl_setup {
@@ -529,6 +524,11 @@ sub gdraw {
   $this->togl_unbind;
 }
 }
+
+my %mode2enum = (
+  linestrip => GL_LINE_STRIP,
+  lineloop => GL_LINE_LOOP,
+);
 
 { package # hide from PAUSE
   PDL::Graphics::TriD::DrawMulti;
