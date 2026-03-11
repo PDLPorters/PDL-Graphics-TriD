@@ -1,5 +1,12 @@
+package # hide from PAUSE
+  PDL::Graphics::TriD::GL;
+
 use strict;
 use warnings;
+use PDL::Graphics::TriD::Window qw();
+use PDL::Options;
+
+$PDL::Graphics::TriD::verbose //= 0;
 
 { package # hide from PAUSE
   PDL::Graphics::TriD::Material;
@@ -15,8 +22,6 @@ sub togl {
   glMaterialfv_p(GL_FRONT_AND_BACK,GL_DIFFUSE,@{$this->{Diffuse}});
 }
 }
-
-$PDL::Graphics::TriD::verbose //= 0;
 
 { package # hide from PAUSE
   PDL::Graphics::TriD::Object;
@@ -910,16 +915,6 @@ sub do_perspective {
   glLoadIdentity ();
 }
 }
-
-package # hide from PAUSE
-  PDL::Graphics::TriD::GL;
-
-use strict;
-use warnings;
-use PDL::Graphics::TriD::Window qw();
-use PDL::Options;
-
-$PDL::Graphics::TriD::verbose //= 0;
 
 =head1 NAME
 
