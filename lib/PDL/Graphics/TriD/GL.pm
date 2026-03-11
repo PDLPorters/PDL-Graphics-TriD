@@ -75,6 +75,8 @@ my %SHADERBITS = (
 version => <<'EOF',
 #version 120
 EOF
+main_start => "void main() {\n",
+main_end => "}\n",
 light => <<'EOF',
 /* modified from https://community.khronos.org/t/help-with-gouraud-phong-shading-in-shaders/73192/2 */
 void light(int lightIndex, vec3 position, vec3 norm, vec4 in_diffuse, out vec4 diffuse, out vec4 spec) {
@@ -91,6 +93,8 @@ EOF
 vs_in => <<'EOF',
   vec3 the_position = position;
 EOF
+vs_in_offset_decl => "attribute vec3 offset;\n",
+vs_do_offset => "  the_position += offset;\n",
 vs_out => <<'EOF',
   gl_Position = gl_ModelViewProjectionMatrix * vec4(the_position, 1);
 EOF
@@ -460,21 +464,8 @@ use OpenGL::Modern qw(
   glIsProgram glVertexAttribDivisor glDrawElementsInstancedARB_c
   GL_TRIANGLE_STRIP GL_UNSIGNED_INT
 );
-my $vertex_shader = sprintf <<'EOF', @SHADERBITS{qw(version vs_in_position_decl vs_in_normal_decl fs_in_position_decl fs_in_normal_decl vs_in vs_out vs_out_light)};
-%s%s%s%s%s
-attribute vec3 offset;
-void main() {
-%s
-  the_position += offset;
-%s%s
-}
-EOF
-my $fragment_shader = sprintf <<'EOF', @SHADERBITS{qw(version fs_in_position_decl fs_in_normal_decl fs_lightind_decl light fs_diffuse_material fs_out_light)};
-%s%s%s%s%s
-void main() {
-%s%s
-}
-EOF
+my $vertex_shader = join '', @SHADERBITS{qw(version vs_in_position_decl vs_in_normal_decl fs_in_position_decl fs_in_normal_decl vs_in_offset_decl main_start vs_in vs_do_offset vs_out vs_out_light main_end)};
+my $fragment_shader = join '', @SHADERBITS{qw(version fs_in_position_decl fs_in_normal_decl fs_lightind_decl light main_start fs_diffuse_material fs_out_light main_end)};
 my %SPHERE;
 my @KEYS = qw(vertices normals idx);
 my $SHADER_PROGRAM;
