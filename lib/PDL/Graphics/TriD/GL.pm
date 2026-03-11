@@ -65,6 +65,12 @@ sub PDL::Graphics::TriD::Quaternion::togl {
 ##################################
 # Graph Objects
 
+sub _passthrough {
+  my ($name, $size) = @_;
+  ("vs_in_${name}_decl" => "attribute vec$size $name;\n",
+    "fs_in_${name}_decl" => "varying vec$size v".ucfirst($name).";\n",
+    "vs_out_$name" => "  v".ucfirst($name)." = $name;\n")
+}
 my %SHADERBITS = (
 version => <<'EOF',
 #version 120
@@ -81,12 +87,7 @@ void light(int lightIndex, vec3 position, vec3 norm, vec4 in_diffuse, out vec4 d
   spec = gl_LightSource[lightIndex].specular * gl_FrontMaterial.specular * pow(max(dot(r,v), 0.0), gl_FrontMaterial.shininess);
 }
 EOF
-vs_in_decl => <<'EOF',
-attribute vec3 position;
-EOF
-vs_in_light_decl => <<'EOF',
-attribute vec3 normal;
-EOF
+(map _passthrough(@$_), [position=>3], [normal=>3]),
 vs_in => <<'EOF',
   vec3 the_position = position;
 EOF
@@ -96,10 +97,6 @@ EOF
 vs_out_light => <<'EOF',
   vNormal = normalize(gl_NormalMatrix * normal);
   vPosition = vec3(gl_ModelViewMatrix * vec4(the_position, 1));
-EOF
-fs_in_light_decl => <<'EOF',
-varying vec3 vNormal;
-varying vec3 vPosition;
 EOF
 fs_diffuse_material => <<'EOF',
   vec4 in_diffuse = gl_FrontMaterial.diffuse;
@@ -442,8 +439,8 @@ use OpenGL::Modern qw(
   glIsProgram glVertexAttribDivisor glDrawElementsInstancedARB_c
   GL_TRIANGLE_STRIP GL_UNSIGNED_INT
 );
-my $vertex_shader = sprintf <<'EOF', @SHADERBITS{qw(version vs_in_decl vs_in_light_decl fs_in_light_decl vs_in vs_out vs_out_light)};
-%s%s%s%s
+my $vertex_shader = sprintf <<'EOF', @SHADERBITS{qw(version vs_in_position_decl vs_in_normal_decl fs_in_position_decl fs_in_normal_decl vs_in vs_out vs_out_light)};
+%s%s%s%s%s
 attribute vec3 offset;
 void main() {
 %s
@@ -451,8 +448,8 @@ void main() {
 %s%s
 }
 EOF
-my $fragment_shader = sprintf <<'EOF', @SHADERBITS{qw(version fs_in_light_decl light fs_diffuse_material fs_out_light)};
-%s%s%s
+my $fragment_shader = sprintf <<'EOF', @SHADERBITS{qw(version fs_in_position_decl fs_in_normal_decl light fs_diffuse_material fs_out_light)};
+%s%s%s%s
 void main() {
 %s%s
 }
