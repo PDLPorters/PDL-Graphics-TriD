@@ -605,7 +605,7 @@ sub PDL::Graphics::TriD::SimpleController::togl {
 	glTranslatef(map {-$_} @{$this->{WOrigin}});
 }
 
-##############################################
+{
 # A window with mouse control over rotation.
 package # hide from PAUSE
   PDL::Graphics::TriD::Window;
@@ -799,14 +799,11 @@ sub read_picture {
         glReadPixels_c(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,$res->make_physical->address_data);
 	return $res;
 }
+}
 
-######################################################################
-######################################################################
-# EVENT HANDLER MINIPACKAGE FOLLOWS!
-
+{
 package # hide from PAUSE
   PDL::Graphics::TriD::EventHandler;
-
 use fields qw/X Y Buttons VP/;
 sub new {
   my $class = shift;
@@ -818,7 +815,6 @@ sub new {
   $self->{VP} = $vp;
   $self;
 }
-
 sub event {
   my($this,$type,@args) = @_;
   print "EH: ",ref($this)," $type (",join(",",@args),")\n" if $PDL::Graphics::TriD::verbose;
@@ -850,28 +846,22 @@ sub event {
   }
   $retval;
 }
-
 sub set_button {
   my($this,$butno,$act) = @_;
   $this->{Buttons}[$butno] = $act;
 }
+}
 
-######################################################################
-######################################################################
-# VIEWPORT MINI_PACKAGE FOLLOWS!
-
+{
 package # hide from PAUSE
   PDL::Graphics::TriD::ViewPort;
-
 use OpenGL::Modern qw/
   glLoadIdentity glMatrixMode glOrtho glFrustum
   glViewport
   GL_MODELVIEW GL_PROJECTION
 /;
-
 unshift @PDL::Graphics::TriD::GL::Highlight::ISA, qw(PDL::Graphics::TriD::Lines);
 sub PDL::Graphics::TriD::GL::Highlight::primitive {OpenGL::Modern::GL_LINE_LOOP}
-
 sub highlight {
   my ($vp) = @_;
   if (!defined $vp->{Impl}{highlight}) {
@@ -897,7 +887,6 @@ sub highlight {
   glOrtho(0,$vp->{W},0,$vp->{H},-1,1);
   $vp->{Impl}{highlight}->togl;
 }
-
 use constant PI => 3.1415926535897932384626433832795;
 use constant FOVY => 40.0;
 use constant ANGLE => FOVY / 360 * PI;
@@ -920,6 +909,7 @@ sub do_perspective {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity ();
 }
+}
 
 package # hide from PAUSE
   PDL::Graphics::TriD::GL;
@@ -930,9 +920,6 @@ use PDL::Graphics::TriD::Window qw();
 use PDL::Options;
 
 $PDL::Graphics::TriD::verbose //= 0;
-
-# This is a list of all the fields of the opengl object
-#use fields qw/Display Window Context Options GL_Vendor GL_Version GL_Renderer/;
 
 =head1 NAME
 
