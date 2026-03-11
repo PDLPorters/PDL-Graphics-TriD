@@ -319,7 +319,7 @@ as produced by L<PDL::ImageND/contour_segments>.
 
 3D rendered image plot, defined by a variety of contexts
 
-Implemented by L<PDL::Graphics::TriD::Lattice> defaulting to C<< Shading=>3, Smooth => 1, Lighting => 1 >>.
+Implemented by L<PDL::Graphics::TriD::Lattice> defaulting to C<< Shading=>3, Smooth => 1 >>.
 
 The variant, C<imag3d_ns>, is implemented by L<PDL::Graphics::TriD::Lattice> defaulting to C<< Shading=>2 >>.
 
@@ -964,7 +964,7 @@ sub PDL::imag3d_ns {  &checkargs;
 }
 
 *imag3d=*imag3d=\&PDL::imag3d;
-my %imag3d_defs = (Shading => 3, Smooth => 1, Lighting => 1);
+my %imag3d_defs = (Shading => 3, Smooth => 1);
 sub PDL::imag3d { &checkargs;
   graph_object(_mod_defaults('PDL::Graphics::TriD::Lattice', \%imag3d_defs, @_));
 }
@@ -982,7 +982,7 @@ sub PDL::trigrid3d {
   graph_object(_mod_defaults('PDL::Graphics::TriD::Trigrid', {}, @_));
 }
 
-my %trigrid3d_ns_defs = (Lines => 1, Smooth => 0, Lighting => 0, Shading => 0);
+my %trigrid3d_ns_defs = (Lines => 1, Smooth => 0, Shading => 0);
 *trigrid3d_ns=*trigrid3d_ns=\&PDL::trigrid3d_ns;
 sub PDL::trigrid3d_ns {
   &checkargs;

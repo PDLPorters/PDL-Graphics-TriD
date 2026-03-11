@@ -168,7 +168,6 @@ sub get_valid_options { +{
   Shading => 1,
   Smooth => 1,
   ShowNormals => 0,
-  Lighting => 1,
 }}
 sub cdummies { $_[1]->dummy(1,$_[2]->getdim(1)); }
 
@@ -225,9 +224,8 @@ sub new {
 }
 sub get_valid_options { +{
   UseDefcols => 0,
-  Shading => 1, # 0=no shading, 1=flat colour per triangle, 2=smooth colour per vertex, 3=colors associated with vertices
+  Shading => 1, # 0=no shading, 1=flat colour per triangle, 2=colour per vertex, 3=colors per vertex lit
   Smooth => 0,
-  Lighting => 0,
   ShowNormals => 0,
 }}
 sub cdummies { $_[1]->dummy(1,$_[2]->getdim(1)); }
@@ -246,8 +244,7 @@ sub r_type {return "SURF2D";}
 sub get_valid_options { +{
   UseDefcols => 0,
   Lines => 1,
-  Lighting => 0,
-  Shading => 2, # 0=no fill, 1=flat colour per triangle, 2=smooth colour per vertex, 3=colors associated with vertices
+  Shading => 2, # 0=no fill, 1=flat colour per triangle, 2=colour per vertex, 3=colors per vertex lit
   Smooth => 0,
   ShowNormals => 0,
 }}
@@ -341,7 +338,6 @@ sub get_valid_options { +{
   FromTo => [],
   ArrowWidth => 0.02,
   ArrowLen => 0.1,
-  Lighting => 0,
 }}
 sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : $_[0]->get_valid_options;

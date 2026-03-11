@@ -18,8 +18,8 @@ for (
   ['Lattice', {Shading=>0}],
   ['Lattice', {Shading=>1}],
   ['Lattice', {Shading=>2}],
-  ['Lattice', {Shading=>3, Lighting => 1, ShowNormals => 1}],
-  ['Lattice', {Shading=>3, Lighting => 1, ShowNormals => 1, Smooth=>1}],
+  ['Lattice', {Shading=>3, ShowNormals => 1}],
+  ['Lattice', {Shading=>3, ShowNormals => 1, Smooth=>1}],
 ) {
   my ($class, $opts) = @$_;
   eval { "PDL::Graphics::TriD::$class"->new($y,$c,$opts) };

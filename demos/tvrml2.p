@@ -36,7 +36,7 @@ $g->bind_default($name);
 $name = $g->add_dataseries(PDL::Graphics::TriD::Lattice->new([SURF2D,$x]));
 $g->bind_default($name);
 $name = $g->add_dataseries(PDL::Graphics::TriD::Lattice->new([SURF2D,$x+1],$cx,
-						     {Smooth=>1,Lines=>0,Shading=>3, Lighting=>1, Smooth=>1}}));
+						     {Smooth=>1,Lines=>0,Shading=>3, Smooth=>1}}));
 $g->bind_default($name);
 $g->scalethings();
 $win = PDL::Graphics::TriD::get_current_window();

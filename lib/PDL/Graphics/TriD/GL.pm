@@ -513,6 +513,7 @@ sub gdraw {
   my $shading = $options->{Shading};
   glShadeModel($shading == 1 ? GL_FLAT : GL_SMOOTH) if $shading;
   if ($shading > 2) {
+    $this->lighting(1);
     glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
     glEnable(GL_COLOR_MATERIAL);
   }
