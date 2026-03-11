@@ -103,9 +103,10 @@ fs_diffuse_material => <<'EOF',
 EOF
 fs_out_light => <<'EOF',
   vec4 diffuse, spec;
-  light(0, vPosition, gl_FrontFacing ? vNormal : -vNormal, in_diffuse, diffuse, spec);
-  gl_FragColor = gl_FrontLightProduct[0].ambient + diffuse + spec;
+  light(lightind, vPosition, gl_FrontFacing ? vNormal : -vNormal, in_diffuse, diffuse, spec);
+  gl_FragColor = gl_FrontLightProduct[lightind].ambient + diffuse + spec;
 EOF
+fs_lightind_decl => "  uniform int lightind;\n",
 );
 
 { package # hide from PAUSE
@@ -127,6 +128,7 @@ use OpenGL::Modern qw(
   glCreateProgram glDeleteProgram glLinkProgram glUseProgram
   glGetProgramiv_p glGetProgramInfoLog_p
   glGetAttribLocation glEnableVertexAttribArray glDisableVertexAttribArray
+  glGetUniformLocation glUniform1i
   glVertexAttribPointer_c
   GL_COMPILE_STATUS GL_LINK_STATUS GL_FALSE
   GL_VERTEX_SHADER GL_FRAGMENT_SHADER GL_CURRENT_PROGRAM
@@ -166,6 +168,20 @@ sub load_attrib {
   my $idname = "attrib_$name";
   my $id = $this->load_buffer($idname => $pdl, undef, $usage);
   push @{ $this->{Impl}{attrib_indices} }, [ $id, $loc, $pdl->dim(0), $type ];
+  $loc;
+}
+my %SUFFIX2FUNC = (
+  '1i' => \&glUniform1i,
+);
+sub load_uniform {
+  my ($this, $name, $suffix, $value) = @_;
+  PDL::barf "load_uniform: value must be array-ref" unless ref($value) eq 'ARRAY';
+  PDL::barf "load_uniform: unknown suffix '$suffix'" unless $SUFFIX2FUNC{$suffix};
+  PDL::barf "load_uniform: no program found" unless
+    my ($program) = grep defined, @{ $this->{Impl} }{qw(program program_nodestroy)};
+  PDL::barf "load_uniform: invalid name '$name'" if 0 >
+    (my $loc = glGetUniformLocation($program, $name));
+  $this->{Impl}{uniform_indices}{$name} = [ $loc, $suffix, $value ];
   $loc;
 }
 sub load_texture {
@@ -221,6 +237,9 @@ sub togl_bind {
     glBindBuffer(GL_ARRAY_BUFFER, $_->[0]), # won't need this when VAO
       glVertexAttribPointer_c(@$_[1..3], GL_FALSE, 0, 0),
       glEnableVertexAttribArray($_->[1]) for @$attribs;
+  }
+  if (my $uniforms = $this->{Impl}{uniform_indices}) {
+    $SUFFIX2FUNC{$_->[1]}->($_->[0], @{ $_->[2] }) for values %$uniforms;
   }
 }
 sub togl_unbind {
@@ -450,8 +469,8 @@ void main() {
 %s%s
 }
 EOF
-my $fragment_shader = sprintf <<'EOF', @SHADERBITS{qw(version fs_in_position_decl fs_in_normal_decl light fs_diffuse_material fs_out_light)};
-%s%s%s%s
+my $fragment_shader = sprintf <<'EOF', @SHADERBITS{qw(version fs_in_position_decl fs_in_normal_decl fs_lightind_decl light fs_diffuse_material fs_out_light)};
+%s%s%s%s%s
 void main() {
 %s%s
 }
@@ -473,6 +492,7 @@ sub togl_setup {
     $this->{Impl}{program_nodestroy} = $SHADER_PROGRAM;
     $this->load_attrib(position => $this->{Impl}{vertices});
     $this->load_attrib(normal => $this->{Impl}{normals});
+    $this->load_uniform(lightind => '1i' => [0]);
     $this->load_idx_buffer(indx_buf => $this->{Impl}{idx});
   }
   $this->{Impl}{offset_loc} = $this->load_attrib(offset => $points);
