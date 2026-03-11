@@ -247,8 +247,10 @@ sub compile_shader {
   glCompileShader($shader);
   my $status = glGetShaderiv_p($shader, GL_COMPILE_STATUS);
   if ($status == GL_FALSE) {
-    my $str = sprintf("%s shader compilation failed!\n",
+    my $str = sprintf("%s shader compilation failed for:\n---8<---\n",
         $type == GL_VERTEX_SHADER ? "Vertex" : "Fragment");
+    $src =~ s#\n+\z##;
+    $str .= "$src\n---8<---\n";
     $str .= glGetShaderInfoLog_p($shader);
     glDeleteShader($shader);
     die $str;
