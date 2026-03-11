@@ -71,11 +71,11 @@ version => <<'EOF',
 EOF
 light => <<'EOF',
 /* modified from https://community.khronos.org/t/help-with-gouraud-phong-shading-in-shaders/73192/2 */
-void light(int lightIndex, vec4 position, vec3 norm, vec4 in_diffuse, out vec4 diffuse, out vec4 spec) {
+void light(int lightIndex, vec3 position, vec3 norm, vec4 in_diffuse, out vec4 diffuse, out vec4 spec) {
   vec3 n = normalize(norm);
-  vec3 s = vec3(normalize(gl_LightSource[lightIndex].position - position));
-  vec4 v = normalize(-position);
-  vec4 r = vec4(reflect(-s, n), 1);
+  vec3 s = normalize(vec3(gl_LightSource[lightIndex].position) - position);
+  vec3 v = normalize(-position);
+  vec3 r = reflect(-s, n);
   float sDotN = max(dot(s, n), 0.0);
   diffuse = gl_LightSource[lightIndex].diffuse * in_diffuse * sDotN;
   spec = gl_LightSource[lightIndex].specular * gl_FrontMaterial.specular * pow(max(dot(r,v), 0.0), gl_FrontMaterial.shininess);
@@ -88,18 +88,18 @@ vs_in_light_decl => <<'EOF',
 attribute vec3 normal;
 EOF
 vs_in => <<'EOF',
-  vec4 the_position = vec4(position, 1);
+  vec3 the_position = position;
 EOF
 vs_out => <<'EOF',
-  gl_Position = gl_ModelViewProjectionMatrix * the_position;
+  gl_Position = gl_ModelViewProjectionMatrix * vec4(the_position, 1);
 EOF
 vs_out_light => <<'EOF',
   vNormal = normalize(gl_NormalMatrix * normal);
-  vPosition = gl_ModelViewMatrix * the_position;
+  vPosition = vec3(gl_ModelViewMatrix * vec4(the_position, 1));
 EOF
 fs_in_light_decl => <<'EOF',
 varying vec3 vNormal;
-varying vec4 vPosition;
+varying vec3 vPosition;
 EOF
 fs_diffuse_material => <<'EOF',
   vec4 in_diffuse = gl_FrontMaterial.diffuse;
@@ -447,7 +447,7 @@ my $vertex_shader = sprintf <<'EOF', @SHADERBITS{qw(version vs_in_decl vs_in_lig
 attribute vec3 offset;
 void main() {
 %s
-  the_position += vec4(offset, 0);
+  the_position += offset;
 %s%s
 }
 EOF
