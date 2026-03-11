@@ -1,11 +1,5 @@
 use strict;
 use warnings;
-use OpenGL::Modern qw/
-  glRotatef glTranslatef
-  GL_LINE_STRIP GL_LINE_LOOP
-  GL_MODELVIEW GL_PROJECTION
-/;
-use PDL::Core qw(barf);
 
 { package # hide from PAUSE
   PDL::Graphics::TriD::Material;
@@ -52,6 +46,7 @@ sub PDL::Graphics::TriD::Graph::togl {
   }
 }
 
+use OpenGL::Modern qw(glRotatef);
 use POSIX qw//;
 sub PDL::Graphics::TriD::Quaternion::togl {
   my($this) = @_;
@@ -528,6 +523,7 @@ sub gdraw {
 }
 }
 
+use OpenGL::Modern qw(GL_LINE_STRIP GL_LINE_LOOP);
 my %mode2enum = (
   linestrip => GL_LINE_STRIP,
   lineloop => GL_LINE_LOOP,
@@ -600,6 +596,7 @@ sub gdraw {
 }
 }
 
+use OpenGL::Modern qw(glTranslatef);
 sub PDL::Graphics::TriD::SimpleController::togl {
 	my($this) = @_;
 	$this->{CRotation}->togl();
