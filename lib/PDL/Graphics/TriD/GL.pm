@@ -437,7 +437,7 @@ sub PDL::Graphics::TriD::Lines::primitive {OpenGL::Modern::GL_LINES}
   PDL::Graphics::TriD::Spheres;
 use PDL::Graphics::OpenGLQ;
 use OpenGL::Modern qw(
-  glVertexAttribDivisor glDrawElementsInstancedARB_c
+  glIsProgram glVertexAttribDivisor glDrawElementsInstancedARB_c
   GL_TRIANGLE_STRIP GL_UNSIGNED_INT
 );
 my $vertex_shader = sprintf <<'EOF', @SHADERBITS{qw(version vs_in_decl vs_in_light_decl fs_in_light_decl vs_in vs_out vs_out_light)};
@@ -465,7 +465,9 @@ sub togl_setup {
     @SPHERE{@KEYS} = gl_sphere(0.025, 15, 15);
   }
   @{ $this->{Impl} }{@KEYS} = @SPHERE{@KEYS};
-  $SHADER_PROGRAM //= $this->compile_program($vertex_shader, $fragment_shader);
+  if (!defined $SHADER_PROGRAM or !glIsProgram($SHADER_PROGRAM)) {
+    $SHADER_PROGRAM = $this->compile_program($vertex_shader, $fragment_shader);
+  }
   if (!defined $this->{Impl}{program_nodestroy}) {
     $this->{Impl}{program_nodestroy} = $SHADER_PROGRAM;
     $this->load_attrib(position => $this->{Impl}{vertices});
