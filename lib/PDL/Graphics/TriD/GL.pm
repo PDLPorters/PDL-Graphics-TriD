@@ -119,7 +119,7 @@ use OpenGL::Modern qw(
   glEnable glDisable
   glGetIntegerv_p
   glGenBuffers_p glBindBuffer glDeleteBuffers_p glBufferData_c
-  glGenTextures_p glBindTexture glDeleteTextures_p
+  glGenTextures_p glBindTexture glDeleteTextures_p glIsTexture
   glTexImage2D_c glTexParameteri
   glCreateShader glDeleteShader glShaderSource_p glCompileShader
   glAttachShader glDetachShader
@@ -174,8 +174,10 @@ sub load_texture {
   PDL::barf ref($this)."::load_texture: undef \$x/\$y" if grep !defined, $x, $y;
   $type //= GL_FLOAT;
   $target //= GL_TEXTURE_2D;
-  # ||= as only need one, even if re-setup
-  glBindTexture($target, $this->{Impl}{$idname} ||= glGenTextures_p(1));
+  if (!$this->{Impl}{$idname} or !glIsTexture($this->{Impl}{$idname})) {
+    $this->{Impl}{$idname} = glGenTextures_p(1);
+  }
+  glBindTexture($target, $this->{Impl}{$idname});
   glTexImage2D_c($target, 0, $iformat, $x, $y, 0, $format, $type, $pdl->make_physical->address_data);
   glTexParameteri($target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri($target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
