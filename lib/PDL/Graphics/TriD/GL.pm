@@ -334,7 +334,7 @@ sub DESTROY {
 { package # hide from PAUSE
   PDL::Graphics::TriD::Labels;
 use OpenGL::Modern qw(
-  glEnable glBlendFunc
+  glEnable glBlendFunc glIsTexture
   glDrawElements_c
   GL_BLEND GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
   GL_TRIANGLES GL_UNSIGNED_INT
@@ -369,12 +369,12 @@ sub _font_setup {
 sub togl_setup {
   my ($this,$points) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
-  if (!keys %FONT) {
+  if (keys %FONT and glIsTexture($FONT{font_id})) {
+    $this->{Impl}{font_id} = $FONT{font_id};
+  } else {
     _font_setup(\%FONT);
     $this->load_texture(font_id => $FONT{texture}, GL_RGBA32F, ($FONT{texture}->dims)[1,2], GL_RGBA);
     $FONT{font_id} = $this->{Impl}{font_id};
-  } else {
-    $this->{Impl}{font_id} = $FONT{font_id};
   }
   $points //= $this->{Points}; # as Labels is used in Graph
   my $numchars = $FONT{numchars};
