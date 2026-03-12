@@ -365,7 +365,7 @@ use OpenGL::Modern qw(
   GL_RGBA32F GL_RGBA
 );
 use PDL::Graphics::OpenGLQ;
-my %FONT;
+my (%FONT, $FONT_ID);
 sub _font_setup {
   my ($fref) = @_;
   my ($texture, $rightbound, $orig) = gl_font_texture();
@@ -392,12 +392,12 @@ sub _font_setup {
 sub togl_setup {
   my ($this,$points) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
-  if (keys %FONT and glIsTexture($FONT{font_id})) {
-    $this->{Impl}{font_id} = $FONT{font_id};
+  _font_setup(\%FONT) if !keys %FONT;
+  if (defined $FONT_ID and glIsTexture($FONT_ID)) {
+    $this->{Impl}{font_id} = $FONT_ID;
   } else {
-    _font_setup(\%FONT);
     $this->load_texture(font_id => $FONT{texture}, GL_RGBA32F, ($FONT{texture}->dims)[1,2], GL_RGBA);
-    $FONT{font_id} = $this->{Impl}{font_id};
+    $FONT_ID = $this->{Impl}{font_id};
   }
   $points //= $this->{Points}; # as Labels is used in Graph
   my $numchars = $FONT{numchars};
