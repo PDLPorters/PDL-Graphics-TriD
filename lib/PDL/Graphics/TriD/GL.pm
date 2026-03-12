@@ -94,21 +94,15 @@ fs_tex_decl => "uniform sampler2D tex;\n",
 fs_diffuse_colour => "  vec4 in_diffuse = vec4(vColour, 1);\n",
 fs_diffuse_tex => "  vec4 in_diffuse = texture2D(tex, vTexcoord);\n",
 fs_out_flat => "  gl_FragColor = in_diffuse;\n",
-vs_in => <<'EOF',
-  vec3 the_position = position;
-EOF
+vs_in => "  vec3 the_position = position;\n",
 vs_in_offset_decl => "attribute vec3 offset;\n",
 vs_do_offset => "  the_position += offset;\n",
-vs_out => <<'EOF',
-  gl_Position = gl_ModelViewProjectionMatrix * vec4(the_position, 1);
-EOF
+vs_out => "  gl_Position = gl_ModelViewProjectionMatrix * vec4(the_position, 1);\n",
 vs_out_light => <<'EOF',
   vNormal = normalize(gl_NormalMatrix * normal);
   vPosition = vec3(gl_ModelViewMatrix * vec4(the_position, 1));
 EOF
-fs_diffuse_material => <<'EOF',
-  vec4 in_diffuse = gl_FrontMaterial.diffuse;
-EOF
+fs_diffuse_material => "  vec4 in_diffuse = gl_FrontMaterial.diffuse;\n",
 fs_out_light => <<'EOF',
   vec4 diffuse, spec;
   light(lightind, vPosition, gl_FrontFacing ? vNormal : -vNormal, in_diffuse, diffuse, spec);
