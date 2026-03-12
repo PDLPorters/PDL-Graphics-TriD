@@ -416,7 +416,7 @@ sub togl_setup {
   my @codes = map [map ord, split //], @{ $this->{Strings} };
   my ($v2, @v1, @v3) = PDL->null;
   for (0..$#codes) {
-    my ($l, $xoffset) = ($codes[$_], 0);
+    my $l = $codes[$_];
     PDL::barf "Codepoint $_ >= $numchars" for grep $_ >= $numchars, @$l;
     push @v1, ($_) x @$l;
     push @v3, @$l;
