@@ -495,6 +495,7 @@ sub gdraw {
   $this->togl_bind;
   glVertexAttribDivisor($this->{Impl}{offset_loc}, 1);
   glDrawElementsInstancedARB_c(GL_TRIANGLE_STRIP, $this->{Impl}{idx}->dim(0), GL_UNSIGNED_INT, 0, $this->{Impl}{noffset});
+  glVertexAttribDivisor($this->{Impl}{offset_loc}, 0);
   $this->togl_unbind;
 }
 }
