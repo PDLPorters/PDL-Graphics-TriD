@@ -89,7 +89,11 @@ void light(int lightIndex, vec3 position, vec3 norm, vec4 in_diffuse, out vec4 d
   spec = gl_LightSource[lightIndex].specular * gl_FrontMaterial.specular * pow(max(dot(r,v), 0.0), gl_FrontMaterial.shininess);
 }
 EOF
-(map _passthrough(@$_), [position=>3], [normal=>3]),
+(map _passthrough(@$_), [position=>3], [normal=>3], [colour=>3], [texcoord=>2]),
+fs_tex_decl => "uniform sampler2D tex;\n",
+fs_diffuse_colour => "  vec4 in_diffuse = vec4(vColour, 1);\n",
+fs_diffuse_tex => "  vec4 in_diffuse = texture2D(tex, vTexcoord);\n",
+fs_out_flat => "  gl_FragColor = in_diffuse;\n",
 vs_in => <<'EOF',
   vec3 the_position = position;
 EOF
@@ -509,40 +513,54 @@ sub gdraw {
 { package # hide from PAUSE
   PDL::Graphics::TriD::Triangles;
 use OpenGL::Modern qw(
-  glShadeModel glColorMaterial glEnable glDisable
+  glBindAttribLocation
   glDrawElements_c
-  GL_FLAT GL_SMOOTH GL_FRONT_AND_BACK GL_DIFFUSE GL_COLOR_MATERIAL
   GL_TRIANGLES GL_UNSIGNED_INT GL_RGB
+);
+my $vertex_shader = join '', @SHADERBITS{qw(version vs_in_position_decl vs_in_normal_decl vs_in_colour_decl vs_in_texcoord_decl fs_in_position_decl fs_in_normal_decl fs_in_colour_decl fs_in_texcoord_decl main_start vs_in vs_out vs_out_light vs_out_colour vs_out_texcoord main_end)};
+my $frag_header = join '', @SHADERBITS{qw(version fs_in_position_decl fs_in_normal_decl fs_in_colour_decl fs_in_texcoord_decl fs_lightind_decl fs_tex_decl light main_start)};
+my $frag_colour = join '', @SHADERBITS{qw(fs_diffuse_colour)};
+my $frag_tex = join '', @SHADERBITS{qw(fs_diffuse_tex)};
+my $frag_light = join '', @SHADERBITS{qw(fs_out_light main_end)};
+my $frag_flat = join '', @SHADERBITS{qw(fs_out_flat main_end)};
+my %frag = (
+  colour_light => join('', $frag_header, $frag_colour, $frag_light),
+  colour_flat => join('', $frag_header, $frag_colour, $frag_flat),
+  tex_light => join('', $frag_header, $frag_tex, $frag_light),
+  tex_flat => join('', $frag_header, $frag_tex, $frag_flat),
 );
 sub togl_setup {
   my ($this,$points) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
-  $this->load_buffer(vert_buf => $points);
+  my $shading = $this->{Options}{Shading};
+  my $cache_key = join '_',
+    defined $this->{Colors} ? 'colour' : 'tex',
+    $shading > 2 ? 'light' : 'flat';
+  $this->{Impl}{program_nodestroy} = $this->cache_do(prog => "shader_$cache_key", sub {
+    $this->compile_program($vertex_shader, $frag{$cache_key}, sub {
+      my ($program) = @_;
+      glBindAttribLocation($program, 0, 'position'); # needed for #version 120
+    });
+  });
+  $this->load_attrib(position => $points);
   if (defined $this->{Colors}) {
-    $this->load_buffer(color_buf => $this->{Colors});
+    $this->load_attrib(colour => $this->{Colors});
   } else {
-    $this->load_buffer(texc_buf => $this->{TexCoord});
+    $this->load_attrib(texcoord => $this->{TexCoord});
     $this->load_texture(tex_id => $this->{TexColors}, GL_RGB, ($this->{TexColors}->dims)[1,2], GL_RGB);
+    $this->load_uniform(tex => '1i' => [0]); # must be texture unit, not ID
   }
   $this->load_idx_buffer(indx_buf => $this->{Faceidx});
-  $this->load_buffer(norm_buf => $this->{Normals}) if $this->{Options}{Shading} > 2;
+  if ($shading > 2) {
+    $this->load_attrib(normal => $this->{Normals});
+    $this->load_uniform(lightind => '1i' => [0]);
+  }
   $this->togl_unbind;
 }
 sub gdraw {
   my ($this,$points) = @_;
-  my $options = $this->{Options};
-  my $shading = $options->{Shading};
-  glShadeModel($shading == 1 ? GL_FLAT : GL_SMOOTH) if $shading;
-  if ($shading > 2) {
-    $this->lighting(1);
-    glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
-    glEnable(GL_COLOR_MATERIAL);
-  }
   $this->togl_bind;
   glDrawElements_c(GL_TRIANGLES, $this->{Faceidx}->nelem, GL_UNSIGNED_INT, 0);
-  if ($shading > 2) {
-    glDisable(GL_COLOR_MATERIAL);
-  }
   $this->togl_unbind;
 }
 }
