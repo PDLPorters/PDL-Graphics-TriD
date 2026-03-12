@@ -203,6 +203,7 @@ sub load_texture {
   glTexParameteri($target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri($target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri($target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  $this->{Impl}{$idname};
 }
 sub togl_bind {
   my ($this) = @_;
@@ -396,8 +397,7 @@ sub togl_setup {
   if (defined $FONT_ID and glIsTexture($FONT_ID)) {
     $this->{Impl}{font_id} = $FONT_ID;
   } else {
-    $this->load_texture(font_id => $FONT{texture}, GL_RGBA32F, ($FONT{texture}->dims)[1,2], GL_RGBA);
-    $FONT_ID = $this->{Impl}{font_id};
+    $FONT_ID = $this->load_texture(font_id => $FONT{texture}, GL_RGBA32F, ($FONT{texture}->dims)[1,2], GL_RGBA);
   }
   $points //= $this->{Points}; # as Labels is used in Graph
   my $numchars = $FONT{numchars};
