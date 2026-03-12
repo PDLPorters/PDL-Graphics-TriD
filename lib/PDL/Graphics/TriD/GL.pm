@@ -477,19 +477,16 @@ my $vertex_shader = join '', @SHADERBITS{qw(version vs_in_position_decl vs_in_no
 my $fragment_shader = join '', @SHADERBITS{qw(version fs_in_position_decl fs_in_normal_decl fs_lightind_decl light main_start fs_diffuse_material fs_out_light main_end)};
 my %SPHERE;
 my @KEYS = qw(vertices normals idx);
-my $SHADER_PROGRAM;
 sub togl_setup {
   my ($this,$points) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
-  if (!keys %SPHERE) {
-    @SPHERE{@KEYS} = gl_sphere(0.025, 15, 15);
-  }
+  @SPHERE{@KEYS} = gl_sphere(0.025, 15, 15) if !keys %SPHERE;
   @{ $this->{Impl} }{@KEYS} = @SPHERE{@KEYS};
-  if (!defined $SHADER_PROGRAM or !glIsProgram($SHADER_PROGRAM)) {
-    $SHADER_PROGRAM = $this->compile_program($vertex_shader, $fragment_shader);
-  }
-  if (!defined $this->{Impl}{program_nodestroy}) {
-    $this->{Impl}{program_nodestroy} = $SHADER_PROGRAM;
+  my $need_load = !defined $this->{Impl}{program_nodestroy};
+  $this->{Impl}{program_nodestroy} = $this->cache_do(prog => 'shader', sub {
+    $this->compile_program($vertex_shader, $fragment_shader);
+  });
+  if ($need_load) {
     $this->load_attrib(position => $this->{Impl}{vertices});
     $this->load_attrib(normal => $this->{Impl}{normals});
     $this->load_uniform(lightind => '1i' => [0]);
