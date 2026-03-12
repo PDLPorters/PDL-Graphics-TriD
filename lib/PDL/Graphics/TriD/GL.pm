@@ -110,7 +110,7 @@ fs_out_light => <<'EOF',
   light(lightind, vPosition, gl_FrontFacing ? vNormal : -vNormal, in_diffuse, diffuse, spec);
   gl_FragColor = gl_FrontLightProduct[lightind].ambient + diffuse + spec;
 EOF
-fs_lightind_decl => "  uniform int lightind;\n",
+fs_lightind_decl => "uniform int lightind;\n",
 );
 
 { package # hide from PAUSE
@@ -371,21 +371,20 @@ sub _font_setup {
   my ($texture, $rightbound, $orig) = gl_font_texture();
   $fref->{texture} = PDL::float(1,1,1,1) * $texture->dummy(0,1);
   my $widthpix = $rightbound->numdiff; $widthpix->slice('0') += 1;
-  @{ $fref->{widthpix} } = $widthpix->list;
   $fref->{widthflt} = $widthpix->float;
   $fref->{widthflt11} = $fref->{widthflt}->t->append([1,1])->dummy(1);
   $fref->{heightpix} = $texture->dim(1);
   $fref->{numchars} = my $numchars = $rightbound->nelem;
-  $fref->{texwidthm1} = my $texwidthm1 = $texture->dim(0) - 1;
-  $fref->{leftbound} = my $leftbound = $rightbound->rotate(1) + 1;
+  my $texwidthm1 = $texture->dim(0) - 1;
+  my $leftbound = $rightbound->rotate(1) + 1;
     $leftbound->slice('0') .= 0; $leftbound->set_datatype(PDL::float->enum);
-  $fref->{rightbound} = $rightbound = $rightbound->float;
+  $rightbound = $rightbound->float;
   $_ /= $texwidthm1 for $leftbound, $rightbound;
   @$fref{qw(xorig yorig)} = $orig->list;
   $fref->{texture} = PDL::float(1,1,1,1) * $texture->dummy(0,1);
   # 4 = top-left, bot-left, top-right, bot-right, triangle idx=012,213
   $fref->{idx} = PDL->new(PDL::ulong, [0,1,2], [2,1,3]);
-  $fref->{texcoords} = my $texcoords = PDL->zeroes(PDL::float,2,4,$numchars);
+  my $texcoords = $fref->{texcoords} = PDL->zeroes(PDL::float,2,4,$numchars);
   $texcoords->slice('(0),0:1') .= $leftbound->dummy(0,1);  # u of left
   $texcoords->slice('(0),2:3') .= $rightbound->dummy(0,1); # u of right
   $texcoords->slice('(1),0::2') .= 1;          # v of top, v bot=already 0
