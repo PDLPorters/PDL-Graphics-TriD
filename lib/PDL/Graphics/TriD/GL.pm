@@ -468,7 +468,7 @@ sub PDL::Graphics::TriD::Lines::primitive {OpenGL::Modern::GL_LINES}
   PDL::Graphics::TriD::Spheres;
 use PDL::Graphics::OpenGLQ;
 use OpenGL::Modern qw(
-  glIsProgram glVertexAttribDivisor glDrawElementsInstancedARB_c
+  glVertexAttribDivisor glDrawElementsInstancedARB_c
   GL_TRIANGLE_STRIP GL_UNSIGNED_INT
 );
 my $vertex_shader = join '', @SHADERBITS{qw(version vs_in_position_decl vs_in_normal_decl fs_in_position_decl fs_in_normal_decl vs_in_offset_decl main_start vs_in vs_do_offset vs_out vs_out_light main_end)};
