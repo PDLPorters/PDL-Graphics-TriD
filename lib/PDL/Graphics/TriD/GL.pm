@@ -129,7 +129,7 @@ use OpenGL::Modern qw(
   glCreateShader glDeleteShader glShaderSource_p glCompileShader
   glAttachShader glDetachShader
   glGetShaderiv_p glGetShaderInfoLog_p
-  glCreateProgram glDeleteProgram glLinkProgram glUseProgram
+  glCreateProgram glDeleteProgram glLinkProgram glUseProgram glIsProgram
   glGetProgramiv_p glGetProgramInfoLog_p
   glGetAttribLocation glEnableVertexAttribArray glDisableVertexAttribArray
   glGetUniformLocation glUniform1i
@@ -146,6 +146,18 @@ use OpenGL::Modern qw(
   GL_TEXTURE_2D GL_TEXTURE_BINDING_2D
   GL_FLOAT GL_STATIC_DRAW
 );
+my (%TYPE2CHECKFUNC, %OBJ_CACHE) = (
+  tex => \&glIsTexture,
+  prog => \&glIsProgram,
+);
+sub cache_do {
+  my ($this, $type, $key, $make) = @_;
+  PDL::barf "cache_do: unknown type '$type'" unless my $check_func = $TYPE2CHECKFUNC{$type};
+  my $val_ref = \$OBJ_CACHE{ref $this}{$key};
+  return $$val_ref if defined $$val_ref and my $check = $check_func->($$val_ref);
+  %OBJ_CACHE = () if !($check // 1); # context went away
+  $$val_ref = $make->();
+}
 sub load_buffer {
   my ($this, $idname, $pdl, $target, $usage) = @_;
   PDL::barf ref($this)."::load_buffer: undef ndarray" if !defined $pdl;
@@ -366,7 +378,7 @@ use OpenGL::Modern qw(
   GL_RGBA32F GL_RGBA
 );
 use PDL::Graphics::OpenGLQ;
-my (%FONT, $FONT_ID);
+my %FONT;
 sub _font_setup {
   my ($fref) = @_;
   my ($texture, $rightbound, $orig) = gl_font_texture();
@@ -394,11 +406,9 @@ sub togl_setup {
   my ($this,$points) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
   _font_setup(\%FONT) if !keys %FONT;
-  if (defined $FONT_ID and glIsTexture($FONT_ID)) {
-    $this->{Impl}{font_id} = $FONT_ID;
-  } else {
-    $FONT_ID = $this->load_texture(font_id => $FONT{texture}, GL_RGBA32F, ($FONT{texture}->dims)[1,2], GL_RGBA);
-  }
+  $this->{Impl}{font_id} = $this->cache_do(tex => 'tex', sub {
+    $this->load_texture(font_id => $FONT{texture}, GL_RGBA32F, ($FONT{texture}->dims)[1,2], GL_RGBA);
+  });
   $points //= $this->{Points}; # as Labels is used in Graph
   my $numchars = $FONT{numchars};
   my $vert_template = PDL->new(PDL::float, [0,0,1], [0,0,0], [1,0,1], [1,0,0]);
