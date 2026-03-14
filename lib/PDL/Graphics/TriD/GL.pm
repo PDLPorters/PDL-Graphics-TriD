@@ -93,7 +93,11 @@ void lightfunc(
   float sDotN = max(dot(s, n), 0.0);
   ambient = lightambient * matambient;
   diffuse = lightdiffuse * in_diffuse * sDotN;
-  spec = lightspecular * matspecular * pow(max(dot(r,v), 0.0), matshininess);
+  if (matshininess > 0.0 && sDotN > 0.0) {
+    spec = lightspecular * matspecular * pow(max(dot(r,v), 0.0), matshininess);
+  } else {
+    spec = vec4(0.0);
+  }
 }
 EOF
 (map _passthrough(@$_), [position=>3], [normal=>3], [colour=>3], [texcoord=>2]),
