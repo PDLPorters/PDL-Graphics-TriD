@@ -65,10 +65,11 @@ sub PDL::Graphics::TriD::Quaternion::togl {
 ##################################
 # Graph Objects
 
+my ($VS_IN, $FS_IN) = qw(attribute varying);
 sub _passthrough {
   my ($name, $size) = @_;
-  ("vs_in_${name}_decl" => "attribute vec$size $name;\n",
-    "fs_in_${name}_decl" => "varying vec$size v".ucfirst($name).";\n",
+  ("vs_in_${name}_decl" => "$VS_IN vec$size $name;\n",
+    "fs_in_${name}_decl" => "$FS_IN vec$size v".ucfirst($name).";\n",
     "vs_out_$name" => "  v".ucfirst($name)." = $name;\n")
 }
 my %SHADERBITS = (
@@ -95,7 +96,7 @@ fs_diffuse_colour => "  vec4 in_diffuse = vec4(vColour, 1);\n",
 fs_diffuse_tex => "  vec4 in_diffuse = texture2D(tex, vTexcoord);\n",
 fs_out_flat => "  gl_FragColor = in_diffuse;\n",
 vs_in => "  vec3 the_position = position;\n",
-vs_in_offset_decl => "attribute vec3 offset;\n",
+vs_in_offset_decl => "$VS_IN vec3 offset;\n",
 vs_do_offset => "  the_position += offset;\n",
 vs_out => "  gl_Position = gl_ModelViewProjectionMatrix * vec4(the_position, 1);\n",
 vs_out_light => <<'EOF',
