@@ -80,12 +80,18 @@ main_start => "void main() {\n",
 main_end => "}\n",
 lightfunc => <<'EOF',
 /* modified from https://community.khronos.org/t/help-with-gouraud-phong-shading-in-shaders/73192/2 */
-void lightfunc(vec3 lightpos, vec4 lightdiffuse, vec4 lightspecular, vec4 matspecular, float matshininess, vec3 position, vec3 norm, vec4 in_diffuse, out vec4 diffuse, out vec4 spec) {
+void lightfunc(
+  vec3 lightpos, vec4 lightambient, vec4 lightdiffuse, vec4 lightspecular,
+  vec4 matambient, vec4 matspecular, float matshininess,
+  vec3 position, vec3 norm, vec4 in_diffuse,
+  out vec4 ambient, out vec4 diffuse, out vec4 spec
+) {
   vec3 n = normalize(norm);
   vec3 s = normalize(lightpos - position);
   vec3 v = normalize(-position);
   vec3 r = reflect(-s, n);
   float sDotN = max(dot(s, n), 0.0);
+  ambient = lightambient * matambient;
   diffuse = lightdiffuse * in_diffuse * sDotN;
   spec = lightspecular * matspecular * pow(max(dot(r,v), 0.0), matshininess);
 }
@@ -106,13 +112,14 @@ vs_out_light => <<'EOF',
 EOF
 fs_diffuse_material => "  vec4 in_diffuse = gl_FrontMaterial.diffuse;\n",
 fs_out_light => <<'EOF',
-  vec4 diffuse, spec;
+  vec4 ambient, diffuse, spec;
   lightfunc(
-    vLightpos, gl_LightSource[lightind].diffuse, gl_LightSource[lightind].specular,
-    gl_FrontMaterial.specular, gl_FrontMaterial.shininess,
-    vPosition, gl_FrontFacing ? vNormal : -vNormal, in_diffuse, diffuse, spec
+    vLightpos, gl_LightSource[lightind].ambient, gl_LightSource[lightind].diffuse, gl_LightSource[lightind].specular,
+    gl_FrontMaterial.ambient, gl_FrontMaterial.specular, gl_FrontMaterial.shininess,
+    vPosition, gl_FrontFacing ? vNormal : -vNormal, in_diffuse,
+    ambient, diffuse, spec
   );
-  gl_FragColor = gl_FrontLightProduct[lightind].ambient + diffuse + spec;
+  gl_FragColor = ambient + diffuse + spec;
 EOF
 fs_lightind_decl => "uniform int lightind;\n",
 fs_in_lightpos_decl => "$FS_IN vec3 vLightpos;\n",
