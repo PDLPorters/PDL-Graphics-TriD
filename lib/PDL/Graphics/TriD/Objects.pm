@@ -15,6 +15,7 @@ This provides the following class hierarchy:
   ├ PDL::Graphics::TriD::Trigrid         polygons
   ├ PDL::Graphics::TriD::Lattice         colored lattice, maybe filled/shaded
   ├ PDL::Graphics::TriD::LineStrip       continuous paths
+  ├ PDL::Graphics::TriD::Material        material properties for lighting
   └ PDL::Graphics::TriD::GObject         (abstract) base class for drawables
 
   PDL::Graphics::TriD::GObject           (abstract) base class for drawables
@@ -353,6 +354,25 @@ sub new {
   my ($tv, $ti) = PDL::Graphics::OpenGLQ::gen_arrowheads($points->flowing,$fromto,
     $hl, $w);
   $this->add_object(PDL::Graphics::TriD::Triangles->new($tv, $ti, $colors, { %$options, Shading=>0 }));
+  $this;
+}
+
+package # hide from PAUSE
+  PDL::Graphics::TriD::Material;
+use base qw/PDL::Graphics::TriD::Object/;
+use fields qw(Shine Specular Ambient Diffuse Emissive);
+sub get_valid_options { +{
+  Shine => 40,
+  Specular => [1,1,0.3,0],
+  Ambient => [0.3,1,1,0],
+  Diffuse => [1,0.3,1,0],
+  Emissive => [0,0,0],
+}}
+sub new {
+  my $options = ref($_[-1]) eq 'HASH' ? pop : $_[0]->get_valid_options;
+  my $this = $_[0]->SUPER::new($options);
+  $options = $this->{Options};
+  @$this{keys %$options} = values %$options;
   $this;
 }
 

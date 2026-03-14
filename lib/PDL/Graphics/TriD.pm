@@ -1065,28 +1065,6 @@ sub get_current_window {
 
 sub twiddle_current { get_current_window()->twiddle() }
 
-###################################
-#
-#
-package PDL::Graphics::TriD::Material;
-
-sub new {
-  my ($type,%ops) = @_;
-  my $this = bless {}, $type;
-  for (['Shine',40],
-       ['Specular',[1,1,0.3,0]],
-       ['Ambient',[0.3,1,1,0]],
-       ['Diffuse',[1,0.3,1,0]],
-       ['Emissive',[0,0,0]]) {
-    if (!defined $ops{$_->[0]}) {
-      $this->{$_->[0]} = $_->[1];
-    } else {
-      $this->{$_->[0]} = $ops{$_->[0]};
-    }
-  }
-  return $this;
-}
-
 =head1 AUTHOR
 
 Copyright (C) 1997 Tuomas J. Lukka (lukka@husc.harvard.edu). Documentation
