@@ -90,13 +90,14 @@ void lightfunc(
   vec3 s = lightpos.w == 0.0 ? normalize(lightpos.xyz) /* Directional */
     : normalize(lightpos.xyz - position); /* Positional/Spotlight */
   vec3 v = normalize(-position);
-  vec3 r = reflect(-s, n);
+  vec3 h = normalize(s + v); // Halfway vector
+  float hDotN = max(dot(h, n), 0.0);
   float sDotN = max(dot(s, n), 0.0);
   ambient = lightambient * matambient;
   diffuse = lightdiffuse * in_diffuse * sDotN;
   // Guard against negative dots and zero shininess (NVIDIA flare fix)
   if (matshininess > 0.0 && sDotN > 0.0) {
-    spec = lightspecular * matspecular * pow(max(dot(r,v), 0.0), matshininess);
+    spec = lightspecular * matspecular * pow(hDotN, matshininess);
   } else {
     spec = vec4(0.0);
   }
