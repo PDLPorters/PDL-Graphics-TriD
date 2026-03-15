@@ -981,13 +981,10 @@ sub highlight {
   my ($vp) = @_;
   if (!defined $vp->{Impl}{highlight}) {
     my $hl = $vp->{Impl}{highlight} = PDL::Graphics::TriD::GL::Highlight->new(
-      PDL->new(PDL::float, [[0,0,0], [$vp->{W},0,0], [$vp->{W},$vp->{H},0],
-        [0,$vp->{H},0]]),
+      PDL->zeroes(PDL::float, 3, 4),
       PDL->new(PDL::float, [1,1,1]),
       { LineWidth => 4 },
     );
-    $hl->togl_setup;
-    $hl->{IsValid} = 1;
   }
   if (!(my $hl = $vp->{Impl}{highlight})->{IsValid}) {
     $hl->{Points} .= PDL->new(PDL::float, [[0,0,0], [$vp->{W},0,0],
