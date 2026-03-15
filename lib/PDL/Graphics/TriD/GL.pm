@@ -524,8 +524,7 @@ sub togl_setup {
   my ($this,$points) = @_;
   $points //= $this->{Points}; # as Lines is used in Graph
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
-  $this->load_buffer(vert_buf => $points);
-  $this->load_buffer(color_buf => $this->{Colors});
+  $this->program_poscol($points, $this->{Colors});
   $this->togl_unbind;
 }
 sub gdraw {
