@@ -650,12 +650,23 @@ my %mode2enum = (
 { package # hide from PAUSE
   PDL::Graphics::TriD::DrawMulti;
 use OpenGL::Modern qw(glMultiDrawElements_c GL_UNSIGNED_INT);
+my $vertex_shader = join '', @SHADERBITS{qw(version
+  vs_in_position_decl vs_in_colour_decl fs_in_colour_decl
+  main_start vs_in vs_out vs_out_colour main_end
+)};
+my $fragment_shader = join '', @SHADERBITS{qw(version
+  fs_in_colour_decl
+  main_start fs_diffuse_colour fs_out_flat main_end
+)};
 sub togl_setup {
   my ($this,$points) = @_;
   $points //= $this->{Points}; # as Lattice is used in Graph for CylindricalEquidistantAxes
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
-  $this->load_buffer(vert_buf => $points);
-  $this->load_buffer(color_buf => $this->{Colors});
+  $this->{Impl}{program_nodestroy} = $this->cache_do(prog => 'shader', sub {
+    $this->compile_program($vertex_shader, $fragment_shader);
+  });
+  $this->load_attrib(position => $points);
+  $this->load_attrib(colour => $this->{Colors});
   $this->load_idx_buffer(indx_buf => $this->{Indices});
   $this->togl_unbind;
   $this->{Impl}{Starts4} = $this->{Starts}->indx * PDL::Core::howbig(PDL::ulong->enum); # byte offset into GPU buffer, not elements
