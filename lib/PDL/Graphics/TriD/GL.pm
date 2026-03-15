@@ -979,16 +979,15 @@ unshift @PDL::Graphics::TriD::GL::Highlight::ISA, qw(PDL::Graphics::TriD::Lines)
 sub PDL::Graphics::TriD::GL::Highlight::primitive {OpenGL::Modern::GL_LINE_LOOP}
 sub highlight {
   my ($vp) = @_;
-  if (!defined $vp->{Impl}{highlight}) {
-    my $hl = $vp->{Impl}{highlight} = PDL::Graphics::TriD::GL::Highlight->new(
-      PDL->zeroes(PDL::float, 3, 4),
-      PDL->new(PDL::float, [1,1,1]),
-      { LineWidth => 4 },
-    );
-  }
-  if (!(my $hl = $vp->{Impl}{highlight})->{IsValid}) {
-    $hl->{Points} .= PDL->new(PDL::float, [[0,0,0], [$vp->{W},0,0],
-      [$vp->{W},$vp->{H},0], [0,$vp->{H},0]]),
+  my $hl = $vp->{Impl}{highlight} //= PDL::Graphics::TriD::GL::Highlight->new(
+    PDL->zeroes(PDL::float, 3, 4),
+    PDL->new(PDL::float, [1,1,1]),
+    { LineWidth => 4 },
+  );
+  my ($w, $h) = @$vp{qw(W H)};
+  if (!$hl->{IsValid}) {
+    $hl->{Points} .= PDL->new(PDL::float, [[0,0,0], [$w,0,0],
+      [$w,$h,0], [0,$h,0]]),
     $hl->togl_setup;
     $hl->{IsValid} = 1;
   }
@@ -996,8 +995,8 @@ sub highlight {
   glLoadIdentity();
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(0,$vp->{W},0,$vp->{H},-1,1);
-  $vp->{Impl}{highlight}->togl;
+  glOrtho(0,$w,0,$h,-1,1);
+  $hl->togl;
 }
 use constant PI => 3.1415926535897932384626433832795;
 use constant FOVY => 40.0;
