@@ -103,6 +103,21 @@ void lightfunc(
   }
 }
 EOF
+lightfuncgouraud => <<'EOF',
+vec4 lightfuncgouraud(
+  vec4 lightpos, vec4 lightambient, vec4 lightdiffuse, vec4 lightspecular,
+  vec4 matambient, vec4 matspecular, float matshininess,
+  vec3 position, vec3 norm
+) {
+  vec4 ambient, diffuse, spec;
+  lightfunc(
+    lightpos, lightambient, lightdiffuse, lightspecular,
+    matambient, matspecular, matshininess,
+    position, norm, vec4(1.0), ambient, diffuse, spec
+  );
+  return ambient + diffuse + spec;
+}
+EOF
 (map _passthrough(@$_), [position=>3], [normal=>3], [colour=>3], [texcoord=>2]),
 fs_tex_decl => "uniform sampler2D tex;\n",
 fs_diffuse_colour => "  vec4 in_diffuse = vec4(vColour, 1);\n",
@@ -128,8 +143,25 @@ fs_out_light => <<'EOF',
   );
   gl_FragColor = ambient + diffuse + spec;
 EOF
+vs_out_lightgouraudstart => "  vec3 vNormal, vPosition;\n  vec4 vLightpos;\n",
+vs_out_lightgouraud => <<'EOF',
+  vFrontcolour = lightfuncgouraud(
+    vLightpos, gl_LightSource[lightind].ambient, gl_LightSource[lightind].diffuse, gl_LightSource[lightind].specular,
+    gl_FrontMaterial.ambient, gl_FrontMaterial.specular, gl_FrontMaterial.shininess,
+    vPosition, vNormal
+  );
+  vBackcolour = lightfuncgouraud(
+    vLightpos, gl_LightSource[lightind].ambient, gl_LightSource[lightind].diffuse, gl_LightSource[lightind].specular,
+    gl_FrontMaterial.ambient, gl_FrontMaterial.specular, gl_FrontMaterial.shininess,
+    vPosition, -vNormal
+  );
+EOF
+fs_out_lightgouraud => <<'EOF',
+  gl_FragColor = (gl_FrontFacing ? vFrontcolour : vBackcolour) * in_diffuse;
+EOF
 fs_lightind_decl => "uniform int lightind;\n",
 fs_in_lightpos_decl => "$FS_IN vec4 vLightpos;\n",
+fs_in_lightgouraud_decl => "$FS_IN vec4 vFrontcolour;\n$FS_IN vec4 vBackcolour;\n",
 );
 
 { package # hide from PAUSE
@@ -494,14 +526,13 @@ use OpenGL::Modern qw(
 );
 my $vertex_shader = join '', @SHADERBITS{qw(version
   vs_in_position_decl vs_in_normal_decl vs_in_offset_decl
-  fs_in_position_decl fs_in_normal_decl fs_in_lightpos_decl
-  fs_lightind_decl
-  main_start vs_in vs_do_offset vs_out vs_out_light main_end
+  fs_in_lightgouraud_decl
+  fs_lightind_decl lightfunc lightfuncgouraud
+  main_start vs_in vs_do_offset vs_out vs_out_lightgouraudstart vs_out_light vs_out_lightgouraud main_end
 )};
 my $fragment_shader = join '', @SHADERBITS{qw(version
-  fs_in_position_decl fs_in_normal_decl fs_in_lightpos_decl
-  fs_lightind_decl lightfunc
-  main_start fs_diffuse_material fs_out_light main_end
+  fs_in_lightgouraud_decl
+  main_start fs_diffuse_material fs_out_lightgouraud main_end
 )};
 my %SPHERE;
 my @KEYS = qw(vertices normals idx);
@@ -541,20 +572,24 @@ use OpenGL::Modern qw(
   glDrawElements_c
   GL_TRIANGLES GL_UNSIGNED_INT GL_RGB
 );
-my $vertex_shader = join '', @SHADERBITS{qw(version
+my $vert_header = join '', @SHADERBITS{qw(version
   vs_in_position_decl vs_in_normal_decl vs_in_colour_decl vs_in_texcoord_decl
-  fs_in_position_decl fs_in_normal_decl fs_in_colour_decl fs_in_texcoord_decl fs_in_lightpos_decl
-  fs_lightind_decl
-  main_start vs_in vs_out vs_out_light vs_out_colour vs_out_texcoord main_end
+  fs_in_colour_decl fs_in_texcoord_decl fs_in_lightgouraud_decl
+  fs_lightind_decl lightfunc lightfuncgouraud
+  main_start vs_in vs_out vs_out_colour vs_out_texcoord
 )};
+my %vert = (
+  light => join('', $vert_header, @SHADERBITS{qw(vs_out_lightgouraudstart vs_out_light vs_out_lightgouraud main_end)}),
+  flat => join('', $vert_header, @SHADERBITS{qw(main_end)}),
+);
 my $frag_header = join '', @SHADERBITS{qw(version
-  fs_in_position_decl fs_in_normal_decl fs_in_colour_decl fs_in_texcoord_decl fs_in_lightpos_decl
-  fs_lightind_decl fs_tex_decl
-  lightfunc main_start
+  fs_in_colour_decl fs_in_texcoord_decl fs_in_lightgouraud_decl
+  fs_tex_decl
+  main_start
 )};
 my $frag_colour = join '', @SHADERBITS{qw(fs_diffuse_colour)};
 my $frag_tex = join '', @SHADERBITS{qw(fs_diffuse_tex)};
-my $frag_light = join '', @SHADERBITS{qw(fs_out_light main_end)};
+my $frag_light = join '', @SHADERBITS{qw(fs_out_lightgouraud main_end)};
 my $frag_flat = join '', @SHADERBITS{qw(fs_out_flat main_end)};
 my %frag = (
   colour_light => join('', $frag_header, $frag_colour, $frag_light),
@@ -566,11 +601,10 @@ sub togl_setup {
   my ($this,$points) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
   my $shading = $this->{Options}{Shading};
-  my $cache_key = join '_',
-    defined $this->{Colors} ? 'colour' : 'tex',
-    $shading > 2 ? 'light' : 'flat';
+  my $lightflat = $shading > 2 ? 'light' : 'flat';
+  my $cache_key = join '_', defined $this->{Colors} ? 'colour' : 'tex', $lightflat;
   $this->{Impl}{program_nodestroy} = $this->cache_do(prog => "shader_$cache_key", sub {
-    $this->compile_program($vertex_shader, $frag{$cache_key}, sub {
+    $this->compile_program($vert{$lightflat}, $frag{$cache_key}, sub {
       my ($program) = @_;
       glBindAttribLocation($program, 0, 'position'); # needed for #version 120
     });
