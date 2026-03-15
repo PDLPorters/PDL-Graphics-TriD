@@ -679,12 +679,19 @@ use OpenGL::Modern qw(
   GL_MODELVIEW GL_PROJECTION
   GL_TRIANGLE_STRIP GL_RGB
 );
+my $vertex_shader = join '', @SHADERBITS{qw(version
+  vs_in_position_decl vs_in_texcoord_decl fs_in_texcoord_decl
+  main_start vs_in vs_out vs_out_texcoord main_end
+)};
+my $fragment_shader = join '', @SHADERBITS{qw(version
+  fs_in_texcoord_decl fs_tex_decl
+  main_start fs_diffuse_tex fs_out_flat main_end
+)};
 sub togl_setup {
   my ($this,$points) = @_;
   $points //= $this->{Points};
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
   my ($p,$xd,$yd,$txd,$tyd) = $this->flatten(1); # do binary alignment
-  $this->load_buffer(vert_buf => $points);
   # assume proportions could change each time
   my $texvert = PDL->new(PDL::float, [
     [$xd/$txd, 0],
@@ -692,7 +699,11 @@ sub togl_setup {
     [0,0],
     [0, $yd/$tyd]
   ]);
-  $this->load_buffer(texc_buf => $texvert);
+  $this->{Impl}{program_nodestroy} = $this->cache_do(prog => 'shader', sub {
+    $this->compile_program($vertex_shader, $fragment_shader);
+  });
+  $this->load_attrib(position => $points);
+  $this->load_attrib(texcoord => $texvert);
   $this->load_texture(tex_id => $p, GL_RGB, $txd, $tyd, GL_RGB);
   $this->togl_unbind;
 }
