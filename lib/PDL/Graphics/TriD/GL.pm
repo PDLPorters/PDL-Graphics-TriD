@@ -170,8 +170,6 @@ use OpenGL::Modern qw(
   glPushAttrib glPopAttrib
   glLineWidth glPointSize
   glLightfv_p glLightModeli
-  glEnableClientState glDisableClientState
-  glVertexPointer_c glColorPointer_c glTexCoordPointer_c glNormalPointer_c
   glEnable glDisable
   glGetIntegerv_p
   glGenBuffers_p glBindBuffer glDeleteBuffers_p glBufferData_c
@@ -187,7 +185,6 @@ use OpenGL::Modern qw(
   glVertexAttribPointer_c
   GL_COMPILE_STATUS GL_LINK_STATUS GL_FALSE
   GL_VERTEX_SHADER GL_FRAGMENT_SHADER GL_CURRENT_PROGRAM
-  GL_VERTEX_ARRAY GL_COLOR_ARRAY GL_TEXTURE_COORD_ARRAY GL_NORMAL_ARRAY
   GL_LIGHTING_BIT GL_ENABLE_BIT GL_DEPTH_TEST GL_LIGHTING GL_LIGHT0
   GL_LIGHT_MODEL_TWO_SIDE GL_TRUE GL_POSITION
   GL_ARRAY_BUFFER GL_ARRAY_BUFFER_BINDING
@@ -275,26 +272,6 @@ sub togl_bind {
     glBindTexture(GL_TEXTURE_2D, $id);
     glEnable(GL_TEXTURE_2D);
   }
-  if (defined $this->{Impl}{vert_buf}) {
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{vert_buf});
-    glVertexPointer_c(3, GL_FLOAT, 0, 0);
-  }
-  if (defined $this->{Impl}{color_buf}) {
-    glEnableClientState(GL_COLOR_ARRAY);
-    glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{color_buf});
-    glColorPointer_c(3, GL_FLOAT, 0, 0);
-  }
-  if (defined $this->{Impl}{texc_buf}) {
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{texc_buf});
-    glTexCoordPointer_c(2, GL_FLOAT, 0, 0);
-  }
-  if (defined $this->{Impl}{norm_buf}) {
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glBindBuffer(GL_ARRAY_BUFFER, $this->{Impl}{norm_buf});
-    glNormalPointer_c(GL_FLOAT, 0, 0);
-  }
   if (defined $this->{Impl}{indx_buf}) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, $this->{Impl}{indx_buf}); # unbind the VAO before you unbind the Index Buffer
   }
@@ -313,10 +290,6 @@ sub togl_bind {
 sub togl_unbind {
   my ($this) = @_;
   glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER;
-  glDisableClientState(GL_VERTEX_ARRAY) if defined $this->{Impl}{vert_buf};
-  glDisableClientState(GL_COLOR_ARRAY) if defined $this->{Impl}{color_buf};
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY) if defined $this->{Impl}{texc_buf};
-  glDisableClientState(GL_NORMAL_ARRAY) if defined $this->{Impl}{norm_buf};
   if (defined $this->{Impl}{tex_id}) {
     glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);
