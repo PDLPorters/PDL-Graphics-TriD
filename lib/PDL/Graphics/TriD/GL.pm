@@ -491,8 +491,17 @@ use OpenGL::Modern qw(
   glVertexAttribDivisor glDrawElementsInstancedARB_c
   GL_TRIANGLE_STRIP GL_UNSIGNED_INT
 );
-my $vertex_shader = join '', @SHADERBITS{qw(version vs_in_position_decl vs_in_normal_decl fs_in_position_decl fs_in_normal_decl vs_in_offset_decl fs_in_lightpos_decl fs_lightind_decl main_start vs_in vs_do_offset vs_out vs_out_light main_end)};
-my $fragment_shader = join '', @SHADERBITS{qw(version fs_in_position_decl fs_in_normal_decl fs_in_lightpos_decl fs_lightind_decl lightfunc main_start fs_diffuse_material fs_out_light main_end)};
+my $vertex_shader = join '', @SHADERBITS{qw(version
+  vs_in_position_decl vs_in_normal_decl vs_in_offset_decl
+  fs_in_position_decl fs_in_normal_decl fs_in_lightpos_decl
+  fs_lightind_decl
+  main_start vs_in vs_do_offset vs_out vs_out_light main_end
+)};
+my $fragment_shader = join '', @SHADERBITS{qw(version
+  fs_in_position_decl fs_in_normal_decl fs_in_lightpos_decl
+  fs_lightind_decl lightfunc
+  main_start fs_diffuse_material fs_out_light main_end
+)};
 my %SPHERE;
 my @KEYS = qw(vertices normals idx);
 sub togl_setup {
@@ -531,8 +540,17 @@ use OpenGL::Modern qw(
   glDrawElements_c
   GL_TRIANGLES GL_UNSIGNED_INT GL_RGB
 );
-my $vertex_shader = join '', @SHADERBITS{qw(version vs_in_position_decl vs_in_normal_decl vs_in_colour_decl vs_in_texcoord_decl fs_in_position_decl fs_in_normal_decl fs_in_colour_decl fs_in_texcoord_decl fs_in_lightpos_decl fs_lightind_decl main_start vs_in vs_out vs_out_light vs_out_colour vs_out_texcoord main_end)};
-my $frag_header = join '', @SHADERBITS{qw(version fs_in_position_decl fs_in_normal_decl fs_in_colour_decl fs_in_texcoord_decl fs_in_lightpos_decl fs_lightind_decl fs_tex_decl lightfunc main_start)};
+my $vertex_shader = join '', @SHADERBITS{qw(version
+  vs_in_position_decl vs_in_normal_decl vs_in_colour_decl vs_in_texcoord_decl
+  fs_in_position_decl fs_in_normal_decl fs_in_colour_decl fs_in_texcoord_decl fs_in_lightpos_decl
+  fs_lightind_decl
+  main_start vs_in vs_out vs_out_light vs_out_colour vs_out_texcoord main_end
+)};
+my $frag_header = join '', @SHADERBITS{qw(version
+  fs_in_position_decl fs_in_normal_decl fs_in_colour_decl fs_in_texcoord_decl fs_in_lightpos_decl
+  fs_lightind_decl fs_tex_decl
+  lightfunc main_start
+)};
 my $frag_colour = join '', @SHADERBITS{qw(fs_diffuse_colour)};
 my $frag_tex = join '', @SHADERBITS{qw(fs_diffuse_tex)};
 my $frag_light = join '', @SHADERBITS{qw(fs_out_light main_end)};
