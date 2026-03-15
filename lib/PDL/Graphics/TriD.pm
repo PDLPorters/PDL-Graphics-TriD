@@ -807,7 +807,7 @@ sub realcoords {
   my($type,$c) = @_;
   if(ref $c ne "ARRAY") {
     my $dim0 = $c->getdim(0);
-    barf "If one ndarray given for coordinate, must be (3,...) or have default interpretation" if $dim0 != 3;
+    barf "If one ndarray given for coordinate, must be (2|3,...) or have default interpretation" if $dim0 != 2 and $dim0 != 3;
     return $c->float;
   }
   my @c = @$c;
