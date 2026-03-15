@@ -980,14 +980,13 @@ sub PDL::Graphics::TriD::GL::Highlight::primitive {OpenGL::Modern::GL_LINE_LOOP}
 sub highlight {
   my ($vp) = @_;
   my $hl = $vp->{Impl}{highlight} //= PDL::Graphics::TriD::GL::Highlight->new(
-    PDL->zeroes(PDL::float, 3, 4),
+    PDL->zeroes(PDL::float, 2, 4),
     PDL->new(PDL::float, [1,1,1]),
     { LineWidth => 4 },
   );
   my ($w, $h) = @$vp{qw(W H)};
   if (!$hl->{IsValid}) {
-    $hl->{Points} .= PDL->new(PDL::float, [[0,0,0], [$w,0,0],
-      [$w,$h,0], [0,$h,0]]),
+    $hl->{Points} .= PDL->new(PDL::float, [[0,0], [$w,0], [$w,$h], [0,$h]]),
     $hl->togl_setup;
     $hl->{IsValid} = 1;
   }
