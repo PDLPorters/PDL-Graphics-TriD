@@ -388,9 +388,7 @@ sub togl {
   glPointSize($this->{Options}{PointSize} || 1);
   glEnable(GL_DEPTH_TEST);
   $this->lighting($this->{Options}{Lighting});
-  eval {
-    $this->gdraw($points // $this->{Points});
-  };
+  eval { $this->gdraw($points // $this->{Points}) };
   { local $@; glPopAttrib(); }
   die if $@;
 }
@@ -453,6 +451,14 @@ sub _font_setup {
   $texcoords->slice('(0),2:3') .= $rightbound->dummy(0,1); # u of right
   $texcoords->slice('(1),0::2') .= 1;          # v of top, v bot=already 0
 }
+my $vertex_shader = join '', @SHADERBITS{qw(version
+  vs_in_position_decl vs_in_texcoord_decl fs_in_texcoord_decl
+  main_start vs_in vs_out vs_out_texcoord main_end
+)};
+my $fragment_shader = join '', @SHADERBITS{qw(version
+  fs_in_texcoord_decl fs_tex_decl
+  main_start fs_diffuse_tex fs_out_flat main_end
+)};
 sub togl_setup {
   my ($this,$points) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
@@ -478,8 +484,11 @@ sub togl_setup {
   my $v = $points->dice_axis(1, \@v1)->dummy(1) +
     ($v2->t->append([0,0])->dummy(1) / $dwidth) +
     $vert_template * $FONT{widthflt11}->dice_axis(2,\@v3);
-  $this->load_buffer(vert_buf => $v->clump(1,2));
-  $this->load_buffer(texc_buf => $FONT{texcoords}->dice_axis(2,\@v3)->clump(1,2));
+  $this->{Impl}{program_nodestroy} = $this->cache_do(prog => 'shader', sub {
+    $this->compile_program($vertex_shader, $fragment_shader);
+  });
+  $this->load_attrib(position => $v->clump(1,2));
+  $this->load_attrib(texcoord => $FONT{texcoords}->dice_axis(2,\@v3)->clump(1,2));
   $this->load_idx_buffer(indx_buf => $this->{Impl}{idx} = $FONT{idx}->flat + 4 * PDL->sequence(PDL::ulong,1,0+@v1));
   $this->togl_unbind;
 }
