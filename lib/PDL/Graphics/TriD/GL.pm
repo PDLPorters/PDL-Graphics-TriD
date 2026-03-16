@@ -250,8 +250,7 @@ sub set_uniform {
   PDL::barf "set_uniform: unknown suffix '$suffix'" unless $SUFFIX2FUNC{$suffix};
   PDL::barf "set_uniform: no program found" unless
     my ($program) = grep defined, @{ $this->{Impl} }{qw(program program_nodestroy)};
-  PDL::barf "set_uniform: invalid name '$name'" if 0 >
-    (my $loc = glGetUniformLocation($program, $name));
+  return if 0 > (my $loc = glGetUniformLocation($program, $name)); # got elim
   $this->{Impl}{uniform_indices}{$name} = [ $loc, $suffix, $value ];
   $loc;
 }
