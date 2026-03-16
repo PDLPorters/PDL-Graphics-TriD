@@ -769,37 +769,36 @@ use PDL::ImageND;
 
 # Then, see which display method are we using:
 
-$PDL::Graphics::TriD::device = $PDL::Graphics::TriD::device;
+our $device;
 BEGIN {
-	my $dev = $PDL::Graphics::TriD::device; # First, take it from this variable.
-	$dev ||= $::ENV{PDL_3D_DEVICE};
-        if(!defined $dev) {
-#            warn "Default PDL 3D device is GL (OpenGL):
+  my $dev = $device; # First, take it from this variable.
+  $dev ||= $::ENV{PDL_3D_DEVICE};
+  if (!defined $dev) {
+#    warn "Default PDL 3D device is GL (OpenGL):
 # Set PDL_3D_DEVICE=GL in your environment in order not to see this warning.
 # You must have OpenGL or Mesa installed and the PDL::Graphics::OpenGL extension
 # compiled. Otherwise you will get strange warnings.";
-
-           $dev = "GL";  # default GL works on all platforms now
-        }
-	my $dv;
+    $dev = "GL";  # default GL works on all platforms now
+  }
+  my $dv;
 # The following is just a sanity check.
-	for($dev) {
-		(/^GL$/  and $dv="PDL::Graphics::TriD::GL") or
-		(/^GLpic$/  and $dv="PDL::Graphics::TriD::GL" and $PDL::Graphics::TriD::offline=1) or
-		(/^VRML$/  and $dv="PDL::Graphics::TriD::VRML" and $PDL::Graphics::TriD::offline=1) or
-		(barf "Invalid PDL 3D device '$_' specified!");
-	}
-	my $mod = $dv;
-	$mod =~ s|::|/|g;
-	print "dev = $dev mod=$mod\n" if($verbose);
-	require "$mod.pm";
-	$dv->import;
-        my $verbose;
+  for ($dev) {
+          (/^GL$/  and $dv="PDL::Graphics::TriD::GL") or
+          (/^GLpic$/  and $dv="PDL::Graphics::TriD::GL" and $PDL::Graphics::TriD::offline=1) or
+          (/^VRML$/  and $dv="PDL::Graphics::TriD::VRML" and $PDL::Graphics::TriD::offline=1) or
+          (barf "Invalid PDL 3D device '$_' specified!");
+  }
+  my $mod = $dv;
+  $mod =~ s|::|/|g;
+  print "dev = $dev mod=$mod\n" if $verbose;
+  require "$mod.pm";
+  $dv->import;
+  my $verbose;
 }
 
 # currently only used by VRML backend
-$PDL::Graphics::TriD::Settings = $PDL::Graphics::TriD::Settings;
-sub tridsettings {return $PDL::Graphics::TriD::Settings}
+our $Settings;
+sub tridsettings {$Settings}
 
 # Allowable forms:
 # x(3,..)  [x(..),y(..),z(..)]
@@ -842,16 +841,14 @@ sub realcoords {
 }
 
 sub checkargs {
-	if(ref $_[-1] eq "HASH" and $PDL::Graphics::TriD::verbose) {
-
-	  print "enter checkargs \n";
-		for(['KeepTwiddling',\&keeptwiddling3d]) {
-		  print "checkargs >$_<\n";
-			if(defined $_[-1]{$_->[0]}) {
-				&{$_->[1]}(delete $_[-1]{$_->[0]});
-			}
-		}
-	}
+  return unless ref $_[-1] eq "HASH" and $PDL::Graphics::TriD::verbose;
+  print "enter checkargs \n";
+  for(['KeepTwiddling',\&keeptwiddling3d]) {
+    print "checkargs >$_<\n";
+    if (defined $_[-1]{$_->[0]}) {
+      &{$_->[1]}(delete $_[-1]{$_->[0]});
+    }
+  }
 }
 
 *keeptwiddling3d=*keeptwiddling3d=\&PDL::keeptwiddling3d;
@@ -873,19 +870,19 @@ sub PDL::close3d {
 }
 
 sub graph_object {
-	my($obj) = @_;
-	if(!defined $obj or !ref $obj) {
-		barf("Invalid object to TriD::graph_object");
-	}
-	print "graph_object: calling get_new_graph\n" if($PDL::Graphics::TriD::verbose);
-	my $g = get_new_graph();
-	print "graph_object: back from get_new_graph\n" if($PDL::Graphics::TriD::verbose);
-	my $name = $g->add_dataseries($obj);
-	$g->bind_default($name);
-	$g->scalethings();
-	print "ADDED TO GRAPH: '$name'\n" if $PDL::Graphics::TriD::verbose;
-	twiddle_current();
-	return $obj;
+  my($obj) = @_;
+  if(!defined $obj or !ref $obj) {
+    barf("Invalid object to TriD::graph_object");
+  }
+  print "graph_object: calling get_new_graph\n" if($PDL::Graphics::TriD::verbose);
+  my $g = get_new_graph();
+  print "graph_object: back from get_new_graph\n" if($PDL::Graphics::TriD::verbose);
+  my $name = $g->add_dataseries($obj);
+  $g->bind_default($name);
+  $g->scalethings();
+  print "ADDED TO GRAPH: '$name'\n" if $PDL::Graphics::TriD::verbose;
+  twiddle_current();
+  $obj;
 }
 
 # Plotting routines that use the whole viewport
@@ -932,10 +929,10 @@ sub PDL::line3d {
 
 *line3d_segs=*line3d_segs=\&PDL::line3d_segs;
 sub PDL::line3d_segs {
-    &checkargs;
-    my $obj = PDL::Graphics::TriD::Lines->new(@_);
-    print "line3d_segs: object is $obj\n" if($PDL::Graphics::TriD::verbose);
-    graph_object($obj);
+  &checkargs;
+  my $obj = PDL::Graphics::TriD::Lines->new(@_);
+  print "line3d_segs: object is $obj\n" if($PDL::Graphics::TriD::verbose);
+  graph_object($obj);
 }
 
 *contour3d=*contour3d=\&PDL::contour3d;
@@ -948,8 +945,8 @@ sub PDL::contour3d {
 # XXX Should enable different positioning...
 *imagrgb3d=*imagrgb3d=\&PDL::imagrgb3d;
 sub PDL::imagrgb3d { &checkargs;
-	require PDL::Graphics::TriD::Image;
-	graph_object(PDL::Graphics::TriD::Image->new(@_));
+  require PDL::Graphics::TriD::Image;
+  graph_object(PDL::Graphics::TriD::Image->new(@_));
 }
 
 *imag3d_ns=*imag3d_ns=\&PDL::imag3d_ns;
@@ -994,21 +991,21 @@ sub PDL::mesh3d { &checkargs;
 
 *points3d=*points3d=\&PDL::points3d;
 sub PDL::points3d { &checkargs;
-	graph_object(PDL::Graphics::TriD::Points->new(@_));
+  graph_object(PDL::Graphics::TriD::Points->new(@_));
 }
 
 *spheres3d=*spheres3d=\&PDL::spheres3d;
 sub PDL::spheres3d { &checkargs;
-	graph_object(PDL::Graphics::TriD::Spheres->new(@_));
+  graph_object(PDL::Graphics::TriD::Spheres->new(@_));
 }
 
 *grabpic3d=*grabpic3d=\&PDL::grabpic3d;
 sub PDL::grabpic3d {
-	my $win = PDL::Graphics::TriD::get_current_window();
-	barf "backend doesn't support grabbing the rendered scene"
-	  unless $win->can('read_picture');
-	my $pic = $win->read_picture();
-	return ($pic->float) / 255;
+  my $win = PDL::Graphics::TriD::get_current_window();
+  barf "backend doesn't support grabbing the rendered scene"
+    unless $win->can('read_picture');
+  my $pic = $win->read_picture();
+  return ($pic->float) / 255;
 }
 
 $PDL::Graphics::TriD::only_one = 1;
@@ -1019,18 +1016,18 @@ sub PDL::release3d {$PDL::Graphics::TriD::only_one = 1;}
 *release3d=*release3d=\&PDL::release3d;
 
 sub get_new_graph {
-    print "get_new_graph: calling PDL::Graphics::TriD::get_current_window...\n" if($PDL::Graphics::TriD::verbose);
-	my $win = PDL::Graphics::TriD::get_current_window();
-    print "get_new_graph: calling get_current_graph...\n" if($PDL::Graphics::TriD::verbose);
-	my $g = get_current_graph($win);
-    print "get_new_graph: back get_current_graph returned $g...\n" if($PDL::Graphics::TriD::verbose);
-	if ($PDL::Graphics::TriD::only_one) {
-		$g->clear_data;
-		$win->clear_viewport;
-	}
-	$g->default_axes;
-	$win->add_object($g);
-	return $g;
+  print "get_new_graph: calling PDL::Graphics::TriD::get_current_window...\n" if($PDL::Graphics::TriD::verbose);
+  my $win = PDL::Graphics::TriD::get_current_window();
+  print "get_new_graph: calling get_current_graph...\n" if $PDL::Graphics::TriD::verbose;
+  my $g = get_current_graph($win);
+  print "get_new_graph: back get_current_graph returned $g...\n" if $PDL::Graphics::TriD::verbose;
+  if ($PDL::Graphics::TriD::only_one) {
+    $g->clear_data;
+    $win->clear_viewport;
+  }
+  $g->default_axes;
+  $win->add_object($g);
+  $g;
 }
 
 sub get_current_graph {
