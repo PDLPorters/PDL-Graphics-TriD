@@ -146,7 +146,7 @@ fs_out_light => <<'EOF',
     vPosition, gl_FrontFacing ? vNormal : -vNormal, in_diffuse,
     ambient, diffuse, spec
   );
-  gl_FragColor = ambient + diffuse + spec;
+  gl_FragColor = ambient + diffuse + spec + gl_FrontMaterial.emission;
 EOF
 vs_out_lightgouraudstart => "  vec3 vNormal, vPosition;\n  vec4 vLightpos;\n",
 vs_out_lightgouraud => <<'EOF',
@@ -154,12 +154,12 @@ vs_out_lightgouraud => <<'EOF',
     vLightpos, gl_LightSource[lightind].ambient, gl_LightSource[lightind].diffuse, gl_LightSource[lightind].specular,
     gl_FrontMaterial.ambient, gl_FrontMaterial.specular, gl_FrontMaterial.shininess,
     vPosition, vNormal
-  );
+  ) + gl_FrontMaterial.emission;
   vBackcolour = lightfuncgouraud(
     vLightpos, gl_LightSource[lightind].ambient, gl_LightSource[lightind].diffuse, gl_LightSource[lightind].specular,
     gl_FrontMaterial.ambient, gl_FrontMaterial.specular, gl_FrontMaterial.shininess,
     vPosition, -vNormal
-  );
+  ) + gl_BackMaterial.emission;
 EOF
 fs_out_lightgouraud => <<'EOF',
   gl_FragColor = (gl_FrontFacing ? vFrontcolour : vBackcolour) * in_diffuse;
