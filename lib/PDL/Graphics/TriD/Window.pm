@@ -13,9 +13,9 @@ our ($DEFAULT_WIDTH, $DEFAULT_HEIGHT) = (600, 600);
 
 sub new {
   my($arg,$options) = @_;
-  print "PDL::Graphics::TriD::Window - calling SUPER::new...\n" if($PDL::Graphics::TriD::verbose);
+  print "PDL::Graphics::TriD::Window - calling SUPER::new...\n" if $PDL::Graphics::TriD::verbose;
   my $this = $arg->SUPER::new();
-  print "PDL::Graphics::TriD::Window - got back $this\n" if($PDL::Graphics::TriD::verbose);
+  print "PDL::Graphics::TriD::Window - got back $this\n" if $PDL::Graphics::TriD::verbose;
   # Make sure the Graphics has been initialized
   $options->{width} //= $DEFAULT_WIDTH;
   $options->{height} //= $DEFAULT_HEIGHT;
@@ -25,16 +25,14 @@ sub new {
   $this->{Interactive} = $this->gdriver($options);
   print "PDL::Graphics::TriD::Window: gdriver gave back $this->{Interactive}....\n" if $PDL::Graphics::TriD::verbose;
   # set default values
-  if($this->{Interactive}){
-      print "\tIt's interactive... calling ev_defaults...\n" if($PDL::Graphics::TriD::verbose);
-	 $this->{Ev} = $this->ev_defaults(); 
-      print "\tcalling new_viewport...\n" if($PDL::Graphics::TriD::verbose);
-	 $this->new_viewport(0,0,$this->{Width},$this->{Height});  
-  }else{
-	 $this->new_viewport(0,0,1,1);  
+  if ($this->{Interactive}) {
+    print "\tcalling new_viewport...\n" if $PDL::Graphics::TriD::verbose;
+    $this->new_viewport(0,0,$this->{Width},$this->{Height});  
+  } else {
+    $this->new_viewport(0,0,1,1);  
   }
   $this->current_viewport(0);
-  return($this);
+  $this;
 }
 
 #
@@ -81,36 +79,33 @@ sub new_viewport {
 
 sub resize_viewport {
   my($this,$x0,$y0,$x1,$y1,$vpnum) = @_;
-  $vpnum = $this->{_CurrentViewPort} unless(defined $vpnum);
-  my $vp;
-  if(defined($this->{_ViewPorts}[$vpnum])){
-	 $vp = $this->{_ViewPorts}[$vpnum]->resize($x0,$y0,$x1,$y1);
-  }
-  return $vp;
+  $vpnum //= $this->{_CurrentViewPort};
+  return undef if !defined $this->{_ViewPorts}[$vpnum];
+  $this->{_ViewPorts}[$vpnum]->resize($x0,$y0,$x1,$y1);
 }
 
 sub current_viewport {
   my($this,$num) = @_;
-  if(defined $num){
-	 if(ref($num)){
-		my $cnt=0;
-		foreach (@{$this->{_ViewPorts}}){
-		  if($num == $_){
-			 $this->{_CurrentViewPort} = $cnt;
-			 $_->{Active}=1;
-		  }elsif(defined $_){
-			 $_->{Active}=0;
-		  }
-		  $cnt++;
-		}
-	 }else{
-		if(defined $this->{_ViewPorts}[$num]){
-		  $this->{_CurrentViewPort} = $num;
-		  $this->{_ViewPorts}[$num]->{Active}=1;
-		}else{
-		  print "ERROR: ViewPort $num undefined\n";
-		}
-	 }
+  if (defined $num) {
+    if (ref($num)) {
+      my $cnt=0;
+      foreach (@{$this->{_ViewPorts}}){
+        if ($num == $_) {
+          $this->{_CurrentViewPort} = $cnt;
+          $_->{Active}=1;
+        } elsif (defined $_) {
+          $_->{Active}=0;
+        }
+        $cnt++;
+      }
+    } else {
+      if (defined $this->{_ViewPorts}[$num]) {
+        $this->{_CurrentViewPort} = $num;
+        $this->{_ViewPorts}[$num]->{Active}=1;
+      } else {
+        print "ERROR: ViewPort $num undefined\n";
+      }
+    }
   }
   return $this->{_ViewPorts}[$this->{_CurrentViewPort}];
 }
@@ -122,15 +117,15 @@ sub viewports {
 
 sub _vp_num_fromref {
   my ($this,$vp) = @_;
-  if(! defined $vp){  
-	 $vp = $this->{_CurrentViewPort};
-  }elsif(ref($vp)){
-	 my $cnt=0;
-	 foreach(@{$this->{_ViewPorts}}){
-		last if($vp == $_);
-		$cnt++;
-	 }
-	 $vp = $cnt;
+  if (! defined $vp) {  
+    $vp = $this->{_CurrentViewPort};
+  } elsif (ref($vp)) {
+    my $cnt=0;
+    foreach (@{$this->{_ViewPorts}}) {
+      last if $vp == $_;
+      $cnt++;
+    }
+    $vp = $cnt;
   }
   return $vp;
 }
@@ -138,32 +133,30 @@ sub _vp_num_fromref {
 sub delete_viewport {
   my($this, $vp) = @_;
   my $cnt;
-  if(($cnt=$#{$this->{_ViewPorts}})<= 0){
-	 print "WARNING: Cannot delete final viewport - request ignored\n";
-	 return;
+  if (($cnt=$#{$this->{_ViewPorts}})<= 0) {
+    print "WARNING: Cannot delete final viewport - request ignored\n";
+    return;
   }
   $vp = $this->_vp_num_fromref($vp);
-  $this->{_ViewPorts}[$vp]->DESTROY();
+  $this->{_ViewPorts}[$vp] = undef;
   splice(@{$this->{_ViewPorts}},$vp,1);
-  if($vp == $cnt){
-	 $this->current_viewport($vp-1);
+  if ($vp == $cnt) {
+    $this->current_viewport($vp-1);
   }
 }
 
 sub clear_viewports {
   my($this) = @_;
   foreach(@{$this->{_ViewPorts}}){
-	 $_->clear_objects();
+    $_->clear_objects();
   }
 }
 
 sub clear_viewport {
   my($this, $vp) = @_;
   my $cnt;
-
   $vp = $this->_vp_num_fromref($vp);
   $this->{_ViewPorts}[$vp]->clear_objects();
-
 }
 
 sub set_eventhandler {

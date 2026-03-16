@@ -770,12 +770,6 @@ sub gdriver {
   return 1;  # Interactive Window
 }
 
-sub ev_defaults{
-  return {	ConfigureNotify => \&doconfig,
-				MotionNotify => \&domotion,
-			}
-}
-
 sub reshape {
 	my($this,$x,$y) = @_;
 	my $pw = $this->{Width};
@@ -862,18 +856,6 @@ sub close {
   print "CLOSE\n" if $PDL::Graphics::TriD::verbose;
   undef $this->{_GLObject};
   $PDL::Graphics::TriD::current_window = undef;
-}
-
-# Resize window.
-sub doconfig {
-	my($this,$x,$y) = @_;
-	$this->reshape($x,$y);
-	print "CONFIGURENOTIFY\n" if($PDL::Graphics::TriD::verbose);
-}
-
-sub domotion {
-	my($this) = @_;
-	print "MOTIONENOTIFY\n" if($PDL::Graphics::TriD::verbose);
 }
 
 sub display {
