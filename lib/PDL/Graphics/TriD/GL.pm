@@ -27,29 +27,30 @@ sub togl {
 { package # hide from PAUSE
   PDL::Graphics::TriD::Object;
 sub togl_setup {
-  print "togl_setup $_[0]\n" if $PDL::Graphics::TriD::verbose;
-  $_->togl_setup for $_[0]->contained_objects;
+  my ($this, @args) = @_;
+  print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
+  $_->togl_setup(@args) for $this->contained_objects;
 }
-sub togl { $_->togl for $_[0]->contained_objects }
+sub togl { $_->togl(@_[1..$#_]) for $_[0]->contained_objects }
 }
 
 { package # hide from PAUSE
   PDL::Graphics::TriD::Graph;
 sub togl_setup {
-  my ($this) = @_;
-  $this->{Axis}{$_}->togl_setup for grep $_ ne "Default", keys %{$this->{Axis}};
+  my ($this, $points_arg, @args) = @_;
+  $this->{Axis}{$_}->togl_setup($points_arg, @args) for grep $_ ne "Default", keys %{$this->{Axis}};
   while (my ($series,$h) = each %{ $this->{Data} }) {
     for my $data (values %$h) {
-      $data->togl_setup($this->get_points($series, $data));
+      $data->togl_setup($this->get_points($series, $data), @args);
     }
   }
 }
 sub togl {
-  my ($this) = @_;
-  $this->{Axis}{$_}->togl for grep $_ ne "Default", keys %{$this->{Axis}};
+  my ($this, @args) = @_;
+  $this->{Axis}{$_}->togl(@args) for grep $_ ne "Default", keys %{$this->{Axis}};
   while (my ($series,$h) = each %{ $this->{Data} }) {
     for my $data (values %$h) {
-      $data->togl($this->get_points($series, $data));
+      $data->togl($this->get_points($series, $data), @args);
     }
   }
 }
@@ -368,6 +369,7 @@ sub lighting {
     glEnable(GL_LIGHT0);
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
     glLightfv_p(GL_LIGHT0,GL_POSITION,1.0,1.0,1.0,0.0);
+    $this->{Impl}{material}->togl if $this->{Impl}{material};
   } else {
     glDisable(GL_LIGHTING);
   }
@@ -537,7 +539,7 @@ my $fragment_shader = join '', @SHADERBITS{qw(version
 my %SPHERE;
 my @KEYS = qw(vertices normals idx);
 sub togl_setup {
-  my ($this,$points) = @_;
+  my ($this, $points, $material) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
   @SPHERE{@KEYS} = gl_sphere(0.025, 15, 15) if !keys %SPHERE;
   @{ $this->{Impl} }{@KEYS} = @SPHERE{@KEYS};
@@ -553,6 +555,7 @@ sub togl_setup {
   }
   $this->{Impl}{offset_loc} = $this->load_attrib(offset => $points);
   $this->{Impl}{noffset} = $points->dim(1);
+  $this->{Impl}{material} = $material;
   $this->togl_unbind;
 }
 sub gdraw {
@@ -598,7 +601,7 @@ my %frag = (
   tex_flat => join('', $frag_header, $frag_tex, $frag_flat),
 );
 sub togl_setup {
-  my ($this,$points) = @_;
+  my ($this, $points, $material) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
   my $shading = $this->{Options}{Shading};
   my $lightflat = $shading > 2 ? 'light' : 'flat';
@@ -621,6 +624,7 @@ sub togl_setup {
   if ($shading > 2) {
     $this->load_attrib(normal => $this->{Normals});
     $this->set_uniform(lightind => '1i' => [0]);
+    $this->{Impl}{material} = $material;
   }
   $this->togl_unbind;
 }
@@ -877,11 +881,10 @@ sub display {
     print "VALID $this=$this->{IsValid}\n" if $PDL::Graphics::TriD::verbose;
     if (!$vp->{IsValid}) {
       glpSetAutoCheckErrors(1);
-      $vp->togl_setup;
+      $vp->togl_setup(undef, $vp->{DefMaterial});
       print "VALID1 $vp\n" if $PDL::Graphics::TriD::verbose;
       $vp->{IsValid} = 1;
     }
-    $vp->{DefMaterial}->togl;
     $vp->togl;
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
