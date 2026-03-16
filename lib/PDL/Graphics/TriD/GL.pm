@@ -164,7 +164,9 @@ EOF
 fs_out_lightgouraud => <<'EOF',
   gl_FragColor = (gl_FrontFacing ? vFrontcolour : vBackcolour) * in_diffuse;
 EOF
-fs_lightind_decl => "uniform int lightind;\n",
+fs_light_decl => <<'EOF',
+uniform int lightind;
+EOF
 fs_in_lightpos_decl => "$FS_IN vec4 vLightpos;\n",
 fs_in_lightgouraud_decl => "$FS_IN vec4 vFrontcolour;\n$FS_IN vec4 vBackcolour;\n",
 );
@@ -529,7 +531,7 @@ use OpenGL::Modern qw(
 my $vertex_shader = join '', @SHADERBITS{qw(version
   vs_in_position_decl vs_in_normal_decl vs_in_offset_decl
   fs_in_lightgouraud_decl
-  fs_lightind_decl lightfunc lightfuncgouraud
+  fs_light_decl lightfunc lightfuncgouraud
   main_start vs_in vs_do_offset vs_out vs_out_lightgouraudstart vs_out_light vs_out_lightgouraud main_end
 )};
 my $fragment_shader = join '', @SHADERBITS{qw(version
@@ -578,7 +580,7 @@ use OpenGL::Modern qw(
 my $vert_header = join '', @SHADERBITS{qw(version
   vs_in_position_decl vs_in_normal_decl vs_in_colour_decl vs_in_texcoord_decl
   fs_in_colour_decl fs_in_texcoord_decl fs_in_lightgouraud_decl
-  fs_lightind_decl lightfunc lightfuncgouraud
+  fs_light_decl lightfunc lightfuncgouraud
   main_start vs_in vs_out vs_out_colour vs_out_texcoord
 )};
 my %vert = (
