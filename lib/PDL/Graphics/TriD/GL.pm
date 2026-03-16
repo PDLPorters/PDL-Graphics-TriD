@@ -559,7 +559,6 @@ sub togl_setup {
   if ($need_load) {
     $this->load_attrib(position => $this->{Impl}{vertices});
     $this->load_attrib(normal => $this->{Impl}{normals});
-    $this->set_uniform(lightind => '1i' => [0]);
     $this->set_uniforms($uniforms);
     $this->load_idx_buffer(indx_buf => $this->{Impl}{idx});
   }
@@ -632,7 +631,6 @@ sub togl_setup {
   $this->load_idx_buffer(indx_buf => $this->{Faceidx});
   if ($shading > 2) {
     $this->load_attrib(normal => $this->{Normals});
-    $this->set_uniform(lightind => '1i' => [0]);
   }
   $this->set_uniforms($uniforms);
   $this->togl_unbind;
@@ -890,7 +888,7 @@ sub display {
     print "VALID $this=$this->{IsValid}\n" if $PDL::Graphics::TriD::verbose;
     if (!$vp->{IsValid}) {
       glpSetAutoCheckErrors(1);
-      $vp->togl_setup(undef, $vp->{DefMaterial}->to_uniforms);
+      $vp->togl_setup(undef, { lightind => ['1i' => [0]], %{$vp->{DefMaterial}->to_uniforms} });
       print "VALID1 $vp\n" if $PDL::Graphics::TriD::verbose;
       $vp->{IsValid} = 1;
     }
