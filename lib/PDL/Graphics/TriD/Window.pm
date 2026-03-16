@@ -180,4 +180,55 @@ sub set_material {
   $_->set_material(@args) for grep defined, @{$self->{_ViewPorts}};
 }
 
+{
+package # hide from PAUSE
+  PDL::Graphics::TriD::EventHandler;
+use fields qw/X Y Buttons VP/;
+sub new {
+  my $class = shift;
+  my $vp = shift;
+  my $self = fields::new($class);
+  $self->{X} = -1;
+  $self->{Y} = -1;
+  $self->{Buttons} = [];
+  $self->{VP} = $vp;
+  $self;
+}
+sub event {
+  my ($this,$type,@args) = @_;
+  print "EH: ",ref($this)," $type (",join(",",@args),")\n" if $PDL::Graphics::TriD::verbose;
+  return if !defined $type;
+  my $retval;
+  if ($type eq 'motion') {
+    return if (my $but = $args[0]) < 0;
+    print "MOTION $args[0]\n" if $PDL::Graphics::TriD::verbose;
+    if ($this->{Buttons}[$but] and $this->{VP}{Active}) {
+      print "calling ".($this->{Buttons}[$but])."->mouse_moved ($this->{X},$this->{Y},$args[1],$args[2])...\n" if $PDL::Graphics::TriD::verbose;
+      $retval = $this->{Buttons}[$but]->mouse_moved(@$this{qw(X Y)}, @args[1,2]);
+    }
+    @$this{qw(X Y)} = @args[1,2];
+  } elsif ($type eq 'buttonpress') {
+    my $but = $args[0]-1;
+    print "BUTTONPRESS $but\n" if $PDL::Graphics::TriD::verbose;
+    @$this{qw(X Y)} = @args[1,2];
+    $retval = $this->{Buttons}[$but]->ButtonPress(@args[1,2])
+      if $this->{Buttons}[$but];
+  } elsif ($type eq 'buttonrelease') {
+    my $but = $args[0]-1;
+    print "BUTTONRELEASE $but\n" if $PDL::Graphics::TriD::verbose;
+    $retval = $this->{Buttons}[$but]->ButtonRelease($args[1],$args[2])
+      if $this->{Buttons}[$but];
+  } elsif ($type eq 'reshape') {
+    # Kludge to force reshape of the viewport associated with the window -CD
+    print "ConfigureNotify (".join(",",@args).")\n" if $PDL::Graphics::TriD::verbose;
+    print "viewport is $this->{VP}\n" if $PDL::Graphics::TriD::verbose;
+  }
+  $retval;
+}
+sub set_button {
+  my($this,$butno,$act) = @_;
+  $this->{Buttons}[$butno] = $act;
+}
+}
+
 1;
