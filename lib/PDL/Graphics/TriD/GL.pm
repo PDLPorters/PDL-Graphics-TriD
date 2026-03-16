@@ -133,13 +133,13 @@ vs_out => "  gl_Position = gl_ModelViewProjectionMatrix * vec4(the_position, 1);
 vs_out_light => <<'EOF',
   vNormal = normalize(gl_NormalMatrix * normal);
   vPosition = vec3(gl_ModelViewMatrix * vec4(the_position, 1));
-  vLightpos = gl_ModelViewMatrix * gl_LightSource[lightind].position;
+  vLightpos = gl_ModelViewMatrix * uLightposition;
 EOF
 fs_diffuse_material => "  vec4 in_diffuse = uMatdiffuse;\n",
 fs_out_light => <<'EOF',
   vec4 ambient, diffuse, spec;
   lightfunc(
-    vLightpos, gl_LightSource[lightind].ambient, gl_LightSource[lightind].diffuse, gl_LightSource[lightind].specular,
+    vLightpos, uLightambient, uLightdiffuse, uLightspecular,
     uMatambient, uMatspecular, uMatshininess,
     vPosition, gl_FrontFacing ? vNormal : -vNormal, in_diffuse,
     ambient, diffuse, spec
@@ -149,12 +149,12 @@ EOF
 vs_out_lightgouraudstart => "  vec3 vNormal, vPosition;\n  vec4 vLightpos;\n",
 vs_out_lightgouraud => <<'EOF',
   vFrontcolour = lightfuncgouraud(
-    vLightpos, gl_LightSource[lightind].ambient, gl_LightSource[lightind].diffuse, gl_LightSource[lightind].specular,
+    vLightpos, uLightambient, uLightdiffuse, uLightspecular,
     uMatambient, uMatspecular, uMatshininess,
     vPosition, vNormal
   ) + uMatemission;
   vBackcolour = lightfuncgouraud(
-    vLightpos, gl_LightSource[lightind].ambient, gl_LightSource[lightind].diffuse, gl_LightSource[lightind].specular,
+    vLightpos, uLightambient, uLightdiffuse, uLightspecular,
     uMatambient, uMatspecular, uMatshininess,
     vPosition, -vNormal
   ) + uMatemission;
@@ -163,7 +163,10 @@ fs_out_lightgouraud => <<'EOF',
   gl_FragColor = (gl_FrontFacing ? vFrontcolour : vBackcolour) * in_diffuse;
 EOF
 fs_light_decl => <<'EOF',
-uniform int lightind;
+uniform vec4 uLightposition;
+uniform vec4 uLightambient;
+uniform vec4 uLightdiffuse;
+uniform vec4 uLightspecular;
 uniform float uMatshininess;
 uniform vec4 uMatspecular;
 uniform vec4 uMatambient;
@@ -179,7 +182,6 @@ fs_in_lightgouraud_decl => "$FS_IN vec4 vFrontcolour;\n$FS_IN vec4 vBackcolour;\
 use OpenGL::Modern qw(
   glPushAttrib glPopAttrib
   glLineWidth glPointSize
-  glLightfv_p glLightModeli
   glEnable glDisable
   glGetIntegerv_p
   glGenBuffers_p glBindBuffer glDeleteBuffers_p glBufferData_c
@@ -372,17 +374,6 @@ sub program_poscol {
   $this->load_attrib(position => $points);
   $this->load_attrib(colour => $colours);
 }
-sub lighting {
-  my ($this, $bool) = @_;
-  if ($bool) {
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-    glLightfv_p(GL_LIGHT0,GL_POSITION,1.0,1.0,1.0,0.0);
-  } else {
-    glDisable(GL_LIGHTING);
-  }
-}
 sub togl {
   my ($this, $points) = @_;
   print "togl $this\n" if $PDL::Graphics::TriD::verbose;
@@ -390,7 +381,6 @@ sub togl {
   glLineWidth($this->{Options}{LineWidth} || 1);
   glPointSize($this->{Options}{PointSize} || 1);
   glEnable(GL_DEPTH_TEST);
-  $this->lighting($this->{Options}{Lighting});
   eval { $this->gdraw($points // $this->{Points}) };
   { local $@; glPopAttrib(); }
   die if $@;
@@ -888,7 +878,13 @@ sub display {
     print "VALID $this=$this->{IsValid}\n" if $PDL::Graphics::TriD::verbose;
     if (!$vp->{IsValid}) {
       glpSetAutoCheckErrors(1);
-      $vp->togl_setup(undef, { lightind => ['1i' => [0]], %{$vp->{DefMaterial}->to_uniforms} });
+      $vp->togl_setup(undef, {
+        uLightposition => ['4f' => [1,1,1,0]],
+        uLightambient => ['4f' => [0,0,0,1]],
+        uLightdiffuse => ['4f' => [1,1,1,1]],
+        uLightspecular => ['4f' => [1,1,1,1]],
+        %{$vp->{DefMaterial}->to_uniforms},
+      });
       print "VALID1 $vp\n" if $PDL::Graphics::TriD::verbose;
       $vp->{IsValid} = 1;
     }
