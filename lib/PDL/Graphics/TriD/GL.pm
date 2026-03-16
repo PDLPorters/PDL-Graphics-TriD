@@ -32,7 +32,9 @@ sub togl_setup {
 sub togl { $_->togl for $_[0]->contained_objects }
 }
 
-sub PDL::Graphics::TriD::Graph::togl_setup {
+{ package # hide from PAUSE
+  PDL::Graphics::TriD::Graph;
+sub togl_setup {
   my ($this) = @_;
   $this->{Axis}{$_}->togl_setup for grep $_ ne "Default", keys %{$this->{Axis}};
   while (my ($series,$h) = each %{ $this->{Data} }) {
@@ -41,7 +43,7 @@ sub PDL::Graphics::TriD::Graph::togl_setup {
     }
   }
 }
-sub PDL::Graphics::TriD::Graph::togl {
+sub togl {
   my ($this) = @_;
   $this->{Axis}{$_}->togl for grep $_ ne "Default", keys %{$this->{Axis}};
   while (my ($series,$h) = each %{ $this->{Data} }) {
@@ -49,6 +51,7 @@ sub PDL::Graphics::TriD::Graph::togl {
       $data->togl($this->get_points($series, $data));
     }
   }
+}
 }
 
 use OpenGL::Modern qw(glRotatef);
