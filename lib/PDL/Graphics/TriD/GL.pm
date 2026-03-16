@@ -259,6 +259,10 @@ sub set_uniform {
   $this->{Impl}{uniform_indices}{$name} = [ $loc, $suffix, $value ];
   $loc;
 }
+sub set_uniforms {
+  my ($this, $uniforms) = @_;
+  $this->set_uniform($_ => @{ $uniforms->{$_} }) for sort keys %$uniforms;
+}
 sub load_texture {
   my ($this, $idname, $pdl, $iformat, $x, $y, $format, $type, $target) = @_;
   PDL::barf ref($this)."::load_texture: undef ndarray" if !defined $pdl;
@@ -556,7 +560,7 @@ sub togl_setup {
     $this->load_attrib(position => $this->{Impl}{vertices});
     $this->load_attrib(normal => $this->{Impl}{normals});
     $this->set_uniform(lightind => '1i' => [0]);
-    $this->set_uniform($_ => @{ $uniforms->{$_} }) for sort keys %$uniforms;
+    $this->set_uniforms($uniforms);
     $this->load_idx_buffer(indx_buf => $this->{Impl}{idx});
   }
   $this->{Impl}{offset_loc} = $this->load_attrib(offset => $points);
@@ -630,7 +634,7 @@ sub togl_setup {
     $this->load_attrib(normal => $this->{Normals});
     $this->set_uniform(lightind => '1i' => [0]);
   }
-  $this->set_uniform($_ => @{ $uniforms->{$_} }) for sort keys %$uniforms;
+  $this->set_uniforms($uniforms);
   $this->togl_unbind;
 }
 sub gdraw {
