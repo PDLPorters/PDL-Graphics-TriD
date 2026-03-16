@@ -170,7 +170,6 @@ sub get_valid_options { +{
   ContourMax => undef,
   ContourVals => pdl->null,
   Labels => undef,
-  Lighting => 0,
 }}
 
 =head2 set_colortable($table)

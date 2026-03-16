@@ -21,7 +21,6 @@ my $defaultvert = PDL->pdl([
 ]);
 sub get_valid_options { +{
   UseDefcols => 0,
-  Lighting => 0,
   FullScreen => 0,
   Points => $defaultvert,
 }}

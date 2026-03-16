@@ -73,7 +73,6 @@ sub set_colors {
 
 sub get_valid_options { +{
   UseDefcols => 0,
-  Lighting => 1,
 }}
 sub get_points { $_[0]{Points} }
 sub cdummies { $_[1] }
@@ -87,7 +86,6 @@ sub cdummies { $_[1]->slice(":," . join ',', map "*$_", grep defined, ($_[2]->di
 sub get_valid_options { +{
   UseDefcols => 0,
   PointSize => 1,
-  Lighting => 0,
 }}
 
 package # hide from PAUSE
@@ -96,7 +94,6 @@ use base qw/PDL::Graphics::TriD::GObject/;
 # need to add radius
 sub get_valid_options { +{
   UseDefcols => 0,
-  Lighting => 1,
 }}
 
 package # hide from PAUSE
@@ -107,7 +104,6 @@ sub r_type { return "SURF2D";}
 sub get_valid_options { +{
   UseDefcols => 0,
   LineWidth => 1,
-  Lighting => 0,
 }}
 
 package # hide from PAUSE
@@ -118,7 +114,6 @@ sub r_type { return "SURF2D";}
 sub get_valid_options { +{
   UseDefcols => 0,
   LineWidth => 1,
-  Lighting => 0,
 }}
 sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : {};
@@ -291,7 +286,6 @@ sub cdummies { $_[1]->dummy(1, $_[2]->dim(1)) }
 sub r_type {""}
 sub get_valid_options { +{
   UseDefcols => 0,
-  Lighting => 0,
 }}
 sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : {};
@@ -310,7 +304,6 @@ use base qw/PDL::Graphics::TriD::GObject/;
 use fields qw/Strings/;
 sub get_valid_options { +{
   UseDefcols => 0,
-  Lighting => 0,
 }}
 sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : {};

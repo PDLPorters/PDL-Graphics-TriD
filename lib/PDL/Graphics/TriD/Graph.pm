@@ -134,7 +134,6 @@ sub get_valid_options { +{
   NDiv => 4,
   Names => [qw(X Y Z)],
   LineWidth => 1,
-  Lighting => 0,
 }}
 
 sub new {
