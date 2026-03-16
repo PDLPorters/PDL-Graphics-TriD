@@ -10,17 +10,15 @@ $PDL::Graphics::TriD::verbose //= 0;
 
 { package # hide from PAUSE
   PDL::Graphics::TriD::Material;
-use OpenGL::Modern qw(
-  glMaterialfv_p
-  GL_FRONT_AND_BACK GL_SHININESS GL_SPECULAR GL_AMBIENT GL_DIFFUSE GL_EMISSION
-);
-sub togl {
+sub to_uniforms {
   my $this = shift;
-  glMaterialfv_p(GL_FRONT_AND_BACK,GL_SHININESS,$this->{Shine});
-  glMaterialfv_p(GL_FRONT_AND_BACK,GL_SPECULAR,@{$this->{Specular}});
-  glMaterialfv_p(GL_FRONT_AND_BACK,GL_AMBIENT,@{$this->{Ambient}});
-  glMaterialfv_p(GL_FRONT_AND_BACK,GL_DIFFUSE,@{$this->{Diffuse}});
-  glMaterialfv_p(GL_FRONT_AND_BACK,GL_EMISSION,@{$this->{Emission}});
+  {
+    uMatshininess => ['1f'=>[$this->{Shine}]],
+    uMatspecular => ['4f'=>$this->{Specular}],
+    uMatambient => ['4f'=>$this->{Ambient}],
+    uMatdiffuse => ['4f'=>$this->{Diffuse}],
+    uMatemission => ['4f'=>$this->{Emission}],
+  };
 }
 }
 
@@ -137,35 +135,40 @@ vs_out_light => <<'EOF',
   vPosition = vec3(gl_ModelViewMatrix * vec4(the_position, 1));
   vLightpos = gl_ModelViewMatrix * gl_LightSource[lightind].position;
 EOF
-fs_diffuse_material => "  vec4 in_diffuse = gl_FrontMaterial.diffuse;\n",
+fs_diffuse_material => "  vec4 in_diffuse = uMatdiffuse;\n",
 fs_out_light => <<'EOF',
   vec4 ambient, diffuse, spec;
   lightfunc(
     vLightpos, gl_LightSource[lightind].ambient, gl_LightSource[lightind].diffuse, gl_LightSource[lightind].specular,
-    gl_FrontMaterial.ambient, gl_FrontMaterial.specular, gl_FrontMaterial.shininess,
+    uMatambient, uMatspecular, uMatshininess,
     vPosition, gl_FrontFacing ? vNormal : -vNormal, in_diffuse,
     ambient, diffuse, spec
   );
-  gl_FragColor = ambient + diffuse + spec + gl_FrontMaterial.emission;
+  gl_FragColor = ambient + diffuse + spec + uMatemission;
 EOF
 vs_out_lightgouraudstart => "  vec3 vNormal, vPosition;\n  vec4 vLightpos;\n",
 vs_out_lightgouraud => <<'EOF',
   vFrontcolour = lightfuncgouraud(
     vLightpos, gl_LightSource[lightind].ambient, gl_LightSource[lightind].diffuse, gl_LightSource[lightind].specular,
-    gl_FrontMaterial.ambient, gl_FrontMaterial.specular, gl_FrontMaterial.shininess,
+    uMatambient, uMatspecular, uMatshininess,
     vPosition, vNormal
-  ) + gl_FrontMaterial.emission;
+  ) + uMatemission;
   vBackcolour = lightfuncgouraud(
     vLightpos, gl_LightSource[lightind].ambient, gl_LightSource[lightind].diffuse, gl_LightSource[lightind].specular,
-    gl_FrontMaterial.ambient, gl_FrontMaterial.specular, gl_FrontMaterial.shininess,
+    uMatambient, uMatspecular, uMatshininess,
     vPosition, -vNormal
-  ) + gl_BackMaterial.emission;
+  ) + uMatemission;
 EOF
 fs_out_lightgouraud => <<'EOF',
   gl_FragColor = (gl_FrontFacing ? vFrontcolour : vBackcolour) * in_diffuse;
 EOF
 fs_light_decl => <<'EOF',
 uniform int lightind;
+uniform float uMatshininess;
+uniform vec4 uMatspecular;
+uniform vec4 uMatambient;
+uniform vec4 uMatdiffuse;
+uniform vec4 uMatemission;
 EOF
 fs_in_lightpos_decl => "$FS_IN vec4 vLightpos;\n",
 fs_in_lightgouraud_decl => "$FS_IN vec4 vFrontcolour;\n$FS_IN vec4 vBackcolour;\n",
@@ -188,7 +191,7 @@ use OpenGL::Modern qw(
   glCreateProgram glDeleteProgram glLinkProgram glUseProgram glIsProgram
   glGetProgramiv_p glGetProgramInfoLog_p
   glGetAttribLocation glEnableVertexAttribArray glDisableVertexAttribArray
-  glGetUniformLocation glUniform1i
+  glGetUniformLocation glUniform1i glUniform1f glUniform4f
   glVertexAttribPointer_c
   GL_COMPILE_STATUS GL_LINK_STATUS GL_FALSE
   GL_VERTEX_SHADER GL_FRAGMENT_SHADER GL_CURRENT_PROGRAM
@@ -243,6 +246,8 @@ sub load_attrib {
 }
 my %SUFFIX2FUNC = (
   '1i' => \&glUniform1i,
+  '1f' => \&glUniform1f,
+  '4f' => \&glUniform4f,
 );
 sub set_uniform {
   my ($this, $name, $suffix, $value) = @_;
@@ -370,7 +375,6 @@ sub lighting {
     glEnable(GL_LIGHT0);
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
     glLightfv_p(GL_LIGHT0,GL_POSITION,1.0,1.0,1.0,0.0);
-    $this->{Impl}{material}->togl if $this->{Impl}{material};
   } else {
     glDisable(GL_LIGHTING);
   }
@@ -534,7 +538,7 @@ my $vertex_shader = join '', @SHADERBITS{qw(version
   main_start vs_in vs_do_offset vs_out vs_out_lightgouraudstart vs_out_light vs_out_lightgouraud main_end
 )};
 my $fragment_shader = join '', @SHADERBITS{qw(version
-  fs_in_lightgouraud_decl
+  fs_light_decl fs_in_lightgouraud_decl
   main_start fs_diffuse_material fs_out_lightgouraud main_end
 )};
 my %SPHERE;
@@ -552,11 +556,12 @@ sub togl_setup {
     $this->load_attrib(position => $this->{Impl}{vertices});
     $this->load_attrib(normal => $this->{Impl}{normals});
     $this->set_uniform(lightind => '1i' => [0]);
+    my $u = $material->to_uniforms;
+    $this->set_uniform($_ => @{ $u->{$_} }) for sort keys %$u;
     $this->load_idx_buffer(indx_buf => $this->{Impl}{idx});
   }
   $this->{Impl}{offset_loc} = $this->load_attrib(offset => $points);
   $this->{Impl}{noffset} = $points->dim(1);
-  $this->{Impl}{material} = $material;
   $this->togl_unbind;
 }
 sub gdraw {
@@ -625,7 +630,8 @@ sub togl_setup {
   if ($shading > 2) {
     $this->load_attrib(normal => $this->{Normals});
     $this->set_uniform(lightind => '1i' => [0]);
-    $this->{Impl}{material} = $material;
+    my $u = $material->to_uniforms;
+    $this->set_uniform($_ => @{ $u->{$_} }) for sort keys %$u;
   }
   $this->togl_unbind;
 }
