@@ -1034,28 +1034,19 @@ sub get_new_graph {
 }
 
 sub get_current_graph {
-   my $win = shift;
-	my $g = $win->current_viewport()->graph();
-	if(!defined $g) {
-		$g = PDL::Graphics::TriD::Graph->new;
-		$g->default_axes();
-		$win->current_viewport()->graph($g);
-	}
-	return $g;
+  my $win = shift;
+  my $g = $win->current_viewport()->graph();
+  if (!defined $g) {
+    $g = PDL::Graphics::TriD::Graph->new;
+    $g->default_axes();
+    $win->current_viewport()->graph($g);
+  }
+  $g;
 }
 
 sub get_current_window {
-  my $opts = shift @_;
-  my $win = $PDL::Graphics::TriD::current_window;
-
-  if(!defined $win) {
-	 print "get_current_window - creating window...\n" if($PDL::Graphics::TriD::verbose);
-	 $PDL::Graphics::TriD::current_window = $win = PDL::Graphics::TriD::Window->new($opts);
-
-	 print "get_current_window - calling set_material...\n" if($PDL::Graphics::TriD::verbose);
-	 $win->set_material(PDL::Graphics::TriD::Material->new);
-  }
-  return $PDL::Graphics::TriD::current_window;
+  print "get_current_window - creating window...\n" if $PDL::Graphics::TriD::verbose and !defined $PDL::Graphics::TriD::current_window;
+  $PDL::Graphics::TriD::current_window //= PDL::Graphics::TriD::Window->new(@_);
 }
 
 sub twiddle_current { get_current_window()->twiddle() }
