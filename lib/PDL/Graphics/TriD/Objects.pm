@@ -360,13 +360,13 @@ sub new {
 package # hide from PAUSE
   PDL::Graphics::TriD::Material;
 use base qw/PDL::Graphics::TriD::Object/;
-use fields qw(Shine Specular Ambient Diffuse Emissive);
+use fields qw(Shine Specular Ambient Diffuse Emission);
 sub get_valid_options { +{
-  Shine => 40,
-  Specular => [1,1,0.3,0],
-  Ambient => [0.3,1,1,0],
-  Diffuse => [1,0.3,1,0],
-  Emissive => [0,0,0],
+  Shine => 0,
+  Specular => [0,0,0,1],
+  Ambient => [0.2,0.2,0.2,1],
+  Diffuse => [0.8,0.8,0.8,1],
+  Emission => [0,0,0,1],
 }}
 sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : $_[0]->get_valid_options;

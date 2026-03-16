@@ -465,12 +465,12 @@ sub new {
   bless {
     Points => $POINTS->copy,
     Index => $FACES->copy,
-    Material => PDL::Graphics::TriD::Material->new(
+    Material => PDL::Graphics::TriD::Material->new({
       Shine => 0.212766,
-      Specular =>[0.753217,0.934416,1],
-      Ambient =>[0,0,0],
-      Diffuse =>[0.09855,0.153113,0.191489],
-      Emissive =>[0, 0, 0]),
+      Specular =>[0.753217,0.934416,1,1],
+      Ambient =>[0,0,0,1],
+      Diffuse =>[0.09855,0.153113,0.191489,1],
+      Emission =>[0, 0, 0, 1]}),
     Pos => $pos // [0,1.2,0],
     Size => $size // 0.1,
   }, $type;

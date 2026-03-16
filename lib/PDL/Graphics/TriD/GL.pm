@@ -12,7 +12,7 @@ $PDL::Graphics::TriD::verbose //= 0;
   PDL::Graphics::TriD::Material;
 use OpenGL::Modern qw(
   glMaterialfv_p
-  GL_FRONT_AND_BACK GL_SHININESS GL_SPECULAR GL_AMBIENT GL_DIFFUSE
+  GL_FRONT_AND_BACK GL_SHININESS GL_SPECULAR GL_AMBIENT GL_DIFFUSE GL_EMISSION
 );
 sub togl {
   my $this = shift;
@@ -20,6 +20,7 @@ sub togl {
   glMaterialfv_p(GL_FRONT_AND_BACK,GL_SPECULAR,@{$this->{Specular}});
   glMaterialfv_p(GL_FRONT_AND_BACK,GL_AMBIENT,@{$this->{Ambient}});
   glMaterialfv_p(GL_FRONT_AND_BACK,GL_DIFFUSE,@{$this->{Diffuse}});
+  glMaterialfv_p(GL_FRONT_AND_BACK,GL_EMISSION,@{$this->{Emission}});
 }
 }
 
@@ -880,6 +881,7 @@ sub display {
       print "VALID1 $vp\n" if $PDL::Graphics::TriD::verbose;
       $vp->{IsValid} = 1;
     }
+    $vp->{DefMaterial}->togl;
     $vp->togl;
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
