@@ -253,13 +253,17 @@ my %SUFFIX2FUNC = (
 );
 sub set_uniform {
   my ($this, $name, $suffix, $value) = @_;
+  return if $this->{Impl}{uniform_gone}{$name}; # got elim
   PDL::barf "set_uniform: value must be array-ref" unless ref($value) eq 'ARRAY';
   PDL::barf "set_uniform: unknown suffix '$suffix'" unless $SUFFIX2FUNC{$suffix};
   PDL::barf "set_uniform: no program found" unless
     my ($program) = grep defined, @{ $this->{Impl} }{qw(program program_nodestroy)};
-  return if 0 > (my $loc = glGetUniformLocation($program, $name)); # got elim
-  $this->{Impl}{uniform_indices}{$name} = [ $loc, $suffix, $value ];
-  $loc;
+  if (!$this->{Impl}{uniform_indices}{$name}) {
+    my $loc = glGetUniformLocation($program, $name);
+    $this->{Impl}{uniform_gone}{$name} = 1, return if $loc < 0; # got elim
+    $this->{Impl}{uniform_indices}{$name} = [ $loc, $suffix ];
+  }
+  $this->{Impl}{uniform_indices}{$name}[2] = $value;
 }
 sub set_uniforms {
   my ($this, $uniforms) = @_;
