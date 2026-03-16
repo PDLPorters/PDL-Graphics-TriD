@@ -237,13 +237,13 @@ sub load_attrib {
 my %SUFFIX2FUNC = (
   '1i' => \&glUniform1i,
 );
-sub load_uniform {
+sub set_uniform {
   my ($this, $name, $suffix, $value) = @_;
-  PDL::barf "load_uniform: value must be array-ref" unless ref($value) eq 'ARRAY';
-  PDL::barf "load_uniform: unknown suffix '$suffix'" unless $SUFFIX2FUNC{$suffix};
-  PDL::barf "load_uniform: no program found" unless
+  PDL::barf "set_uniform: value must be array-ref" unless ref($value) eq 'ARRAY';
+  PDL::barf "set_uniform: unknown suffix '$suffix'" unless $SUFFIX2FUNC{$suffix};
+  PDL::barf "set_uniform: no program found" unless
     my ($program) = grep defined, @{ $this->{Impl} }{qw(program program_nodestroy)};
-  PDL::barf "load_uniform: invalid name '$name'" if 0 >
+  PDL::barf "set_uniform: invalid name '$name'" if 0 >
     (my $loc = glGetUniformLocation($program, $name));
   $this->{Impl}{uniform_indices}{$name} = [ $loc, $suffix, $value ];
   $loc;
@@ -544,7 +544,7 @@ sub togl_setup {
   if ($need_load) {
     $this->load_attrib(position => $this->{Impl}{vertices});
     $this->load_attrib(normal => $this->{Impl}{normals});
-    $this->load_uniform(lightind => '1i' => [0]);
+    $this->set_uniform(lightind => '1i' => [0]);
     $this->load_idx_buffer(indx_buf => $this->{Impl}{idx});
   }
   $this->{Impl}{offset_loc} = $this->load_attrib(offset => $points);
@@ -611,12 +611,12 @@ sub togl_setup {
   } else {
     $this->load_attrib(texcoord => $this->{TexCoord});
     $this->load_texture(tex_id => $this->{TexColors}, GL_RGB, ($this->{TexColors}->dims)[1,2], GL_RGB);
-    $this->load_uniform(tex => '1i' => [0]); # must be texture unit, not ID
+    $this->set_uniform(tex => '1i' => [0]); # must be texture unit, not ID
   }
   $this->load_idx_buffer(indx_buf => $this->{Faceidx});
   if ($shading > 2) {
     $this->load_attrib(normal => $this->{Normals});
-    $this->load_uniform(lightind => '1i' => [0]);
+    $this->set_uniform(lightind => '1i' => [0]);
   }
   $this->togl_unbind;
 }
