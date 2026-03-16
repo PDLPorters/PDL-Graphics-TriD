@@ -13,37 +13,28 @@ use fields qw/X0 Y0 W H Transformer EHandler Active ResizeCommands
 $PDL::Graphics::TriD::verbose //= 0;
 
 sub new {
-     my($type,$x0,$y0,$w,$h) = @_;
-	  
-	  my $this= $type->SUPER::new();
-
-	  $this->{X0} = $x0;
-	  $this->{Y0} = $y0;
-	  $this->{W} = $w;
-	  $this->{H} = $h;
-	  $this->{DefMaterial} = PDL::Graphics::TriD::Material->new;
-
-     return $this;
+  my $this= shift->SUPER::new();
+  $this->{DefMaterial} = PDL::Graphics::TriD::Material->new;
+  $this->resize(@_);
 }
 
 sub graph {
-  my($this,$graph) = @_;
-  if(defined($graph)){  
-	 $this->add_object($graph);
-	 push(@{$this->{Graphs}},$graph);
-  }elsif(defined $this->{Graphs}){
-	 $graph = $this->{Graphs}[0];
+  my ($this,$graph) = @_;
+  if (defined($graph)) {
+    $this->add_object($graph);
+    push(@{$this->{Graphs}},$graph);
+  } elsif (defined $this->{Graphs}) {
+    $graph = $this->{Graphs}[0];
   }
-  return($graph);
+  $graph;
 }  
 
 sub delete_graph {
-  my($this,$graph) = @_;
-  
+  my ($this,$graph) = @_;
   $this->delete_object($graph);
-  for(0..$#{$this->{Graphs}}){
-    if($graph == $this->{Graphs}[$_]){
-      splice(@{$this->{Graphs}},$_,1);
+  for (0..$#{$this->{Graphs}}){
+    if ($graph == $this->{Graphs}[$_]) {
+      splice @{$this->{Graphs}},$_,1;
       redo;
     }
   }
@@ -56,10 +47,10 @@ sub resize {
 }
 
 sub add_resizecommand {
-	my($this,$com) = @_;
-	push @{$this->{ResizeCommands}},$com;
-	print "ARC: $this->{W},$this->{H}\n" if($PDL::Graphics::TriD::verbose);
-	&$com($this->{W},$this->{H});
+  my ($this,$com) = @_;
+  push @{$this->{ResizeCommands}},$com;
+  print "ARC: $this->{W},$this->{H}\n" if $PDL::Graphics::TriD::verbose;
+  &$com($this->{W},$this->{H});
 }
 
 sub set_material {
@@ -68,10 +59,10 @@ sub set_material {
 
 sub eventhandler {
   my ($this,$eh) = @_;
-  if(defined $eh){
-	 $this->{EHandler} = $eh;
+  if (defined $eh) {
+    $this->{EHandler} = $eh;
   }
-  return $this->{EHandler};
+  $this->{EHandler};
 }
 
 sub set_transformer {
@@ -81,9 +72,9 @@ sub set_transformer {
 sub transformer {
   my ($this,$t) = @_;
   if(defined $t){
-	 $this->{Transformer} = $t;
+    $this->{Transformer} = $t;
   }
-  return $this->{Transformer};
+  $this->{Transformer};
 }
 
 #
