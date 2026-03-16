@@ -544,7 +544,7 @@ my $fragment_shader = join '', @SHADERBITS{qw(version
 my %SPHERE;
 my @KEYS = qw(vertices normals idx);
 sub togl_setup {
-  my ($this, $points, $material) = @_;
+  my ($this, $points, $uniforms) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
   @SPHERE{@KEYS} = gl_sphere(0.025, 15, 15) if !keys %SPHERE;
   @{ $this->{Impl} }{@KEYS} = @SPHERE{@KEYS};
@@ -556,8 +556,7 @@ sub togl_setup {
     $this->load_attrib(position => $this->{Impl}{vertices});
     $this->load_attrib(normal => $this->{Impl}{normals});
     $this->set_uniform(lightind => '1i' => [0]);
-    my $u = $material->to_uniforms;
-    $this->set_uniform($_ => @{ $u->{$_} }) for sort keys %$u;
+    $this->set_uniform($_ => @{ $uniforms->{$_} }) for sort keys %$uniforms;
     $this->load_idx_buffer(indx_buf => $this->{Impl}{idx});
   }
   $this->{Impl}{offset_loc} = $this->load_attrib(offset => $points);
@@ -607,7 +606,7 @@ my %frag = (
   tex_flat => join('', $frag_header, $frag_tex, $frag_flat),
 );
 sub togl_setup {
-  my ($this, $points, $material) = @_;
+  my ($this, $points, $uniforms) = @_;
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
   my $shading = $this->{Options}{Shading};
   my $lightflat = $shading > 2 ? 'light' : 'flat';
@@ -630,9 +629,8 @@ sub togl_setup {
   if ($shading > 2) {
     $this->load_attrib(normal => $this->{Normals});
     $this->set_uniform(lightind => '1i' => [0]);
-    my $u = $material->to_uniforms;
-    $this->set_uniform($_ => @{ $u->{$_} }) for sort keys %$u;
   }
+  $this->set_uniform($_ => @{ $uniforms->{$_} }) for sort keys %$uniforms;
   $this->togl_unbind;
 }
 sub gdraw {
@@ -888,7 +886,7 @@ sub display {
     print "VALID $this=$this->{IsValid}\n" if $PDL::Graphics::TriD::verbose;
     if (!$vp->{IsValid}) {
       glpSetAutoCheckErrors(1);
-      $vp->togl_setup(undef, $vp->{DefMaterial});
+      $vp->togl_setup(undef, $vp->{DefMaterial}->to_uniforms);
       print "VALID1 $vp\n" if $PDL::Graphics::TriD::verbose;
       $vp->{IsValid} = 1;
     }
