@@ -705,12 +705,7 @@ sub gdraw {
 # has a mode to face the display and take the entire window
 { package # hide from PAUSE
   PDL::Graphics::TriD::Image;
-use OpenGL::Modern qw(
-  glMatrixMode glLoadIdentity glOrtho
-  glDrawArrays
-  GL_MODELVIEW GL_PROJECTION
-  GL_TRIANGLE_STRIP GL_RGB
-);
+use OpenGL::Modern qw(glDrawArrays GL_TRIANGLE_STRIP GL_RGB);
 my $vertex_shader = join '', @SHADERBITS{qw(version
   vs_in_position_decl vs_in_texcoord_decl fs_in_texcoord_decl u_matrix_decl
   main_start vs_in vs_out vs_out_texcoord main_end
@@ -744,12 +739,13 @@ sub gdraw {
   PDL::barf "Need 3,4 vert"
     if grep $_->dim(1) < 4 || $_->dim(0) != 3, $points;
   if ($this->{Options}{FullScreen}) {
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0,1,0,1,-1,1);
-    $uniforms = PDL::Graphics::TriD::GObject::_matrix_uniforms;
+    my $mv = PDL::MatrixOps::identity(PDL::float(4));
+    my $p = $this->ortho(0,1,0,1,-1,1);
+    $uniforms = {
+      uMV => [ Mat4 => [1, 1, $mv->list] ], # count, xpose, ...
+      uMVP => [ Mat4 => [1, 1, ($p x $mv)->list] ], # count, xpose, ...
+      uNormalMatrix => [ Mat3 => [1, 1, $mv->slice('0:2,0:2')->inv->t->list] ],
+    };
   }
   $this->set_uniforms($uniforms);
   $this->togl_bind;
