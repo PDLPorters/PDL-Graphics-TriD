@@ -35,6 +35,13 @@ sub togl {
     @_[1..$#_]
   ) for $_[0]->contained_objects
 }
+sub ortho {
+  my (undef, $left, $right, $bottom, $top, $near, $far) = @_;
+  my ($rml, $rpl, $tmb, $tpb, $fmn, $fpn) = ($right-$left, $right+$left,
+    $top-$bottom, $top+$bottom, $far-$near, $far+$near);
+  PDL->pdl(PDL::float, [2/$rml, 0, 0, -$rpl/$rml], [0, 2/$tmb, 0, -$tpb/$tmb],
+    [0, 0, -2/$fmn, -$fpn/$fmn], [0, 0, 0, 1]);
+}
 }
 
 { package # hide from PAUSE
@@ -948,7 +955,7 @@ sub read_picture {
 package # hide from PAUSE
   PDL::Graphics::TriD::ViewPort;
 use OpenGL::Modern qw/
-  glLoadIdentity glMatrixMode glOrtho glFrustum
+  glLoadIdentity glMatrixMode glFrustum
   glViewport
   GL_MODELVIEW GL_PROJECTION
 /;
@@ -967,12 +974,13 @@ sub highlight {
     $hl->togl_setup;
     $hl->{IsValid} = 1;
   }
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho(0,$w,0,$h,-1,1);
-  $hl->togl($hl->{Points}, PDL::Graphics::TriD::GObject::_matrix_uniforms);
+  my $mv = PDL::MatrixOps::identity(PDL::float(4));
+  my $p = $vp->ortho(0,$w,0,$h,-1,1);
+  $hl->togl($hl->{Points}, {
+    uMV => [ Mat4 => [1, 1, $mv->list] ], # count, xpose, ...
+    uMVP => [ Mat4 => [1, 1, ($p x $mv)->list] ], # count, xpose, ...
+    uNormalMatrix => [ Mat3 => [1, 1, $mv->slice('0:2,0:2')->inv->t->list] ],
+  });
 }
 use constant PI => 3.1415926535897932384626433832795;
 use constant FOVY => 40.0;
