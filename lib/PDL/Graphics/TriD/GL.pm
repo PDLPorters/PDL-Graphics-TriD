@@ -202,8 +202,8 @@ use OpenGL::Modern qw(
   glVertexAttribPointer_c
   GL_COMPILE_STATUS GL_LINK_STATUS GL_FALSE
   GL_VERTEX_SHADER GL_FRAGMENT_SHADER GL_CURRENT_PROGRAM
-  GL_LIGHTING_BIT GL_ENABLE_BIT GL_DEPTH_TEST GL_LIGHTING GL_LIGHT0
-  GL_LIGHT_MODEL_TWO_SIDE GL_TRUE GL_POSITION
+  GL_ENABLE_BIT GL_DEPTH_TEST
+  GL_TRUE GL_POSITION
   GL_ARRAY_BUFFER GL_ARRAY_BUFFER_BINDING
   GL_ELEMENT_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER_BINDING
   GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
@@ -386,7 +386,7 @@ sub program_poscol {
 sub togl {
   my ($this, $points) = @_;
   print "togl $this\n" if $PDL::Graphics::TriD::verbose;
-  glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+  glPushAttrib(GL_ENABLE_BIT);
   glLineWidth($this->{Options}{LineWidth} || 1);
   glPointSize($this->{Options}{PointSize} || 1);
   glEnable(GL_DEPTH_TEST);
