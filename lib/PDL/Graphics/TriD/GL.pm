@@ -122,7 +122,6 @@ vec4 lightfuncgouraud(
 }
 EOF
 (map _passthrough(@$_), [position=>3], [normal=>3], [colour=>3], [texcoord=>2]),
-fs_tex_decl => "uniform sampler2D tex;\n",
 fs_diffuse_colour => "  vec4 in_diffuse = vec4(vColour, 1);\n",
 fs_diffuse_tex => "  vec4 in_diffuse = texture2D(tex, vTexcoord);\n",
 fs_out_flat => "  gl_FragColor = in_diffuse;\n",
@@ -159,10 +158,13 @@ vs_out_lightgouraud => <<'EOF',
     vPosition, -vNormal
   ) + uMatemission;
 EOF
+fs_in_lightpos_decl => "$FS_IN vec4 vLightpos;\n",
+fs_in_lightgouraud_decl => "$FS_IN vec4 vFrontcolour;\n$FS_IN vec4 vBackcolour;\n",
 fs_out_lightgouraud => <<'EOF',
   gl_FragColor = (gl_FrontFacing ? vFrontcolour : vBackcolour) * in_diffuse;
 EOF
-fs_light_decl => <<'EOF',
+u_tex_decl => "uniform sampler2D tex;\n",
+u_light_decl => <<'EOF',
 uniform vec4 uLightposition;
 uniform vec4 uLightambient;
 uniform vec4 uLightdiffuse;
@@ -173,8 +175,6 @@ uniform vec4 uMatambient;
 uniform vec4 uMatdiffuse;
 uniform vec4 uMatemission;
 EOF
-fs_in_lightpos_decl => "$FS_IN vec4 vLightpos;\n",
-fs_in_lightgouraud_decl => "$FS_IN vec4 vFrontcolour;\n$FS_IN vec4 vBackcolour;\n",
 );
 
 { package # hide from PAUSE
@@ -453,7 +453,7 @@ my $vertex_shader = join '', @SHADERBITS{qw(version
   main_start vs_in vs_out vs_out_texcoord main_end
 )};
 my $fragment_shader = join '', @SHADERBITS{qw(version
-  fs_in_texcoord_decl fs_tex_decl
+  fs_in_texcoord_decl u_tex_decl
   main_start fs_diffuse_tex fs_out_flat main_end
 )};
 sub togl_setup {
@@ -532,11 +532,11 @@ use OpenGL::Modern qw(
 my $vertex_shader = join '', @SHADERBITS{qw(version
   vs_in_position_decl vs_in_normal_decl vs_in_offset_decl
   fs_in_lightgouraud_decl
-  fs_light_decl lightfunc lightfuncgouraud
+  u_light_decl lightfunc lightfuncgouraud
   main_start vs_in vs_do_offset vs_out vs_out_lightgouraudstart vs_out_light vs_out_lightgouraud main_end
 )};
 my $fragment_shader = join '', @SHADERBITS{qw(version
-  fs_light_decl fs_in_lightgouraud_decl
+  fs_in_lightgouraud_decl u_light_decl
   main_start fs_diffuse_material fs_out_lightgouraud main_end
 )};
 my %SPHERE;
@@ -580,7 +580,7 @@ use OpenGL::Modern qw(
 my $vert_header = join '', @SHADERBITS{qw(version
   vs_in_position_decl vs_in_normal_decl vs_in_colour_decl vs_in_texcoord_decl
   fs_in_colour_decl fs_in_texcoord_decl fs_in_lightgouraud_decl
-  fs_light_decl lightfunc lightfuncgouraud
+  u_light_decl lightfunc lightfuncgouraud
   main_start vs_in vs_out vs_out_colour vs_out_texcoord
 )};
 my %vert = (
@@ -589,7 +589,7 @@ my %vert = (
 );
 my $frag_header = join '', @SHADERBITS{qw(version
   fs_in_colour_decl fs_in_texcoord_decl fs_in_lightgouraud_decl
-  fs_tex_decl
+  u_tex_decl
   main_start
 )};
 my $frag_colour = join '', @SHADERBITS{qw(fs_diffuse_colour)};
@@ -679,7 +679,7 @@ my $vertex_shader = join '', @SHADERBITS{qw(version
   main_start vs_in vs_out vs_out_texcoord main_end
 )};
 my $fragment_shader = join '', @SHADERBITS{qw(version
-  fs_in_texcoord_decl fs_tex_decl
+  fs_in_texcoord_decl u_tex_decl
   main_start fs_diffuse_tex fs_out_flat main_end
 )};
 sub togl_setup {
