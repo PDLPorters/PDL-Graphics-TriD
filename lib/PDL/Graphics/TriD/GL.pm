@@ -29,7 +29,12 @@ sub togl_setup {
   print "togl_setup $this\n" if $PDL::Graphics::TriD::verbose;
   $_->togl_setup(@args) for $this->contained_objects;
 }
-sub togl { $_->togl(@_[1..$#_]) for $_[0]->contained_objects }
+sub togl {
+  $_->togl(
+    UNIVERSAL::isa($_, 'PDL::Graphics::TriD::GObject') ? $_->{Points} : (),
+    @_[1..$#_]
+  ) for $_[0]->contained_objects
+}
 }
 
 { package # hide from PAUSE
@@ -385,7 +390,7 @@ sub togl {
   glLineWidth($this->{Options}{LineWidth} || 1);
   glPointSize($this->{Options}{PointSize} || 1);
   glEnable(GL_DEPTH_TEST);
-  eval { $this->gdraw($points // $this->{Points}) };
+  eval { $this->gdraw($points) };
   { local $@; glPopAttrib(); }
   die if $@;
 }
@@ -704,7 +709,6 @@ sub togl_setup {
 }
 sub gdraw {
   my ($this,$points) = @_;
-  $points //= $this->{Points};
   PDL::barf "Need 3,4 vert"
     if grep $_->dim(1) < 4 || $_->dim(0) != 3, $points;
   if ($this->{Options}{FullScreen}) {
@@ -941,7 +945,7 @@ sub highlight {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glOrtho(0,$w,0,$h,-1,1);
-  $hl->togl;
+  $hl->togl($hl->{Points});
 }
 use constant PI => 3.1415926535897932384626433832795;
 use constant FOVY => 40.0;
