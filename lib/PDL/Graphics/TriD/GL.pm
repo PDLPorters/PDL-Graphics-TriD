@@ -133,11 +133,11 @@ fs_out_flat => "  gl_FragColor = in_diffuse;\n",
 vs_in => "  vec3 the_position = position;\n",
 vs_in_offset_decl => "$VS_IN vec3 offset;\n",
 vs_do_offset => "  the_position += offset;\n",
-vs_out => "  gl_Position = gl_ModelViewProjectionMatrix * vec4(the_position, 1);\n",
+vs_out => "  gl_Position = uMVP * vec4(the_position, 1);\n",
 vs_out_light => <<'EOF',
-  vNormal = normalize(gl_NormalMatrix * normal);
-  vPosition = vec3(gl_ModelViewMatrix * vec4(the_position, 1));
-  vLightpos = gl_ModelViewMatrix * uLightposition;
+  vNormal = normalize(uNormalMatrix * normal);
+  vPosition = vec3(uMV * vec4(the_position, 1));
+  vLightpos = uMV * uLightposition;
 EOF
 fs_diffuse_material => "  vec4 in_diffuse = uMatdiffuse;\n",
 fs_out_light => <<'EOF',
@@ -180,6 +180,11 @@ uniform vec4 uMatambient;
 uniform vec4 uMatdiffuse;
 uniform vec4 uMatemission;
 EOF
+u_matrix_decl => <<'EOF',
+uniform mat4 uMV;
+uniform mat4 uMVP;
+uniform mat3 uNormalMatrix;
+EOF
 );
 
 { package # hide from PAUSE
@@ -199,7 +204,9 @@ use OpenGL::Modern qw(
   glGetProgramiv_p glGetProgramInfoLog_p
   glGetAttribLocation glEnableVertexAttribArray glDisableVertexAttribArray
   glGetUniformLocation glUniform1i glUniform1f glUniform4f
+  glUniformMatrix3fv_p glUniformMatrix4fv_p
   glVertexAttribPointer_c
+  glGetFloatv_p GL_MODELVIEW_MATRIX GL_PROJECTION_MATRIX
   GL_COMPILE_STATUS GL_LINK_STATUS GL_FALSE
   GL_VERTEX_SHADER GL_FRAGMENT_SHADER GL_CURRENT_PROGRAM
   GL_ENABLE_BIT GL_DEPTH_TEST
@@ -255,6 +262,8 @@ my %SUFFIX2FUNC = (
   '1i' => \&glUniform1i,
   '1f' => \&glUniform1f,
   '4f' => \&glUniform4f,
+  'Mat3' => \&glUniformMatrix3fv_p,
+  'Mat4' => \&glUniformMatrix4fv_p,
 );
 sub set_uniform {
   my ($this, $name, $suffix, $value) = @_;
@@ -369,7 +378,7 @@ sub compile_program {
   $program;
 }
 my $vertex_shader_poscol = join '', @SHADERBITS{qw(version
-  vs_in_position_decl vs_in_colour_decl fs_in_colour_decl
+  vs_in_position_decl vs_in_colour_decl fs_in_colour_decl u_matrix_decl
   main_start vs_in vs_out vs_out_colour main_end
 )};
 my $fragment_shader_poscol = join '', @SHADERBITS{qw(version
@@ -384,13 +393,13 @@ sub program_poscol {
   $this->load_attrib(colour => $colours);
 }
 sub togl {
-  my ($this, $points) = @_;
+  my ($this, $points, $uniforms) = @_;
   print "togl $this\n" if $PDL::Graphics::TriD::verbose;
   glPushAttrib(GL_ENABLE_BIT);
   glLineWidth($this->{Options}{LineWidth} || 1);
   glPointSize($this->{Options}{PointSize} || 1);
   glEnable(GL_DEPTH_TEST);
-  eval { $this->gdraw($points) };
+  eval { $this->gdraw($points, $uniforms) };
   { local $@; glPopAttrib(); }
   die if $@;
 }
@@ -416,6 +425,17 @@ sub DESTROY {
     glUseProgram(0) if glGetIntegerv_p(GL_CURRENT_PROGRAM) == $program;
     glDeleteProgram($_) for grep $_, $program;
   }
+}
+sub _matrix_uniforms {
+  my @mv = glGetFloatv_p(GL_MODELVIEW_MATRIX);
+  my @p = glGetFloatv_p(GL_PROJECTION_MATRIX);
+  my $mv = PDL->pdl(PDL::float, [@mv[0..3]], [@mv[4..7]], [@mv[8..11]], [@mv[12..15]])->t;
+  my $p = PDL->pdl(PDL::float, [@p[0..3]], [@p[4..7]], [@p[8..11]], [@p[12..15]])->t;
+  {
+    uMV => [ Mat4 => [1, 1, $mv->list] ], # count, xpose, ...
+    uMVP => [ Mat4 => [1, 1, ($p x $mv)->list] ], # count, xpose, ...
+    uNormalMatrix => [ Mat3 => [1, 1, $mv->slice('0:2,0:2')->inv->t->list] ],
+  };
 }
 }
 
@@ -454,7 +474,7 @@ sub _font_setup {
   $texcoords->slice('(1),0::2') .= 1;          # v of top, v bot=already 0
 }
 my $vertex_shader = join '', @SHADERBITS{qw(version
-  vs_in_position_decl vs_in_texcoord_decl fs_in_texcoord_decl
+  vs_in_position_decl vs_in_texcoord_decl fs_in_texcoord_decl u_matrix_decl
   main_start vs_in vs_out vs_out_texcoord main_end
 )};
 my $fragment_shader = join '', @SHADERBITS{qw(version
@@ -495,7 +515,8 @@ sub togl_setup {
   $this->togl_unbind;
 }
 sub gdraw {
-  my($this,$points) = @_;
+  my ($this, $points, $uniforms) = @_;
+  $this->set_uniforms($uniforms);
   $this->togl_bind;
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -515,7 +536,8 @@ sub togl_setup {
   $this->togl_unbind;
 }
 sub gdraw {
-  my($this,$points) = @_;
+  my ($this, $points, $uniforms) = @_;
+  $this->set_uniforms($uniforms);
   $this->togl_bind;
   glDrawArrays($this->primitive, 0, $points->nelem / $points->dim(0));
   $this->togl_unbind;
@@ -537,7 +559,7 @@ use OpenGL::Modern qw(
 my $vertex_shader = join '', @SHADERBITS{qw(version
   vs_in_position_decl vs_in_normal_decl vs_in_offset_decl
   fs_in_lightgouraud_decl
-  u_light_decl lightfunc lightfuncgouraud
+  u_light_decl u_matrix_decl lightfunc lightfuncgouraud
   main_start vs_in vs_do_offset vs_out vs_out_lightgouraudstart vs_out_light vs_out_lightgouraud main_end
 )};
 my $fragment_shader = join '', @SHADERBITS{qw(version
@@ -566,7 +588,8 @@ sub togl_setup {
   $this->togl_unbind;
 }
 sub gdraw {
-  my($this,$points) = @_;
+  my ($this, $points, $uniforms) = @_;
+  $this->set_uniforms($uniforms);
   $this->togl_bind;
   glVertexAttribDivisor($this->{Impl}{offset_loc}, 1);
   glDrawElementsInstancedARB_c(GL_TRIANGLE_STRIP, $this->{Impl}{idx}->dim(0), GL_UNSIGNED_INT, 0, $this->{Impl}{noffset});
@@ -585,7 +608,7 @@ use OpenGL::Modern qw(
 my $vert_header = join '', @SHADERBITS{qw(version
   vs_in_position_decl vs_in_normal_decl vs_in_colour_decl vs_in_texcoord_decl
   fs_in_colour_decl fs_in_texcoord_decl fs_in_lightgouraud_decl
-  u_light_decl lightfunc lightfuncgouraud
+  u_light_decl u_matrix_decl lightfunc lightfuncgouraud
   main_start vs_in vs_out vs_out_colour vs_out_texcoord
 )};
 my %vert = (
@@ -635,7 +658,8 @@ sub togl_setup {
   $this->togl_unbind;
 }
 sub gdraw {
-  my ($this,$points) = @_;
+  my ($this, $points, $uniforms) = @_;
+  $this->set_uniforms($uniforms);
   $this->togl_bind;
   glDrawElements_c(GL_TRIANGLES, $this->{Faceidx}->nelem, GL_UNSIGNED_INT, 0);
   $this->togl_unbind;
@@ -661,8 +685,9 @@ sub togl_setup {
   $this->{Impl}{Starts4} = $this->{Starts}->indx * PDL::Core::howbig(PDL::ulong->enum); # byte offset into GPU buffer, not elements
 }
 sub gdraw {
-  my ($this,$points) = @_;
+  my ($this, $points, $uniforms) = @_;
   my $mode = $mode2enum{$this->{Mode}} || PDL::barf "DrawMulti unknown mode";
+  $this->set_uniforms($uniforms);
   $this->togl_bind;
   # switch to glPrimitiveRestartindex when 3.1 available
   glMultiDrawElements_c($mode, $this->{Counts}->make_physical->address_data, GL_UNSIGNED_INT, $this->{Impl}{Starts4}->make_physical->address_data, $this->{Counts}->nelem);
@@ -680,7 +705,7 @@ use OpenGL::Modern qw(
   GL_TRIANGLE_STRIP GL_RGB
 );
 my $vertex_shader = join '', @SHADERBITS{qw(version
-  vs_in_position_decl vs_in_texcoord_decl fs_in_texcoord_decl
+  vs_in_position_decl vs_in_texcoord_decl fs_in_texcoord_decl u_matrix_decl
   main_start vs_in vs_out vs_out_texcoord main_end
 )};
 my $fragment_shader = join '', @SHADERBITS{qw(version
@@ -708,7 +733,7 @@ sub togl_setup {
   $this->togl_unbind;
 }
 sub gdraw {
-  my ($this,$points) = @_;
+  my ($this, $points, $uniforms) = @_;
   PDL::barf "Need 3,4 vert"
     if grep $_->dim(1) < 4 || $_->dim(0) != 3, $points;
   if ($this->{Options}{FullScreen}) {
@@ -717,7 +742,9 @@ sub gdraw {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(0,1,0,1,-1,1);
+    $uniforms = PDL::Graphics::TriD::GObject::_matrix_uniforms;
   }
+  $this->set_uniforms($uniforms);
   $this->togl_bind;
   glDrawArrays(GL_TRIANGLE_STRIP, 0, $points->nelem / $points->dim(0));
   $this->togl_unbind;
@@ -727,9 +754,9 @@ sub gdraw {
 use OpenGL::Modern qw(glTranslatef);
 sub PDL::Graphics::TriD::SimpleController::togl {
 	my($this) = @_;
-	$this->{CRotation}->togl();
+	$this->{CRotation}->togl;
 	glTranslatef(0,0,-$this->{CDistance});
-	$this->{WRotation}->togl();
+	$this->{WRotation}->togl;
 	glTranslatef(map {-$_} @{$this->{WOrigin}});
 }
 
@@ -881,7 +908,7 @@ sub display {
     $vp->do_perspective();
     if ($vp->{Transformer}) {
       print "display: transforming viewport!\n" if $PDL::Graphics::TriD::verbose;
-      $vp->{Transformer}->togl();
+      $vp->{Transformer}->togl;
     }
     print "VALID $this=$this->{IsValid}\n" if $PDL::Graphics::TriD::verbose;
     if (!$vp->{IsValid}) {
@@ -896,7 +923,7 @@ sub display {
       print "VALID1 $vp\n" if $PDL::Graphics::TriD::verbose;
       $vp->{IsValid} = 1;
     }
-    $vp->togl;
+    $vp->togl(PDL::Graphics::TriD::GObject::_matrix_uniforms);
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
     glPopAttrib();
@@ -945,7 +972,7 @@ sub highlight {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glOrtho(0,$w,0,$h,-1,1);
-  $hl->togl($hl->{Points});
+  $hl->togl($hl->{Points}, PDL::Graphics::TriD::GObject::_matrix_uniforms);
 }
 use constant PI => 3.1415926535897932384626433832795;
 use constant FOVY => 40.0;
