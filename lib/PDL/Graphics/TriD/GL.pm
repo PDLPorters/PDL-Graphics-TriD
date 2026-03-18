@@ -205,8 +205,8 @@ EOF
 { package # hide from PAUSE
   PDL::Graphics::TriD::GObject;
 use OpenGL::Modern qw(
-  glPushAttrib glPopAttrib
   glLineWidth glPointSize
+  glBlendFunc
   glEnable glDisable
   glGetIntegerv_p
   glGenBuffers_p glBindBuffer glDeleteBuffers_p glBufferData_c
@@ -221,10 +221,9 @@ use OpenGL::Modern qw(
   glGetUniformLocation glUniform1i glUniform1f glUniform4f
   glUniformMatrix3fv_p glUniformMatrix4fv_p
   glVertexAttribPointer_c
-  GL_COMPILE_STATUS GL_LINK_STATUS GL_FALSE
+  GL_COMPILE_STATUS GL_LINK_STATUS GL_FALSE GL_TRUE
   GL_VERTEX_SHADER GL_FRAGMENT_SHADER GL_CURRENT_PROGRAM
-  GL_ENABLE_BIT GL_DEPTH_TEST
-  GL_TRUE GL_POSITION
+  GL_DEPTH_TEST GL_BLEND GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
   GL_ARRAY_BUFFER GL_ARRAY_BUFFER_BINDING
   GL_ELEMENT_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER_BINDING
   GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
@@ -409,13 +408,12 @@ sub program_poscol {
 sub togl {
   my ($this, $points, $uniforms) = @_;
   print "togl $this\n" if $PDL::Graphics::TriD::verbose;
-  glPushAttrib(GL_ENABLE_BIT);
   glLineWidth($this->{Options}{LineWidth} || 1);
   glPointSize($this->{Options}{PointSize} || 1);
   glEnable(GL_DEPTH_TEST);
-  eval { $this->gdraw($points, $uniforms) };
-  { local $@; glPopAttrib(); }
-  die if $@;
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  $this->gdraw($points, $uniforms);
 }
 sub DESTROY {
   my ($this) = @_;
@@ -445,9 +443,7 @@ sub DESTROY {
 { package # hide from PAUSE
   PDL::Graphics::TriD::Labels;
 use OpenGL::Modern qw(
-  glEnable glBlendFunc glIsTexture
   glDrawElements_c
-  GL_BLEND GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
   GL_TRIANGLES GL_UNSIGNED_INT
   GL_RGBA32F GL_RGBA
 );
@@ -521,8 +517,6 @@ sub gdraw {
   my ($this, $points, $uniforms) = @_;
   $this->set_uniforms($uniforms);
   $this->togl_bind;
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glDrawElements_c(GL_TRIANGLES, $this->{Impl}{idx}->nelem, GL_UNSIGNED_INT, 0);
   $this->togl_unbind;
 }
@@ -760,7 +754,6 @@ use OpenGL::Modern qw/
   glPixelStorei glReadPixels_c
   glClear glClearColor
   glViewport
-  glPushAttrib glPopAttrib
   GL_PACK_ALIGNMENT GL_RGB GL_UNSIGNED_BYTE
   GL_COLOR_BUFFER_BIT GL_DEPTH_BUFFER_BIT
 /;
@@ -906,7 +899,6 @@ sub display {
       print "VALID1 $vp\n" if $PDL::Graphics::TriD::verbose;
       $vp->{IsValid} = 1;
     }
-    glPushAttrib(GL_COLOR_BUFFER_BIT);
     PDL::barf "Need viewport with positive dims, got $vp->{W},$vp->{H}" if !($vp->{W}>0 and $vp->{H}>0);
     glViewport(@$vp{qw(X0 Y0 W H)});
     $vp->highlight if $vp->{Active};
@@ -923,7 +915,6 @@ sub display {
       uMVP => [ Mat4 => [1, 1, ($p x $mv)->list] ], # count, xpose, ...
       uNormalMatrix => [ Mat3 => [1, 1, $mv->slice('0:2,0:2')->inv->t->list] ],
     });
-    glPopAttrib();
   }
   $this->{_GLObject}->swap_buffers;
   print "display: after SwapBuffers\n" if $PDL::Graphics::TriD::verbose;
