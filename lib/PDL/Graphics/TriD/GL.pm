@@ -901,6 +901,19 @@ sub display {
   print "display: calling glClear()\n" if $PDL::Graphics::TriD::verbose;
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
   for my $vp (@{$this->{_ViewPorts}}) {
+    print "VALID $this=$this->{IsValid}\n" if $PDL::Graphics::TriD::verbose;
+    if (!$vp->{IsValid}) {
+      glpSetAutoCheckErrors(1);
+      $vp->togl_setup(undef, {
+        uLightposition => ['4f' => [1,1,1,0]],
+        uLightambient => ['4f' => [0,0,0,1]],
+        uLightdiffuse => ['4f' => [1,1,1,1]],
+        uLightspecular => ['4f' => [1,1,1,1]],
+        %{$vp->{DefMaterial}->to_uniforms},
+      });
+      print "VALID1 $vp\n" if $PDL::Graphics::TriD::verbose;
+      $vp->{IsValid} = 1;
+    }
     glPushAttrib(GL_TRANSFORM_BIT|GL_COLOR_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
@@ -918,19 +931,6 @@ sub display {
     if ($vp->{Transformer}) {
       print "display: transforming viewport!\n" if $PDL::Graphics::TriD::verbose;
       $vp->{Transformer}->togl;
-    }
-    print "VALID $this=$this->{IsValid}\n" if $PDL::Graphics::TriD::verbose;
-    if (!$vp->{IsValid}) {
-      glpSetAutoCheckErrors(1);
-      $vp->togl_setup(undef, {
-        uLightposition => ['4f' => [1,1,1,0]],
-        uLightambient => ['4f' => [0,0,0,1]],
-        uLightdiffuse => ['4f' => [1,1,1,1]],
-        uLightspecular => ['4f' => [1,1,1,1]],
-        %{$vp->{DefMaterial}->to_uniforms},
-      });
-      print "VALID1 $vp\n" if $PDL::Graphics::TriD::verbose;
-      $vp->{IsValid} = 1;
     }
     use OpenGL::Modern qw(glGetFloatv_p GL_MODELVIEW_MATRIX GL_PROJECTION_MATRIX);
     my @mv = glGetFloatv_p(GL_MODELVIEW_MATRIX);
