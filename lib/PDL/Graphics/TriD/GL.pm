@@ -213,7 +213,6 @@ use OpenGL::Modern qw(
   glGetUniformLocation glUniform1i glUniform1f glUniform4f
   glUniformMatrix3fv_p glUniformMatrix4fv_p
   glVertexAttribPointer_c
-  glGetFloatv_p GL_MODELVIEW_MATRIX GL_PROJECTION_MATRIX
   GL_COMPILE_STATUS GL_LINK_STATUS GL_FALSE
   GL_VERTEX_SHADER GL_FRAGMENT_SHADER GL_CURRENT_PROGRAM
   GL_ENABLE_BIT GL_DEPTH_TEST
@@ -432,17 +431,6 @@ sub DESTROY {
     glUseProgram(0) if glGetIntegerv_p(GL_CURRENT_PROGRAM) == $program;
     glDeleteProgram($_) for grep $_, $program;
   }
-}
-sub _matrix_uniforms {
-  my @mv = glGetFloatv_p(GL_MODELVIEW_MATRIX);
-  my @p = glGetFloatv_p(GL_PROJECTION_MATRIX);
-  my $mv = PDL->pdl(PDL::float, [@mv[0..3]], [@mv[4..7]], [@mv[8..11]], [@mv[12..15]])->t;
-  my $p = PDL->pdl(PDL::float, [@p[0..3]], [@p[4..7]], [@p[8..11]], [@p[12..15]])->t;
-  {
-    uMV => [ Mat4 => [1, 1, $mv->list] ], # count, xpose, ...
-    uMVP => [ Mat4 => [1, 1, ($p x $mv)->list] ], # count, xpose, ...
-    uNormalMatrix => [ Mat3 => [1, 1, $mv->slice('0:2,0:2')->inv->t->list] ],
-  };
 }
 }
 
@@ -944,7 +932,16 @@ sub display {
       print "VALID1 $vp\n" if $PDL::Graphics::TriD::verbose;
       $vp->{IsValid} = 1;
     }
-    $vp->togl(PDL::Graphics::TriD::GObject::_matrix_uniforms);
+    use OpenGL::Modern qw(glGetFloatv_p GL_MODELVIEW_MATRIX GL_PROJECTION_MATRIX);
+    my @mv = glGetFloatv_p(GL_MODELVIEW_MATRIX);
+    my @p = glGetFloatv_p(GL_PROJECTION_MATRIX);
+    my $mv = PDL->pdl(PDL::float, [@mv[0..3]], [@mv[4..7]], [@mv[8..11]], [@mv[12..15]])->t;
+    my $p = PDL->pdl(PDL::float, [@p[0..3]], [@p[4..7]], [@p[8..11]], [@p[12..15]])->t;
+    $vp->togl({
+      uMV => [ Mat4 => [1, 1, $mv->list] ], # count, xpose, ...
+      uMVP => [ Mat4 => [1, 1, ($p x $mv)->list] ], # count, xpose, ...
+      uNormalMatrix => [ Mat3 => [1, 1, $mv->slice('0:2,0:2')->inv->t->list] ],
+    });
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
     glPopAttrib();
