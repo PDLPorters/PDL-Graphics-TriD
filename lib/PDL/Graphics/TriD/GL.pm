@@ -53,6 +53,14 @@ sub frustum {
     [0, 0, -$fpn/$fmn, -2*$far*$near/$fmn],
     [0, 0, -1, 0]);
 }
+sub translate {
+  my (undef, $x, $y, $z) = @_;
+  PDL->pdl(PDL::float,
+    [1, 0, 0, $x],
+    [0, 1, 0, $y],
+    [0, 0, 1, $z],
+    [0, 0, 0, 1]);
+}
 }
 
 { package # hide from PAUSE
@@ -925,10 +933,11 @@ sub display {
     $tr->{CRotation}->togl;
     glTranslatef(0,0,-$tr->{CDistance});
     $tr->{WRotation}->togl;
-    glTranslatef(map {-$_} @{$tr->{WOrigin}});
+    my $t2 = $this->translate(map -$_, @{$tr->{WOrigin}});
     use OpenGL::Modern qw(glGetFloatv_p GL_MODELVIEW_MATRIX);
     my @mv = glGetFloatv_p(GL_MODELVIEW_MATRIX);
     my $mv = PDL->pdl(PDL::float, [@mv[0..3]], [@mv[4..7]], [@mv[8..11]], [@mv[12..15]])->t;
+    $mv = $mv x $t2;
     my $fW = fH * $vp->{W}/$vp->{H}; # aspect ratio
     my $p = $this->frustum(-$fW, $fW, -fH, fH, zNEAR, zFAR);
     $vp->togl({
