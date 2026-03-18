@@ -109,7 +109,7 @@ my @demo = (
 
 [actnw => q|
       # Finally, leave 3d in a sane state
-      keeptwiddling3d(); # Don't wait for user while drawing
+      keeptwiddling3d(); # wait for user while drawing again
       release3d();
       # close 3D window if we opened it
       close3d() if $|.__PACKAGE__.q|::we_opened;
