@@ -42,6 +42,17 @@ sub ortho {
   PDL->pdl(PDL::float, [2/$rml, 0, 0, -$rpl/$rml], [0, 2/$tmb, 0, -$tpb/$tmb],
     [0, 0, -2/$fmn, -$fpn/$fmn], [0, 0, 0, 1]);
 }
+# https://stackoverflow.com/questions/12943164/replacement-for-gluperspective-with-glfrustrum
+sub frustum {
+  my (undef, $left, $right, $bottom, $top, $near, $far) = @_;
+  my ($rml, $rpl, $tmb, $tpb, $fmn, $fpn) = ($right-$left, $right+$left,
+    $top-$bottom, $top+$bottom, $far-$near, $far+$near);
+  PDL->pdl(PDL::float,
+    [2*$near/$rml, 0, $rpl/$rml, 0],
+    [0, 2*$near/$tmb, $tpb/$tmb, 0],
+    [0, 0, -$fpn/$fmn, -2*$far*$near/$fmn],
+    [0, 0, -1, 0]);
+}
 }
 
 { package # hide from PAUSE
@@ -761,11 +772,11 @@ use OpenGL::Modern qw/
   glPixelStorei glReadPixels_c
   glClear glClearColor glEnable
   glShadeModel glPushMatrix glPopMatrix glMatrixMode
-  glLoadIdentity glFrustum
+  glLoadIdentity
   glViewport
   glPushAttrib glPopAttrib
   GL_UNPACK_ALIGNMENT GL_PACK_ALIGNMENT GL_RGB GL_UNSIGNED_BYTE
-  GL_FLAT GL_NORMALIZE GL_MODELVIEW GL_PROJECTION
+  GL_FLAT GL_NORMALIZE GL_MODELVIEW
   GL_COLOR_BUFFER_BIT GL_DEPTH_BUFFER_BIT
   GL_TRANSFORM_BIT
 /;
@@ -888,11 +899,10 @@ sub close {
   $PDL::Graphics::TriD::current_window = undef;
 }
 
-use constant PI => 3.1415926535897932384626433832795;
-use constant FOVY => 40.0;
+use constant { PI => 3.1415926535897932384626433832795, FOVY => 40.0,
+  zNEAR => 0.1, zFAR => 200000.0 };
 use constant ANGLE => FOVY / 360 * PI;
 use constant TAN => sin(ANGLE)/cos(ANGLE);
-use constant { zNEAR => 0.1, zFAR => 200000.0 };
 use constant fH => TAN * zNEAR;
 sub display {
   my ($this) = @_;
@@ -921,22 +931,17 @@ sub display {
     my $aspect_ratio = (1.0*$vp->{W})/$vp->{H};
     glViewport(@$vp{qw(X0 Y0 W H)});
     $vp->highlight if $vp->{Active};
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    # https://stackoverflow.com/questions/12943164/replacement-for-gluperspective-with-glfrustrum
-    my $fW = fH * $aspect_ratio;
-    glFrustum(-$fW, $fW, -fH, fH, zNEAR, zFAR);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     if ($vp->{Transformer}) {
       print "display: transforming viewport!\n" if $PDL::Graphics::TriD::verbose;
       $vp->{Transformer}->togl;
     }
-    use OpenGL::Modern qw(glGetFloatv_p GL_MODELVIEW_MATRIX GL_PROJECTION_MATRIX);
+    use OpenGL::Modern qw(glGetFloatv_p GL_MODELVIEW_MATRIX);
     my @mv = glGetFloatv_p(GL_MODELVIEW_MATRIX);
-    my @p = glGetFloatv_p(GL_PROJECTION_MATRIX);
     my $mv = PDL->pdl(PDL::float, [@mv[0..3]], [@mv[4..7]], [@mv[8..11]], [@mv[12..15]])->t;
-    my $p = PDL->pdl(PDL::float, [@p[0..3]], [@p[4..7]], [@p[8..11]], [@p[12..15]])->t;
+    my $fW = fH * $aspect_ratio;
+    my $p = $this->frustum(-$fW, $fW, -fH, fH, zNEAR, zFAR);
     $vp->togl({
       uMV => [ Mat4 => [1, 1, $mv->list] ], # count, xpose, ...
       uMVP => [ Mat4 => [1, 1, ($p x $mv)->list] ], # count, xpose, ...
