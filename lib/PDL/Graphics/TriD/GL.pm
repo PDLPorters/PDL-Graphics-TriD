@@ -921,13 +921,11 @@ sub display {
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-    if (my $tr = $vp->{Transformer}) {
-      print "display: transforming viewport!\n" if $PDL::Graphics::TriD::verbose;
-      $tr->{CRotation}->togl;
-      glTranslatef(0,0,-$tr->{CDistance});
-      $tr->{WRotation}->togl;
-      glTranslatef(map {-$_} @{$tr->{WOrigin}});
-    }
+    my $tr = $vp->{Transformer};
+    $tr->{CRotation}->togl;
+    glTranslatef(0,0,-$tr->{CDistance});
+    $tr->{WRotation}->togl;
+    glTranslatef(map {-$_} @{$tr->{WOrigin}});
     use OpenGL::Modern qw(glGetFloatv_p GL_MODELVIEW_MATRIX);
     my @mv = glGetFloatv_p(GL_MODELVIEW_MATRIX);
     my $mv = PDL->pdl(PDL::float, [@mv[0..3]], [@mv[4..7]], [@mv[8..11]], [@mv[12..15]])->t;
