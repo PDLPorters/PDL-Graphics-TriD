@@ -773,9 +773,11 @@ use OpenGL::Modern qw/
   glPixelStorei glReadPixels_c
   glClear glClearColor glEnable
   glShadeModel glPushMatrix glPopMatrix glMatrixMode
+  glLoadIdentity glFrustum
+  glViewport
   glPushAttrib glPopAttrib
   GL_UNPACK_ALIGNMENT GL_PACK_ALIGNMENT GL_RGB GL_UNSIGNED_BYTE
-  GL_FLAT GL_NORMALIZE GL_MODELVIEW
+  GL_FLAT GL_NORMALIZE GL_MODELVIEW GL_PROJECTION
   GL_COLOR_BUFFER_BIT GL_DEPTH_BUFFER_BIT
   GL_TRANSFORM_BIT
 /;
@@ -898,6 +900,12 @@ sub close {
   $PDL::Graphics::TriD::current_window = undef;
 }
 
+use constant PI => 3.1415926535897932384626433832795;
+use constant FOVY => 40.0;
+use constant ANGLE => FOVY / 360 * PI;
+use constant TAN => sin(ANGLE)/cos(ANGLE);
+use constant { zNEAR => 0.1, zFAR => 200000.0 };
+use constant fH => TAN * zNEAR;
 sub display {
   my ($this) = @_;
   return unless defined($this);
@@ -908,7 +916,17 @@ sub display {
     glPushAttrib(GL_TRANSFORM_BIT|GL_COLOR_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
-    $vp->do_perspective();
+    PDL::barf "Need viewport with positive dims, got $vp->{W},$vp->{H}" if !($vp->{W}>0 and $vp->{H}>0);
+    my $aspect_ratio = (1.0*$vp->{W})/$vp->{H};
+    glViewport(@$vp{qw(X0 Y0 W H)});
+    $vp->highlight if $vp->{Active};
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    # https://stackoverflow.com/questions/12943164/replacement-for-gluperspective-with-glfrustrum
+    my $fW = fH * $aspect_ratio;
+    glFrustum(-$fW, $fW, -fH, fH, zNEAR, zFAR);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
     if ($vp->{Transformer}) {
       print "display: transforming viewport!\n" if $PDL::Graphics::TriD::verbose;
       $vp->{Transformer}->togl;
@@ -950,11 +968,6 @@ sub read_picture {
 {
 package # hide from PAUSE
   PDL::Graphics::TriD::ViewPort;
-use OpenGL::Modern qw/
-  glLoadIdentity glMatrixMode glFrustum
-  glViewport
-  GL_MODELVIEW GL_PROJECTION
-/;
 unshift @PDL::Graphics::TriD::GL::Highlight::ISA, qw(PDL::Graphics::TriD::Lines);
 sub PDL::Graphics::TriD::GL::Highlight::primitive {OpenGL::Modern::GL_LINE_LOOP}
 sub highlight {
@@ -977,28 +990,6 @@ sub highlight {
     uMVP => [ Mat4 => [1, 1, ($p x $mv)->list] ], # count, xpose, ...
     uNormalMatrix => [ Mat3 => [1, 1, $mv->slice('0:2,0:2')->inv->t->list] ],
   });
-}
-use constant PI => 3.1415926535897932384626433832795;
-use constant FOVY => 40.0;
-use constant ANGLE => FOVY / 360 * PI;
-use constant TAN => sin(ANGLE)/cos(ANGLE);
-use constant { zNEAR => 0.1, zFAR => 200000.0 };
-use constant fH => TAN * zNEAR;
-sub do_perspective {
-  my($this) = @_;
-  print "do_perspective ",$this->{W}," ",$this->{H} ,"\n" if $PDL::Graphics::TriD::verbose;
-  print Carp::longmess() if $PDL::Graphics::TriD::verbose>1;
-  unless($this->{W}>0 and $this->{H}>0) {return;}
-  $this->{AspectRatio} = (1.0*$this->{W})/$this->{H};
-  glViewport(@$this{qw(X0 Y0 W H)});
-  $this->highlight if $this->{Active};
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  # https://stackoverflow.com/questions/12943164/replacement-for-gluperspective-with-glfrustrum
-  my $fW = fH * $this->{AspectRatio};
-  glFrustum(-$fW, $fW, -fH, fH, zNEAR, zFAR);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity ();
 }
 }
 
