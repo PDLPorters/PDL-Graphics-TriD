@@ -770,13 +770,13 @@ package # hide from PAUSE
 use OpenGL::Modern qw/
   glpSetAutoCheckErrors
   glPixelStorei glReadPixels_c
-  glClear glClearColor glEnable
-  glShadeModel glPushMatrix glPopMatrix glMatrixMode
+  glClear glClearColor
+  glPushMatrix glPopMatrix glMatrixMode
   glLoadIdentity
   glViewport
   glPushAttrib glPopAttrib
-  GL_UNPACK_ALIGNMENT GL_PACK_ALIGNMENT GL_RGB GL_UNSIGNED_BYTE
-  GL_FLAT GL_NORMALIZE GL_MODELVIEW
+  GL_PACK_ALIGNMENT GL_RGB GL_UNSIGNED_BYTE
+  GL_MODELVIEW
   GL_COLOR_BUFFER_BIT GL_DEPTH_BUFFER_BIT
   GL_TRANSFORM_BIT
 /;
@@ -802,8 +802,6 @@ sub gdriver {
   $this->{_GLObject}->set_window;
   print "gdriver: Calling glClearColor...\n" if $PDL::Graphics::TriD::verbose;
   glClearColor(0,0,0,1);
-  glShadeModel(GL_FLAT);
-  glEnable(GL_NORMALIZE);
   print "STARTED OPENGL!\n" if $PDL::Graphics::TriD::verbose;
   if($PDL::Graphics::TriD::offline) {
     $this->doconfig($options->{width}, $options->{height});
@@ -960,7 +958,6 @@ sub read_picture {
   my ($this) = @_;
   my ($w,$h) = @{$this}{qw/Width Height/};
   my $res = PDL->zeroes(PDL::byte,3,$w,$h);
-  glPixelStorei(GL_UNPACK_ALIGNMENT,1);
   glPixelStorei(GL_PACK_ALIGNMENT,1);
   glReadPixels_c(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,$res->make_physical->address_data);
   return $res;
