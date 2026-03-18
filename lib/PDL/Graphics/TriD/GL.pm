@@ -85,17 +85,6 @@ sub togl {
 }
 }
 
-use OpenGL::Modern qw(glRotatef);
-use POSIX qw//;
-sub PDL::Graphics::TriD::Quaternion::togl {
-  my($this) = @_;
-  if(abs($this->[0]) == 1) { return ; }
-  if(abs($this->[0]) >= 1) {
-    $this->normalise;
-  }
-  glRotatef(2*POSIX::acos($this->[0])/3.14*180, @{$this}[1..3]);
-}
-
 ##################################
 # Graph Objects
 
@@ -770,15 +759,10 @@ use OpenGL::Modern qw/
   glpSetAutoCheckErrors
   glPixelStorei glReadPixels_c
   glClear glClearColor
-  glPushMatrix glPopMatrix glMatrixMode
-  glTranslatef
-  glLoadIdentity
   glViewport
   glPushAttrib glPopAttrib
   GL_PACK_ALIGNMENT GL_RGB GL_UNSIGNED_BYTE
-  GL_MODELVIEW
   GL_COLOR_BUFFER_BIT GL_DEPTH_BUFFER_BIT
-  GL_TRANSFORM_BIT
 /;
 
 use base qw/PDL::Graphics::TriD::Object/;
@@ -922,22 +906,16 @@ sub display {
       print "VALID1 $vp\n" if $PDL::Graphics::TriD::verbose;
       $vp->{IsValid} = 1;
     }
-    glPushAttrib(GL_TRANSFORM_BIT|GL_COLOR_BUFFER_BIT);
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
     PDL::barf "Need viewport with positive dims, got $vp->{W},$vp->{H}" if !($vp->{W}>0 and $vp->{H}>0);
     glViewport(@$vp{qw(X0 Y0 W H)});
     $vp->highlight if $vp->{Active};
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-    my $tr = $vp->{Transformer};
-    $tr->{CRotation}->togl;
-    glTranslatef(0,0,-$tr->{CDistance});
-    $tr->{WRotation}->togl;
+    my $tr = $vp->transformer;
+    my $r1 = $tr->{CRotation}->as_matrix;
+    my $t1 = $this->translate(0,0,-$tr->{CDistance});
+    my $r2 = $tr->{WRotation}->as_matrix;
     my $t2 = $this->translate(map -$_, @{$tr->{WOrigin}});
-    use OpenGL::Modern qw(glGetFloatv_p GL_MODELVIEW_MATRIX);
-    my @mv = glGetFloatv_p(GL_MODELVIEW_MATRIX);
-    my $mv = PDL->pdl(PDL::float, [@mv[0..3]], [@mv[4..7]], [@mv[8..11]], [@mv[12..15]])->t;
-    $mv = $mv x $t2;
+    my $mv = $r1 x $t1 x $r2 x $t2;
     my $fW = fH * $vp->{W}/$vp->{H}; # aspect ratio
     my $p = $this->frustum(-$fW, $fW, -fH, fH, zNEAR, zFAR);
     $vp->togl({
@@ -945,7 +923,6 @@ sub display {
       uMVP => [ Mat4 => [1, 1, ($p x $mv)->list] ], # count, xpose, ...
       uNormalMatrix => [ Mat3 => [1, 1, $mv->slice('0:2,0:2')->inv->t->list] ],
     });
-    glPopMatrix();
     glPopAttrib();
   }
   $this->{_GLObject}->swap_buffers;
