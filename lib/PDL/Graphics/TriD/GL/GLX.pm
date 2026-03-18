@@ -8,7 +8,7 @@ our @ISA = qw(PDL::Graphics::TriD::GL);
 
 sub new {
   my ($class,$options,$window_obj) = @_;
-  my @db = OpenGL::GLX_DOUBLEBUFFER;
+  my @db = OpenGL::GLX::GLX_DOUBLEBUFFER;
   if ($PDL::Graphics::TriD::offline) {$options->{x} = -1; @db=()}
   $options->{attributes} = [GLX_RGBA, @db,
 			    GLX_RED_SIZE,1,
@@ -24,7 +24,7 @@ sub new {
   my $self = $class->SUPER::new($options,$window_obj);
   print STDERR "Creating X11 OO window\n" if $PDL::Graphics::TriD::verbose;
   my $p = $self->{Options};
-  my $win = OpenGL::glpcOpenWindow(
+  my $win = OpenGL::GLX::glpcOpenWindow(
      $p->{x},$p->{y},$p->{width},$p->{height},
      $p->{parent},$p->{mask}, $p->{steal}, @{$p->{attributes}});
   @$self{keys %$win} = values %$win;
@@ -43,7 +43,7 @@ sub default_options {
 
 sub event_pending {
   my ($self) = @_;
-  OpenGL::XPending($self->{Display});
+  OpenGL::GLX::XPending($self->{Display});
 }
 
 my %ev2str = (
@@ -58,7 +58,7 @@ my %ev2str = (
 );
 sub next_event {
   my ($self) = @_;
-  my @e = OpenGL::glpXNextEvent($self->{Display});
+  my @e = OpenGL::GLX::glpXNextEvent($self->{Display});
   if ($e[0] == MotionNotify) {
     my $but = -1;
     SWITCH: {
@@ -76,7 +76,7 @@ sub next_event {
 
 sub swap_buffers {
   my ($this) = @_;
-  OpenGL::glXSwapBuffers($this->{Window},$this->{Display});  # Notice win and display reversed [sic]
+  OpenGL::GLX::glXSwapBuffers($this->{Window},$this->{Display});  # Notice win and display reversed [sic]
 }
 
 1;
