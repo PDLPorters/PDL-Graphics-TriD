@@ -4,6 +4,7 @@ use Test::More;
 
 use PDL::Graphics::TriD::Quaternion;
 use PDL::LiteF;
+use PDL::Constants qw(PI);
 use Test::PDL;
 
 sub is_qua {
@@ -62,5 +63,13 @@ $q4 *= [0.5,0,0,0];
 is_qua $q4, [1,2,3,4];
 $q4 *= $q2;
 is_qua $q4, $q1_q2;
+
+my $q_45_about_111 = PDL::Graphics::TriD::Quaternion->new(cos(PI/8),1,1,1);
+is_pdl $q_45_about_111->as_matrix, float('
+ 0.804738 -0.310617  0.505879 0;
+ 0.505879 0.804738  -0.310617 0;
+-0.310617 0.505879   0.804738 0;
+        0 0          0        1
+');
 
 done_testing;

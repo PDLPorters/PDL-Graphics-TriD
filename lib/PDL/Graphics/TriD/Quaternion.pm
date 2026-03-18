@@ -12,6 +12,8 @@ package PDL::Graphics::TriD::Quaternion;
 
 use strict;
 use warnings;
+use PDL::Lite;
+use PDL::MatrixOps qw();
 
 sub _scalar_wrap {
   my ($v) = @_;
@@ -128,6 +130,24 @@ sub rotate {
   my $q = PDL::Graphics::TriD::Quaternion->new(0,@$vec);
   my $m = $this->multiply($q->multiply($this->invert));
   return [@$m[1..3]];
+}
+
+sub as_matrix {
+  my ($this) = @_;
+  my ($rot, $vec) = map PDL->pdl(PDL::float, $_), $this->[0], [@$this[1..3]];
+  $rot->inplace->acos; $rot *= 2;
+  $vec = $vec->norm;
+  my $uuT = $vec->t * $vec;
+  my ($cos, $sin) = map $rot->$_, qw(cos sin);
+  my ($x, $y, $z) = $vec->list;
+  my $S = PDL->pdl(PDL::float,
+    [0, -$z, $y],
+    [$z, 0, -$x],
+    [-$y, $x, 0]);
+  my ($i3, $i4) = map PDL::MatrixOps::identity(PDL::float($_)), 3, 4;
+  my $R = $uuT + $cos * ($i3 - $uuT) + $sin * $S;
+  $i4->slice('0:2,0:2') .= $R;
+  $i4;
 }
 
 1;
