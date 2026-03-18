@@ -753,15 +753,6 @@ sub gdraw {
 }
 }
 
-use OpenGL::Modern qw(glTranslatef);
-sub PDL::Graphics::TriD::SimpleController::togl {
-	my($this) = @_;
-	$this->{CRotation}->togl;
-	glTranslatef(0,0,-$this->{CDistance});
-	$this->{WRotation}->togl;
-	glTranslatef(map {-$_} @{$this->{WOrigin}});
-}
-
 {
 # A window with mouse control over rotation.
 package # hide from PAUSE
@@ -772,6 +763,7 @@ use OpenGL::Modern qw/
   glPixelStorei glReadPixels_c
   glClear glClearColor
   glPushMatrix glPopMatrix glMatrixMode
+  glTranslatef
   glLoadIdentity
   glViewport
   glPushAttrib glPopAttrib
@@ -923,29 +915,29 @@ sub display {
       $vp->{IsValid} = 1;
     }
     glPushAttrib(GL_TRANSFORM_BIT|GL_COLOR_BUFFER_BIT);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
     PDL::barf "Need viewport with positive dims, got $vp->{W},$vp->{H}" if !($vp->{W}>0 and $vp->{H}>0);
-    my $aspect_ratio = (1.0*$vp->{W})/$vp->{H};
     glViewport(@$vp{qw(X0 Y0 W H)});
     $vp->highlight if $vp->{Active};
     glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
     glLoadIdentity();
-    if ($vp->{Transformer}) {
+    if (my $tr = $vp->{Transformer}) {
       print "display: transforming viewport!\n" if $PDL::Graphics::TriD::verbose;
-      $vp->{Transformer}->togl;
+      $tr->{CRotation}->togl;
+      glTranslatef(0,0,-$tr->{CDistance});
+      $tr->{WRotation}->togl;
+      glTranslatef(map {-$_} @{$tr->{WOrigin}});
     }
     use OpenGL::Modern qw(glGetFloatv_p GL_MODELVIEW_MATRIX);
     my @mv = glGetFloatv_p(GL_MODELVIEW_MATRIX);
     my $mv = PDL->pdl(PDL::float, [@mv[0..3]], [@mv[4..7]], [@mv[8..11]], [@mv[12..15]])->t;
-    my $fW = fH * $aspect_ratio;
+    my $fW = fH * $vp->{W}/$vp->{H}; # aspect ratio
     my $p = $this->frustum(-$fW, $fW, -fH, fH, zNEAR, zFAR);
     $vp->togl({
       uMV => [ Mat4 => [1, 1, $mv->list] ], # count, xpose, ...
       uMVP => [ Mat4 => [1, 1, ($p x $mv)->list] ], # count, xpose, ...
       uNormalMatrix => [ Mat3 => [1, 1, $mv->slice('0:2,0:2')->inv->t->list] ],
     });
-    glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
     glPopAttrib();
   }
