@@ -881,7 +881,7 @@ use constant TAN => sin(ANGLE)/cos(ANGLE);
 use constant fH => TAN * zNEAR;
 sub display {
   my ($this) = @_;
-  return unless defined($this);
+  return if !defined($this) or !defined $this->{_GLObject}; # eg global destroy
   $this->{_GLObject}->set_window; # for multiwindow support
   print "display: calling glClear()\n" if $PDL::Graphics::TriD::verbose;
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
