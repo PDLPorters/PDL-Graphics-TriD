@@ -90,6 +90,7 @@ sub togl {
 
 my ($VS_IN, $VS_OUT, $FS_IN, $FS_OUT) = ('attribute', 'varying', 'varying', 'out');
 my $FRAG_OUT = 'gl_FragColor';
+my $TEXFUNC = 'texture2D';
 sub _passthrough {
   my ($name, $size) = @_;
   ("vs_in_${name}_decl" => "$VS_IN vec$size $name;\n",
@@ -145,7 +146,7 @@ vec4 lightfuncgouraud(
 EOF
 (map _passthrough(@$_), [position=>3], [normal=>3], [colour=>3], [texcoord=>2]),
 fs_diffuse_colour => "  vec4 in_diffuse = vec4(vColour, 1);\n",
-fs_diffuse_tex => "  vec4 in_diffuse = texture2D(tex, vTexcoord);\n",
+fs_diffuse_tex => "  vec4 in_diffuse = $TEXFUNC(tex, vTexcoord);\n",
 fs_out_fragcolour_decl => "",
 fs_out_flat => "  $FRAG_OUT = in_diffuse;\n",
 vs_in => "  vec3 the_position = position;\n",
