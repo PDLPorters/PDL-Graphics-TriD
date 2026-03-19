@@ -88,10 +88,12 @@ sub togl {
 ##################################
 # Graph Objects
 
-my ($VS_IN, $FS_IN) = qw(attribute varying);
+my ($VS_IN, $VS_OUT, $FS_IN, $FS_OUT) = ('attribute', 'varying', 'varying', 'out');
+my $FRAG_OUT = 'gl_FragColor';
 sub _passthrough {
   my ($name, $size) = @_;
   ("vs_in_${name}_decl" => "$VS_IN vec$size $name;\n",
+    "vs_out_${name}_decl" => "$VS_OUT vec$size v".ucfirst($name).";\n",
     "fs_in_${name}_decl" => "$FS_IN vec$size v".ucfirst($name).";\n",
     "vs_out_$name" => "  v".ucfirst($name)." = $name;\n")
 }
@@ -144,7 +146,8 @@ EOF
 (map _passthrough(@$_), [position=>3], [normal=>3], [colour=>3], [texcoord=>2]),
 fs_diffuse_colour => "  vec4 in_diffuse = vec4(vColour, 1);\n",
 fs_diffuse_tex => "  vec4 in_diffuse = texture2D(tex, vTexcoord);\n",
-fs_out_flat => "  gl_FragColor = in_diffuse;\n",
+fs_out_fragcolour_decl => "",
+fs_out_flat => "  $FRAG_OUT = in_diffuse;\n",
 vs_in => "  vec3 the_position = position;\n",
 vs_in_offset_decl => "$VS_IN vec3 offset;\n",
 vs_do_offset => "  the_position += offset;\n",
@@ -155,7 +158,7 @@ vs_out_light => <<'EOF',
   vLightpos = uMV * uLightposition;
 EOF
 fs_diffuse_material => "  vec4 in_diffuse = uMatdiffuse;\n",
-fs_out_light => <<'EOF',
+fs_out_light => <<EOF,
   vec4 ambient, diffuse, spec;
   lightfunc(
     vLightpos, uLightambient, uLightdiffuse, uLightspecular,
@@ -163,7 +166,7 @@ fs_out_light => <<'EOF',
     vPosition, gl_FrontFacing ? vNormal : -vNormal, in_diffuse,
     ambient, diffuse, spec
   );
-  gl_FragColor = ambient + diffuse + spec + uMatemission;
+  $FRAG_OUT = ambient + diffuse + spec + uMatemission;
 EOF
 vs_out_lightgouraudstart => "  vec3 vNormal, vPosition;\n  vec4 vLightpos;\n",
 vs_out_lightgouraud => <<'EOF',
@@ -180,8 +183,9 @@ vs_out_lightgouraud => <<'EOF',
 EOF
 fs_in_lightpos_decl => "$FS_IN vec4 vLightpos;\n",
 fs_in_lightgouraud_decl => "$FS_IN vec4 vFrontcolour;\n$FS_IN vec4 vBackcolour;\n",
-fs_out_lightgouraud => <<'EOF',
-  gl_FragColor = (gl_FrontFacing ? vFrontcolour : vBackcolour) * in_diffuse;
+vs_out_lightgouraud_decl => "$VS_OUT vec4 vFrontcolour;\n$VS_OUT vec4 vBackcolour;\n",
+fs_out_lightgouraud => <<EOF,
+  $FRAG_OUT = (gl_FrontFacing ? vFrontcolour : vBackcolour) * in_diffuse;
 EOF
 u_tex_decl => "uniform sampler2D tex;\n",
 u_light_decl => <<'EOF',
@@ -391,11 +395,12 @@ sub compile_program {
   $program;
 }
 my $vertex_shader_poscol = join '', @SHADERBITS{qw(version
-  vs_in_position_decl vs_in_colour_decl fs_in_colour_decl u_matrix_decl
+  vs_in_position_decl vs_in_colour_decl vs_out_colour_decl u_matrix_decl
   main_start vs_in vs_out vs_out_colour main_end
 )};
 my $fragment_shader_poscol = join '', @SHADERBITS{qw(version
-  fs_in_colour_decl main_start fs_diffuse_colour fs_out_flat main_end
+  fs_in_colour_decl fs_out_fragcolour_decl
+  main_start fs_diffuse_colour fs_out_flat main_end
 )};
 sub program_poscol {
   my ($this, $points, $colours) = @_;
@@ -473,11 +478,11 @@ sub _font_setup {
   $texcoords->slice('(1),0::2') .= 1;          # v of top, v bot=already 0
 }
 my $vertex_shader = join '', @SHADERBITS{qw(version
-  vs_in_position_decl vs_in_texcoord_decl fs_in_texcoord_decl u_matrix_decl
+  vs_in_position_decl vs_in_texcoord_decl vs_out_texcoord_decl u_matrix_decl
   main_start vs_in vs_out vs_out_texcoord main_end
 )};
 my $fragment_shader = join '', @SHADERBITS{qw(version
-  fs_in_texcoord_decl u_tex_decl
+  fs_in_texcoord_decl fs_out_fragcolour_decl u_tex_decl
   main_start fs_diffuse_tex fs_out_flat main_end
 )};
 sub togl_setup {
@@ -555,12 +560,12 @@ use OpenGL::Modern qw(
 );
 my $vertex_shader = join '', @SHADERBITS{qw(version
   vs_in_position_decl vs_in_normal_decl vs_in_offset_decl
-  fs_in_lightgouraud_decl
+  vs_out_lightgouraud_decl
   u_light_decl u_matrix_decl lightfunc lightfuncgouraud
   main_start vs_in vs_do_offset vs_out vs_out_lightgouraudstart vs_out_light vs_out_lightgouraud main_end
 )};
 my $fragment_shader = join '', @SHADERBITS{qw(version
-  fs_in_lightgouraud_decl u_light_decl
+  fs_in_lightgouraud_decl fs_out_fragcolour_decl u_light_decl
   main_start fs_diffuse_material fs_out_lightgouraud main_end
 )};
 my %SPHERE;
@@ -604,7 +609,7 @@ use OpenGL::Modern qw(
 );
 my $vert_header = join '', @SHADERBITS{qw(version
   vs_in_position_decl vs_in_normal_decl vs_in_colour_decl vs_in_texcoord_decl
-  fs_in_colour_decl fs_in_texcoord_decl fs_in_lightgouraud_decl
+  vs_out_colour_decl vs_out_texcoord_decl vs_out_lightgouraud_decl
   u_light_decl u_matrix_decl lightfunc lightfuncgouraud
   main_start vs_in vs_out vs_out_colour vs_out_texcoord
 )};
@@ -614,7 +619,7 @@ my %vert = (
 );
 my $frag_header = join '', @SHADERBITS{qw(version
   fs_in_colour_decl fs_in_texcoord_decl fs_in_lightgouraud_decl
-  u_tex_decl
+  fs_out_fragcolour_decl u_tex_decl
   main_start
 )};
 my $frag_colour = join '', @SHADERBITS{qw(fs_diffuse_colour)};
@@ -697,11 +702,11 @@ sub gdraw {
   PDL::Graphics::TriD::Image;
 use OpenGL::Modern qw(glDrawArrays GL_TRIANGLE_STRIP GL_RGB);
 my $vertex_shader = join '', @SHADERBITS{qw(version
-  vs_in_position_decl vs_in_texcoord_decl fs_in_texcoord_decl u_matrix_decl
+  vs_in_position_decl vs_in_texcoord_decl vs_out_texcoord_decl u_matrix_decl
   main_start vs_in vs_out vs_out_texcoord main_end
 )};
 my $fragment_shader = join '', @SHADERBITS{qw(version
-  fs_in_texcoord_decl u_tex_decl
+  fs_in_texcoord_decl fs_out_fragcolour_decl u_tex_decl
   main_start fs_diffuse_tex fs_out_flat main_end
 )};
 sub togl_setup {
