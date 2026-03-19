@@ -323,7 +323,6 @@ sub togl_bind {
   # font_id doesn't get deleted in DESTROY
   if (my ($id) = grep defined, @{ $this->{Impl} }{qw(tex_id font_id)}) {
     glBindTexture(GL_TEXTURE_2D, $id);
-    glEnable(GL_TEXTURE_2D);
   }
   if (defined $this->{Impl}{indx_buf}) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, $this->{Impl}{indx_buf}); # unbind the VAO before you unbind the Index Buffer
@@ -345,7 +344,6 @@ sub togl_unbind {
   glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER;
   if (defined $this->{Impl}{tex_id}) {
     glBindTexture(GL_TEXTURE_2D, 0);
-    glDisable(GL_TEXTURE_2D);
   }
   glUseProgram(0) if grep defined, @{ $this->{Impl} }{qw(program program_nodestroy)};
   if (my $attribs = $this->{Impl}{attrib_indices}) {
