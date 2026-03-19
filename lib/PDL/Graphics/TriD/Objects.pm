@@ -103,7 +103,6 @@ sub cdummies { $_[1]->slice(":," . join ',', map "*$_", grep defined, ($_[2]->di
 sub r_type { return "SURF2D";}
 sub get_valid_options { +{
   UseDefcols => 0,
-  LineWidth => 1,
 }}
 
 package # hide from PAUSE
@@ -113,7 +112,6 @@ sub cdummies { $_[1]->slice(":," . join ',', map "*$_", grep defined, ($_[2]->di
 sub r_type { return "SURF2D";}
 sub get_valid_options { +{
   UseDefcols => 0,
-  LineWidth => 1,
 }}
 sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : {};

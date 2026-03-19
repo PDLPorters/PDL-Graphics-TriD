@@ -210,7 +210,7 @@ EOF
 { package # hide from PAUSE
   PDL::Graphics::TriD::GObject;
 use OpenGL::Modern qw(
-  glLineWidth glPointSize
+  glPointSize
   glBlendFunc
   glEnable glDisable
   glGetIntegerv_p
@@ -414,7 +414,6 @@ sub program_poscol {
 sub togl {
   my ($this, $points, $uniforms) = @_;
   print "togl $this\n" if $PDL::Graphics::TriD::verbose;
-  glLineWidth($this->{Options}{LineWidth} || 1);
   glPointSize($this->{Options}{PointSize} || 1);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
@@ -948,11 +947,10 @@ sub highlight {
   my $hl = $vp->{Impl}{highlight} //= PDL::Graphics::TriD::GL::Highlight->new(
     PDL->zeroes(PDL::float, 2, 4),
     PDL->new(PDL::float, [1,1,1]),
-    { LineWidth => 4 },
   );
   my ($w, $h) = @$vp{qw(W H)};
   if (!$hl->{IsValid}) {
-    $hl->{Points} .= PDL->new(PDL::float, [[0,0], [$w,0], [$w,$h], [0,$h]]),
+    $hl->{Points} .= PDL->new(PDL::float, [[0,0], [$w-2,0], [$w-2,$h-2], [0,$h-2]]),
     $hl->togl_setup;
     $hl->{IsValid} = 1;
   }

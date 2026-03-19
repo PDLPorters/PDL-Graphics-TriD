@@ -133,7 +133,6 @@ use PDL;
 sub get_valid_options { +{
   NDiv => 4,
   Names => [qw(X Y Z)],
-  LineWidth => 1,
 }}
 
 sub new {
