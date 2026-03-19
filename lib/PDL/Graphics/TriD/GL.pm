@@ -875,7 +875,7 @@ sub close {
 }
 
 use constant { PI => 3.1415926535897932384626433832795, FOVY => 40.0,
-  zNEAR => 0.1, zFAR => 200000.0 };
+  zNEAR => 0.1, zFAR => 200.0 };
 use constant ANGLE => FOVY / 360 * PI;
 use constant TAN => sin(ANGLE)/cos(ANGLE);
 use constant fH => TAN * zNEAR;
