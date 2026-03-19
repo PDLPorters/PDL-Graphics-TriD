@@ -3,12 +3,13 @@ package PDL::Graphics::TriD::GL::GLFW;
 use strict;
 use warnings;
 use OpenGL::GLFW qw( :all );
+use OpenGL::Modern::Helpers qw(glGetVersion_p);
 
 our @ISA = qw(PDL::Graphics::TriD::GL);
 my ($window_seq, @fakeXEvents, %winObjects) = 0;
 
 sub new {
-  my ($class,$options,$window_obj) = @_;
+  my ($class,$options,$window_obj,$major,$minor,$want_core) = @_;
   my $self = $class->SUPER::new($options,$window_obj);
   print STDERR "Creating GLFW OO window\n" if $PDL::Graphics::TriD::verbose;
   glfwSetErrorCallback(\&_error_callback);
@@ -17,8 +18,14 @@ sub new {
   $self->{winobjects} = \%winObjects;
   my $p = $self->{Options};
   glfwWindowHint(GLFW_SCALE_FRAMEBUFFER, GLFW_FALSE) if $^O eq 'darwin';
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, $major);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, $minor);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE) if $want_core;
   die "GLFW failed to create window"
     if !defined(my $glfwin = $self->{glfwwindow} = glfwCreateWindow(@$p{qw(width height)}, "GLFW TriD", NULL, NULL));
+  $self->set_window;
+  my ($version_got, $version_want) = (glGetVersion_p(), $major + $minor*0.1);
+  die "Couldn't get GL context version $version_want, got $version_got" if $version_got < $version_want;
   $self->{window_seq} = ++$window_seq;
   glfwSetWindowTitle($glfwin, "GLFW TriD #$self->{window_seq}");
   glfwSetWindowSizeCallback($glfwin, \&_fake_ConfigureNotify);
@@ -32,7 +39,7 @@ sub new {
   if ($PDL::Graphics::TriD::verbose) {
     print "GLFW driver: Got TriD::GL object(GLFW window ID#$self->{window_seq} " . $self->{glfwwindow} . ")\n";
   }
-  $self->{winobjects}->{$self->{glfwwindow}} = $window_obj;      # circular ref
+  $self->{winobjects}{$self->{glfwwindow}} = $window_obj;      # circular ref
   $self;
 }
 

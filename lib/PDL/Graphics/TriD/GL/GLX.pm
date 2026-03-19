@@ -3,11 +3,12 @@ package PDL::Graphics::TriD::GL::GLX;
 use strict;
 use warnings;
 use OpenGL::GLX qw/ :glxconstants /;
+use OpenGL::Modern::Helpers qw(glGetVersion_p);
 
 our @ISA = qw(PDL::Graphics::TriD::GL);
 
 sub new {
-  my ($class,$options,$window_obj) = @_;
+  my ($class,$options,$window_obj,$major,$minor,$want_core) = @_;
   my @db = OpenGL::GLX::GLX_DOUBLEBUFFER;
   if ($PDL::Graphics::TriD::offline) {$options->{x} = -1; @db=()}
   $options->{attributes} //= [GLX_RGBA, @db,
@@ -24,9 +25,12 @@ sub new {
   my $self = $class->SUPER::new($options,$window_obj);
   print STDERR "Creating X11 OO window\n" if $PDL::Graphics::TriD::verbose;
   my $p = $self->{Options};
+  OpenGL::GLX::glpRequestContext($major,$minor,$want_core);
   my $win = OpenGL::GLX::glpcOpenWindow(
      $p->{x},$p->{y},$p->{width},$p->{height},
      $p->{parent},$p->{mask}, $p->{steal}, @{$p->{attributes}});
+  my ($version_got, $version_want) = (glGetVersion_p(), $major + $minor*0.1);
+  die "Couldn't get GL context version $version_want, got $version_got" if $version_got < $version_want;
   @$self{keys %$win} = values %$win;
   $self;
 }

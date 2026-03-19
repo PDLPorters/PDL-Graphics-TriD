@@ -767,6 +767,7 @@ use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/Ev Width Height Interactive _GLObject
               _ViewPorts _CurrentViewPort /;
 
+my @GL_VERSION_NEEDED = (2, 1, 0);
 sub gdriver {
   my($this, $options) = @_;
   print "GL gdriver...\n" if $PDL::Graphics::TriD::verbose;
@@ -779,8 +780,8 @@ sub gdriver {
     $window_type =~ /glut/i ? 'PDL::Graphics::TriD::GL::GLUT' :
     'PDL::Graphics::TriD::GL::GLFW';
   (my $file = $gl_class) =~ s#::#/#g; require "$file.pm";
-  print "gdriver: Calling $gl_class(@$options{qw(width height)})\n" if $PDL::Graphics::TriD::verbose;
-  $this->{_GLObject} = $gl_class->new($options, $this);
+  print "gdriver: Calling $gl_class(@$options{qw(width height)} @GL_VERSION_NEEDED)\n" if $PDL::Graphics::TriD::verbose;
+  $this->{_GLObject} = $gl_class->new($options, $this, @GL_VERSION_NEEDED);
   $this->{_GLObject}->set_window;
   print "gdriver: Calling glClearColor...\n" if $PDL::Graphics::TriD::verbose;
   glClearColor(0,0,0,1);

@@ -4,27 +4,30 @@ use strict;
 use warnings;
 use OpenGL::GLUT qw( :all );
 use OpenGL::Config;
+use OpenGL::Modern::Helpers qw(glGetVersion_p);
 
 our @ISA = qw(PDL::Graphics::TriD::GL);
 my (@fakeXEvents, @winObjects);
 
 sub new {
-  my ($class,$options,$window_obj) = @_;
+  my ($class,$options,$window_obj,$major,$minor,$want_core) = @_;
   my $self = $class->SUPER::new($options,$window_obj);
   print STDERR "Creating GLUT OO window\n" if $PDL::Graphics::TriD::verbose;
   glutInit() unless done_glutInit();        # make sure glut is initialized
   $self->{xevents} = \@fakeXEvents;
   $self->{winobjects} = \@winObjects;
-  $self->_init_glut_window($window_obj);
+  $self->_init_glut_window($window_obj,$major,$minor,$want_core);
   $self;
 }
 
 sub _init_glut_window {
-  my ($self, $window_obj) = @_;
+  my ($self, $window_obj,$major,$minor,$want_core) = @_;
   my $p = $self->{Options};
+  glutInitContextVersion($major,$minor);
   glutInitWindowPosition( $p->{x}, $p->{y} );
   glutInitWindowSize( $p->{width}, $p->{height} );
   glutInitDisplayMode( GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH ); # hardwire for now
+  glutInitContextProfile(GLUT_CORE_PROFILE) if $want_core;
   if ($^O ne 'MSWin32' and not $OpenGL::Config->{DEFINE} =~ /-DHAVE_W32API/) { # skip these MODE checks on win32, they don't work
      if (not glutGet(GLUT_DISPLAY_MODE_POSSIBLE))
      {
@@ -39,6 +42,8 @@ sub _init_glut_window {
      }
   }
   $self->{glutwindow} = glutCreateWindow( "GLUT TriD" );
+  my ($version_got, $version_want) = (glGetVersion_p(), $major + $minor*0.1);
+  die "Couldn't get GL context version $version_want, got $version_got" if $version_got < $version_want;
   glutSetWindowTitle("GLUT TriD #$self->{glutwindow}");
   glutReshapeFunc( \&_pdl_fake_ConfigureNotify );
   glutCloseFunc( \&_pdl_fake_exit_handler );
