@@ -421,7 +421,7 @@ sub togl {
 sub DESTROY {
   my ($this) = @_;
   print "DESTROY $this\n" if $PDL::Graphics::TriD::verbose;
-  my @array_bufs = grep defined, @{ $this->{Impl} }{qw(vert_buf color_buf norm_buf texc_buf)};
+  my @array_bufs = map $_->[0], @{ $this->{Impl}{attrib_indices} || [] };
   if (@array_bufs) {
     my $bound = glGetIntegerv_p(GL_ARRAY_BUFFER_BINDING);
     glBindBuffer(GL_ARRAY_BUFFER, 0) if grep $bound == $_, @array_bufs;
