@@ -88,9 +88,9 @@ sub togl {
 ##################################
 # Graph Objects
 
-my ($VS_IN, $VS_OUT, $FS_IN, $FS_OUT) = ('attribute', 'varying', 'varying', 'out');
-my $FRAG_OUT = 'gl_FragColor';
-my $TEXFUNC = 'texture2D';
+my ($VS_IN, $VS_OUT, $FS_IN, $FS_OUT) = ('in', 'smooth out', 'smooth in', 'out');
+my $FRAG_OUT = 'fragColour';
+my $TEXFUNC = 'texture';
 sub _passthrough {
   my ($name, $size) = @_;
   ("vs_in_${name}_decl" => "$VS_IN vec$size $name;\n",
@@ -100,7 +100,7 @@ sub _passthrough {
 }
 my %SHADERBITS = (
 version => <<'EOF',
-#version 120
+#version 330 core
 EOF
 main_start => "void main() {\n",
 main_end => "}\n",
@@ -147,7 +147,7 @@ EOF
 (map _passthrough(@$_), [position=>3], [normal=>3], [colour=>3], [texcoord=>2]),
 fs_diffuse_colour => "  vec4 in_diffuse = vec4(vColour, 1);\n",
 fs_diffuse_tex => "  vec4 in_diffuse = $TEXFUNC(tex, vTexcoord);\n",
-fs_out_fragcolour_decl => "",
+fs_out_fragcolour_decl => "$FS_OUT vec4 $FRAG_OUT;\n",
 fs_out_flat => "  $FRAG_OUT = in_diffuse;\n",
 vs_in => "  vec3 the_position = position;\n",
 vs_in_offset_decl => "$VS_IN vec3 offset;\n",
@@ -214,6 +214,7 @@ use OpenGL::Modern qw(
   glBlendFunc
   glEnable glDisable
   glGetIntegerv_p
+  glGenVertexArrays_p glBindVertexArray glDeleteVertexArrays_p
   glGenBuffers_p glBindBuffer glDeleteBuffers_p glBufferData_c
   glGenTextures_p glBindTexture glDeleteTextures_p glIsTexture
   glTexImage2D_c glTexParameteri
@@ -222,13 +223,14 @@ use OpenGL::Modern qw(
   glGetShaderiv_p glGetShaderInfoLog_p
   glCreateProgram glDeleteProgram glLinkProgram glUseProgram glIsProgram
   glGetProgramiv_p glGetProgramInfoLog_p
-  glGetAttribLocation glEnableVertexAttribArray glDisableVertexAttribArray
+  glGetAttribLocation glEnableVertexAttribArray
   glGetUniformLocation glUniform1i glUniform1f glUniform4f
   glUniformMatrix3fv_p glUniformMatrix4fv_p
   glVertexAttribPointer_c
   GL_COMPILE_STATUS GL_LINK_STATUS GL_FALSE GL_TRUE
   GL_VERTEX_SHADER GL_FRAGMENT_SHADER GL_CURRENT_PROGRAM
   GL_DEPTH_TEST GL_BLEND GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+  GL_VERTEX_ARRAY_BINDING
   GL_ARRAY_BUFFER GL_ARRAY_BUFFER_BINDING
   GL_ELEMENT_ARRAY_BUFFER GL_ELEMENT_ARRAY_BUFFER_BINDING
   GL_TEXTURE_MIN_FILTER GL_TEXTURE_MAG_FILTER
@@ -266,6 +268,10 @@ sub load_idx_buffer {
 }
 sub load_attrib {
   my ($this, $name, $pdl, $type, $usage) = @_;
+  if (!defined $this->{Impl}{vao}) {
+    $this->{Impl}{vao} = glGenVertexArrays_p(1);
+    glBindVertexArray($this->{Impl}{vao});
+  }
   $type //= GL_FLOAT;
   PDL::barf "load_attrib: no program found" unless
     my ($program) = grep defined, @{ $this->{Impl} }{qw(program program_nodestroy)};
@@ -273,7 +279,13 @@ sub load_attrib {
     (my $loc = glGetAttribLocation($program, $name));
   my $idname = "attrib_$name";
   my $id = $this->load_buffer($idname => $pdl, undef, $usage);
-  push @{ $this->{Impl}{attrib_indices} }, [ $id, $loc, $pdl->dim(0), $type ];
+  if (!$this->{Impl}{vao_knows}{$name}) {
+    $this->{Impl}{vao_knows}{$name} = 1;
+    glBindBuffer(GL_ARRAY_BUFFER, $id);
+    glVertexAttribPointer_c($loc, $pdl->dim(0), $type, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray($loc);
+    push @{ $this->{Impl}{attrib_buffers} }, $id;
+  }
   $loc;
 }
 my %SUFFIX2FUNC = (
@@ -324,31 +336,22 @@ sub togl_bind {
   if (my ($id) = grep defined, @{ $this->{Impl} }{qw(tex_id font_id)}) {
     glBindTexture(GL_TEXTURE_2D, $id);
   }
-  if (defined $this->{Impl}{indx_buf}) {
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, $this->{Impl}{indx_buf}); # unbind the VAO before you unbind the Index Buffer
-  }
   if (my ($program) = grep defined, @{ $this->{Impl} }{qw(program program_nodestroy)}) {
     glUseProgram($program);
-  }
-  if (my $attribs = $this->{Impl}{attrib_indices}) {
-    glBindBuffer(GL_ARRAY_BUFFER, $_->[0]), # won't need this when VAO
-      glVertexAttribPointer_c(@$_[1..3], GL_FALSE, 0, 0),
-      glEnableVertexAttribArray($_->[1]) for @$attribs;
   }
   if (my $uniforms = $this->{Impl}{uniform_indices}) {
     $SUFFIX2FUNC{$_->[1]}->($_->[0], @{ $_->[2] }) for values %$uniforms;
   }
+  glBindVertexArray($this->{Impl}{vao}) if defined $this->{Impl}{vao};
 }
 sub togl_unbind {
   my ($this) = @_;
-  glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER;
   if (defined $this->{Impl}{tex_id}) {
     glBindTexture(GL_TEXTURE_2D, 0);
   }
   glUseProgram(0) if grep defined, @{ $this->{Impl} }{qw(program program_nodestroy)};
-  if (my $attribs = $this->{Impl}{attrib_indices}) {
-    glDisableVertexAttribArray($_->[1]) for @$attribs;
-  }
+  glBindVertexArray(0) if defined $this->{Impl}{vao};
+  glBindBuffer($_, 0) for GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER;
 }
 sub compile_shader {
   my ($this, $type, $src) = @_;
@@ -421,10 +424,14 @@ sub togl {
 sub DESTROY {
   my ($this) = @_;
   print "DESTROY $this\n" if $PDL::Graphics::TriD::verbose;
-  my @array_bufs = map $_->[0], @{ $this->{Impl}{attrib_indices} || [] };
+  my @array_bufs = @{ $this->{Impl}{attrib_buffers} || [] };
   if (@array_bufs) {
     my $bound = glGetIntegerv_p(GL_ARRAY_BUFFER_BINDING);
     glBindBuffer(GL_ARRAY_BUFFER, 0) if grep $bound == $_, @array_bufs;
+  }
+  if (my $vao = $this->{Impl}{vao}) {
+    glBindVertexArray(0) if glGetIntegerv_p(GL_VERTEX_ARRAY_BINDING) == $vao;
+    glDeleteVertexArrays_p($vao);
   }
   my @elt_bufs = grep defined, @{ $this->{Impl} }{qw(indx_buf)};
   if (@elt_bufs) {
@@ -765,7 +772,7 @@ use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/Ev Width Height Interactive _GLObject
               _ViewPorts _CurrentViewPort /;
 
-my @GL_VERSION_NEEDED = (2, 1, 0);
+my @GL_VERSION_NEEDED = (3, 3, 1);
 sub gdriver {
   my($this, $options) = @_;
   print "GL gdriver...\n" if $PDL::Graphics::TriD::verbose;

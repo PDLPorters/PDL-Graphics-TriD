@@ -4,7 +4,7 @@
 - trigrid3d $colours is now per-vertex
 - coordinate inputs now converted to float, so pass right type if want flow
 - add labels3d, arrows3d
-- compatibility break: requires OpenGL 2.1 (from 2006) and ARB_draw_instanced (2008)
+- compatibility break: requires OpenGL 3.3 (from 2010)
 - now uses OpenGL::Modern
 - `demo 3dgal` Mandelbrot entries now native complex
 
