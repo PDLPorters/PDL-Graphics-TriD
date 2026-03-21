@@ -49,18 +49,16 @@ sub add_dataseries {
 }
 
 sub bind_data {
-	my($this,$dser,$axes,$axis) = @_;
-	push @{$this->{DataBind}{$dser}},[$axis,$axes];
-	delete $this->{UnBound}{$dser};
-	$this->changed();
+  my ($this,$dser,$axes,$axis) = @_;
+  barf "called with undef \$dser" if !defined $dser;
+  push @{$this->{DataBind}{$dser}},[$axis,$axes];
+  delete $this->{UnBound}{$dser};
+  $this->changed();
 }
 
 sub bind_default {
   my ($this,$dser,$axes) = @_;
-  barf "called with undef \$dser" if !defined $dser;
-  $axes //= $this->{DefaultAxes};
-  $this->{DataBind}{$dser} = [['Default',$axes]];
-  delete $this->{UnBound}{$dser};
+  $this->bind_data($dser, $axes // $this->{DefaultAxes}, 'Default');
 }
 
 sub set_axis {
