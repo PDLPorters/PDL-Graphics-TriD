@@ -5,6 +5,7 @@ use warnings;
 use OpenGL::GLUT qw( :all );
 use OpenGL::Config;
 use OpenGL::Modern::Helpers qw(glGetVersion_p);
+use Scalar::Util qw(weaken);
 
 our @ISA = qw(PDL::Graphics::TriD::GL);
 my (@fakeXEvents, @winObjects);
@@ -56,7 +57,7 @@ sub _init_glut_window {
   if ($PDL::Graphics::TriD::verbose) {
     print "GLUT driver: Got TriD::GL object(GLUT window ID# " . $self->{glutwindow} . ")\n";
   }
-  $self->{winobjects}->[$self->{glutwindow}] = $window_obj;      # circular ref
+  weaken($self->{winobjects}->[$self->{glutwindow}] = $window_obj);
 }
 
 sub DESTROY {

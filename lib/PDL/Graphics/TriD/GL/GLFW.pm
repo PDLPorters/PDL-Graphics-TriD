@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use OpenGL::GLFW qw( :all );
 use OpenGL::Modern::Helpers qw(glGetVersion_p);
+use Scalar::Util qw(weaken);
 
 our @ISA = qw(PDL::Graphics::TriD::GL);
 my ($window_seq, @fakeXEvents, %winObjects) = 0;
@@ -39,7 +40,7 @@ sub new {
   if ($PDL::Graphics::TriD::verbose) {
     print "GLFW driver: Got TriD::GL object(GLFW window ID#$self->{window_seq} " . $self->{glfwwindow} . ")\n";
   }
-  $self->{winobjects}{$self->{glfwwindow}} = $window_obj;      # circular ref
+  weaken($self->{winobjects}{$self->{glfwwindow}} = $window_obj);
   $self;
 }
 

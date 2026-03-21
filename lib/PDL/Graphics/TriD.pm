@@ -864,9 +864,7 @@ keeptwiddling3d();
 
 *close3d = *close3d = \&PDL::close3d;
 sub PDL::close3d {
-  return if !ref $PDL::Graphics::TriD::current_window;
-  return if !$PDL::Graphics::TriD::current_window->can('close');
-  $PDL::Graphics::TriD::current_window->close;
+  $PDL::Graphics::TriD::current_window = undef;
 }
 
 sub graph_object {
