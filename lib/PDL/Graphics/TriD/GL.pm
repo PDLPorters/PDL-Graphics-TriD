@@ -768,10 +768,6 @@ use OpenGL::Modern qw/
   GL_COLOR_BUFFER_BIT GL_DEPTH_BUFFER_BIT
 /;
 
-use base qw/PDL::Graphics::TriD::Object/;
-use fields qw/Ev Width Height Interactive
-              _ViewPorts _CurrentViewPort /;
-
 my @GL_VERSION_NEEDED = (3, 3, 1);
 sub gdriver {
   my($this, $options) = @_;

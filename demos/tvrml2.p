@@ -45,13 +45,9 @@ $win = PDL::Graphics::TriD::get_current_window();
 require PDL::Graphics::VRML::Protos;
 PDL::Graphics::VRML::Protos->import();
 
+#$win->{Impl}->register_proto(PDL::Graphics::VRML::Protos::PDLBlockText10());
 
-#$win->{VRMLTop}->register_proto(PDL::Graphics::VRML::Protos::PDLBlockText10());
-
-
-#$win->{VRMLTop}->uses('PDLBlockText10');
-
-
+#$win->{Impl}->uses('PDLBlockText10');
 
 #$win->current_viewport()->add_object(PDL::Graphics::TriD::VRMLObject->new(
 #																	  vrn(Transform,

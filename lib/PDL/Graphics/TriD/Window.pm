@@ -6,7 +6,8 @@ package PDL::Graphics::TriD::Window;
 use strict;
 use warnings;
 use PDL::Graphics::TriD::ViewPort;
-use Data::Dumper;
+use base qw(PDL::Graphics::TriD::Object);
+use fields qw(Width Height Interactive _ViewPorts _CurrentViewPort);
 
 $PDL::Graphics::TriD::verbose //= 0;
 our ($DEFAULT_WIDTH, $DEFAULT_HEIGHT) = (600, 600);
