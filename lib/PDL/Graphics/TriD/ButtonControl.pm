@@ -37,6 +37,7 @@ the Event loop.
 package PDL::Graphics::TriD::ButtonControl;
 use strict;
 use warnings;
+use Scalar::Util qw(weaken);
 use fields qw/Win W H SC/;
 
 $PDL::Graphics::TriD::verbose //= 0;
@@ -45,7 +46,7 @@ sub new {
   my ($class,$win) = @_;
   
   my $self = fields::new($class);
-  $self->{Win} = $win;
+  weaken($self->{Win} = $win);
 
   $self;
 }

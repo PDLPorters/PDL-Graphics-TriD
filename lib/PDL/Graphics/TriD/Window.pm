@@ -181,6 +181,8 @@ sub set_material {
 package # hide from PAUSE
   PDL::Graphics::TriD::EventHandler;
 use fields qw/X Y Buttons VP/;
+use Scalar::Util qw(weaken);
+
 sub new {
   my $class = shift;
   my $vp = shift;
@@ -188,7 +190,7 @@ sub new {
   $self->{X} = -1;
   $self->{Y} = -1;
   $self->{Buttons} = [];
-  $self->{VP} = $vp;
+  weaken($self->{VP} = $vp);
   $self;
 }
 sub event {
