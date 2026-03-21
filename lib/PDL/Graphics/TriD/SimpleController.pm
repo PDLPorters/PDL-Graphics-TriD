@@ -34,17 +34,17 @@ sub reset {
 
 sub set {
   my($this,$options) = @_;
-  foreach my $what (keys %$options){
-	 if($what =~ /Rotation/){
+  foreach my $what (keys %$options) {
+	 if ($what =~ /Rotation/) {
 		$this->{$what}[0] = $options->{$what}[0];
 		$this->{$what}[1] = $options->{$what}[1];
 		$this->{$what}[2] = $options->{$what}[2];
 		$this->{$what}[3] = $options->{$what}[3];
-	 }elsif($what eq 'WOrigin'){
+	 } elsif ($what eq 'WOrigin') {
 		$this->{$what}[0] = $options->{$what}[0];
 		$this->{$what}[1] = $options->{$what}[1];
 		$this->{$what}[2] = $options->{$what}[2];
-	 }else{
+	 } else {
 		$this->{$what} = $options->{$what};
 	 }
   }

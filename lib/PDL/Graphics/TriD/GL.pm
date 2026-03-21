@@ -776,7 +776,7 @@ my @GL_VERSION_NEEDED = (3, 3, 1);
 sub gdriver {
   my($this, $options) = @_;
   print "GL gdriver...\n" if $PDL::Graphics::TriD::verbose;
-  if(defined $this->{_GLObject}){
+  if (defined $this->{_GLObject}) {
     print "WARNING: Graphics Driver already defined for this window \n";
     return;
   }
@@ -791,7 +791,7 @@ sub gdriver {
   print "gdriver: Calling glClearColor...\n" if $PDL::Graphics::TriD::verbose;
   glClearColor(0,0,0,1);
   print "STARTED OPENGL!\n" if $PDL::Graphics::TriD::verbose;
-  if($PDL::Graphics::TriD::offline) {
+  if ($PDL::Graphics::TriD::offline) {
     $this->doconfig($options->{width}, $options->{height});
   }
   return 1;  # Interactive Window
@@ -802,12 +802,12 @@ sub reshape {
 	my $pw = $this->{Width};
 	my $ph = $this->{Height};
 	$this->{Width} = $x; $this->{Height} = $y;
-	for my $vp (@{$this->{_ViewPorts}}){
+	for my $vp (@{$this->{_ViewPorts}}) {
 	  my $nw = $vp->{W} + ($x-$pw) * $vp->{W}/$pw;
 	  my $nx0 = $vp->{X0} + ($x-$pw) * $vp->{X0}/$pw;
 	  my $nh = $vp->{H} + ($y-$ph) * $vp->{H}/$ph;
 	  my $ny0 = $vp->{Y0} + ($y-$ph) * $vp->{Y0}/$ph;
-	  print "reshape: resizing viewport to $nx0,$ny0,$nw,$nh\n" if($PDL::Graphics::TriD::verbose);
+	  print "reshape: resizing viewport to $nx0,$ny0,$nw,$nh\n" if $PDL::Graphics::TriD::verbose;
 	  $vp->resize($nx0,$ny0,$nw,$nh);
 	  $vp->{Impl}{highlight}{IsValid} = 0;
 	}
@@ -827,7 +827,7 @@ sub twiddle {
   return if $getout and $dontshow and !$this->{_GLObject}->event_pending;
   $getout //= !($PDL::Graphics::TriD::keeptwiddling && $PDL::Graphics::TriD::keeptwiddling);
   $this->display();
-  TWIDLOOP: while(1) {
+  TWIDLOOP: while (1) {
     print "EVENT!\n" if $PDL::Graphics::TriD::verbose;
     my $hap = 0;
     my $gotev = 0;
@@ -1040,7 +1040,7 @@ sub new {
   my($class,$options,$window_obj) = @_;
   my $opt = PDL::Options->new($class->default_options);
   $opt->incremental(1);
-  $opt->options($options) if(defined $options);
+  $opt->options($options) if defined $options;
   my $p = $opt->options;
   bless {Options => $p}, ref($class)||$class;
 }

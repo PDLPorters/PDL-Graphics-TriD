@@ -84,7 +84,7 @@ sub add {
 
 sub add_children {
   my ($this) = shift;
-  for(@_) {
+  for (@_) {
   	push @{$this->{Container}{children}}, $_;
   }
 }

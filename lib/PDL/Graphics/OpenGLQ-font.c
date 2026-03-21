@@ -335,13 +335,13 @@ int pdl_3d_bitmapLength( const unsigned char* string )
     SFG_Font* font = &fgFontHelvetica12;
     if ( !string || ! *string )
         return 0;
-    while( ( c = *string++) )
+    while (( c = *string++))
     {
-        if( c != '\n' )/* Not an EOL, increment length of line */
+        if (c != '\n')/* Not an EOL, increment length of line */
             this_line_length += *( font->Characters[ c ]);
         else  /* EOL; reset the length of this line */
         {
-            if( length < this_line_length )
+            if (length < this_line_length)
                 length = this_line_length;
             this_line_length = 0;
         }

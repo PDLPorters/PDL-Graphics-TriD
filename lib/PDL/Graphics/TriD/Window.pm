@@ -41,7 +41,7 @@ sub new {
 sub add_object {
   my($this,$object) = @_;
 #  print "add_object ",ref($this),"\n";
-  for(@{$this->{_ViewPorts}}) {
+  for (@{$this->{_ViewPorts}}) {
 	 $_->add_object($object);
   }
 }
@@ -89,7 +89,7 @@ sub current_viewport {
   if (defined $num) {
     if (ref($num)) {
       my $cnt=0;
-      foreach (@{$this->{_ViewPorts}}){
+      foreach (@{$this->{_ViewPorts}}) {
         if ($num == $_) {
           $this->{_CurrentViewPort} = $cnt;
           $_->{Active}=1;
@@ -147,7 +147,7 @@ sub delete_viewport {
 
 sub clear_viewports {
   my($this) = @_;
-  foreach(@{$this->{_ViewPorts}}){
+  foreach(@{$this->{_ViewPorts}}) {
     $_->clear_objects();
   }
 }
@@ -162,7 +162,7 @@ sub clear_viewport {
 sub set_eventhandler {
   my($this,$handler) = @_;
   $this->{EHandler} = $handler;
-#  for(@{$this->{_ViewPorts}}) {
+#  for (@{$this->{_ViewPorts}}) {
 #	 $_->eventhandler($handler);
 #  }
 }
@@ -170,7 +170,7 @@ sub set_eventhandler {
 #sub set_transformer {
 #  my($this,$transformer) = @_;
 #
-#  for(@{$this->{_ViewPorts}}) {
+#  for (@{$this->{_ViewPorts}}) {
 #	 $_->transformer($transformer);
 #  }
 #}

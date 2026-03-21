@@ -124,9 +124,9 @@ char *fghGenerateSphere(float radius, int slices, int stacks, float *vertices, f
     idx = 3;
 
     /* each stack */
-    for( i=1; i<stacks; i++ )
+    for (i=1; i<stacks; i++)
     {
-        for(j=0; j<slices; j++, idx+=3)
+        for (j=0; j<slices; j++, idx+=3)
         {
             x = cost1[j]*sint2[i];
             y = sint1[j]*sint2[i];

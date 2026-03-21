@@ -63,8 +63,8 @@ sub clear_objects {
 sub delete_object {
   my($this,$object) = @_;
   return unless(defined $object && defined $this->{Objects});
-  for(0..$#{$this->{Objects}}){
-    if($object == $this->{Objects}[$_]){
+  for (0..$#{$this->{Objects}}) {
+    if ($object == $this->{Objects}[$_]) {
       splice(@{$this->{Objects}},$_,1);
       redo;
     }
@@ -76,7 +76,7 @@ sub add_object {
   weaken $this;
   push @{$this->{Objects}},$object;
   $this->{IsValid} = 0;
-  for(@{$this->{ChangedSub}}) {
+  for (@{$this->{ChangedSub}}) {
     $object->add_changedsub($_);
   }
   $object->add_changedsub(sub {$this->changed_from_above()});
@@ -106,7 +106,7 @@ sub add_changedsub {
 sub clear {
 	my($this) = @_;
 	# print "Clear: $this\n";
-	for(@{$this->{Objects}}) {
+	for (@{$this->{Objects}}) {
 		$_->clear();
 	}
 	delete $this->{Impl};

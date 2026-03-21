@@ -216,26 +216,26 @@ sub init_scale {
 sub add_scale {
   my($this,$data,$inds) = @_;
   my $i = 0;
-  for(@$inds) {
+  for (@$inds) {
     my $d = $data->slice("($_)");
     my $max = $d->max->sclr;
     my $min = $d->min->sclr;
-    if($i==1){
-      if($max > 89.9999 or $min < -89.9999){
+    if ($i==1) {
+      if ($max > 89.9999 or $min < -89.9999) {
 	barf "Error in Latitude $max $min\n";
       }
     }
-    elsif($i==2){
-      $max = 1012.5 if($max<1012.5);
-      $min = 100 if($min>100);
+    elsif ($i==2) {
+      $max = 1012.5 if $max<1012.5;
+      $min = 100 if $min>100;
     }
-    if(!defined $this->{Scale}[$i]) {
+    if (!defined $this->{Scale}[$i]) {
       $this->{Scale}[$i] = [$min,$max];
     } else {
-      if($min < $this->{Scale}[$i][0]) {
+      if ($min < $this->{Scale}[$i][0]) {
 	$this->{Scale}[$i][0] = $min;
       }
-      if($max > $this->{Scale}[$i][1]) {
+      if ($max > $this->{Scale}[$i][1]) {
 	$this->{Scale}[$i][1] = $max;
       }
     }
@@ -250,39 +250,39 @@ sub finish_scale {
   my($this) = @_;
   my @dist;
   # Normalize the smallest differences away.
-  for(@{$this->{Scale}}) {
-    if(abs($_->[0] - $_->[1]) < 0.000001) {
+  for (@{$this->{Scale}}) {
+    if (abs($_->[0] - $_->[1]) < 0.000001) {
       $_->[1] = $_->[0] + 1;
     } 
     push(@dist,$_->[1]-$_->[0]);
   }
   # for the z coordinate reverse the min and max values
   my $max = $this->{Scale}[2][0];
-  if($max < $this->{Scale}[2][1]){
+  if ($max < $this->{Scale}[2][1]) {
     $this->{Scale}[2][0] = $this->{Scale}[2][1];
     $this->{Scale}[2][1] = $max;
   }
 # Normalize longitude and latitude scale
-  if($dist[1] > $dist[0]){
+  if ($dist[1] > $dist[0]) {
     $this->{Scale}[0][0] -= ($dist[1]-$dist[0])/2;
     $this->{Scale}[0][1] += ($dist[1]-$dist[0])/2;
-  }elsif($dist[0] > $dist[1] && $dist[0]<90){
+  } elsif ($dist[0] > $dist[1] && $dist[0]<90) {
     $this->{Scale}[1][0] -= ($dist[0]-$dist[1])/2;
     $this->{Scale}[1][1] += ($dist[0]-$dist[1])/2;
-  }elsif($dist[0] > $dist[1]){
+  } elsif ($dist[0] > $dist[1]) {
     $this->{Scale}[1][0] -= (90-$dist[1])/2;
     $this->{Scale}[1][1] += (90-$dist[1])/2;
   }    
   my (@nadd,@nc,@ns);
   for my $dim (0..1) {
     my $width = $this->{Scale}[$dim][1]-$this->{Scale}[$dim][0];
-    if($width > 100){
+    if ($width > 100) {
       $nadd[$dim] = 10;
-    }elsif($width>30){
+    } elsif ($width>30) {
       $nadd[$dim] = 5;
-    }elsif($width>20){
+    } elsif ($width>20) {
       $nadd[$dim] = 2;
-    }else{
+    } else {
       $nadd[$dim] = 1;
     }
     $nc[$dim] = int($this->{Scale}[$dim][0]/$nadd[$dim])*$nadd[$dim];
@@ -301,7 +301,7 @@ sub finish_scale {
 sub transform {
   my($this,$point,$data,$inds) = @_;
   my $i = 0;
-  if($#$inds!=2){
+  if ($#$inds!=2) {
     barf("Wrong number of arguments to transform $this\n");
     exit;
   }
@@ -334,26 +334,26 @@ sub init_scale {
 sub add_scale {
   my($this,$data,$inds) = @_;
   my $i = 0;
-  for(@$inds) {
+  for (@$inds) {
     my $d = $data->slice("($_)");
     my $max = $d->max->sclr;
     my $min = $d->min->sclr;
-    if($i==1){
-      if($max > 89.9999 or $min < -89.9999){
+    if ($i==1) {
+      if ($max > 89.9999 or $min < -89.9999) {
 	barf "Error in Latitude $max $min\n";
       }
     }
-    elsif($i==2){
-      $max = 1012.5 if($max<1012.5);
-      $min = 100 if($min>100);
+    elsif ($i==2) {
+      $max = 1012.5 if $max<1012.5;
+      $min = 100 if $min>100;
     }
-    if(!defined $this->{Scale}[$i]) {
+    if (!defined $this->{Scale}[$i]) {
       $this->{Scale}[$i] = [$min,$max];
     } else {
-      if($min < $this->{Scale}[$i][0]) {
+      if ($min < $this->{Scale}[$i][0]) {
 	$this->{Scale}[$i][0] = $min;
       }
-      if($max > $this->{Scale}[$i][1]) {
+      if ($max > $this->{Scale}[$i][1]) {
 	$this->{Scale}[$i][1] = $max;
       }
     }
@@ -367,26 +367,26 @@ sub finish_scale {
   my($this) = @_;
   my @dist;
   # Normalize the smallest differences away.
-  for(@{$this->{Scale}}) {
-    if(abs($_->[0] - $_->[1]) < 0.000001) {
+  for (@{$this->{Scale}}) {
+    if (abs($_->[0] - $_->[1]) < 0.000001) {
       $_->[1] = $_->[0] + 1;
     } 
     push(@dist,$_->[1]-$_->[0]);
   }
   # for the z coordinate reverse the min and max values
   my $max = $this->{Scale}[2][0];
-  if($max < $this->{Scale}[2][1]){
+  if ($max < $this->{Scale}[2][1]) {
     $this->{Scale}[2][0] = $this->{Scale}[2][1];
     $this->{Scale}[2][1] = $max;
   }
 # Normalize longitude and latitude scale
-  if($dist[1] > $dist[0]){
+  if ($dist[1] > $dist[0]) {
     $this->{Scale}[0][0] -= ($dist[1]-$dist[0])/2;
     $this->{Scale}[0][1] += ($dist[1]-$dist[0])/2;
-  }elsif($dist[0] > $dist[1] && $dist[0]<90){
+  } elsif ($dist[0] > $dist[1] && $dist[0]<90) {
     $this->{Scale}[1][0] -= ($dist[0]-$dist[1])/2;
     $this->{Scale}[1][1] += ($dist[0]-$dist[1])/2;
-  }elsif($dist[0] > $dist[1]){
+  } elsif ($dist[0] > $dist[1]) {
     $this->{Scale}[1][0] -= (90-$dist[1])/2;
     $this->{Scale}[1][1] += (90-$dist[1])/2;
   }    
@@ -395,7 +395,7 @@ sub finish_scale {
 sub transform {
   my($this,$point,$data,$inds) = @_;
   my $i = 0;
-  if($#$inds!=2){
+  if ($#$inds!=2) {
     barf("Wrong number of arguments to transform $this\n");
     exit;
   }

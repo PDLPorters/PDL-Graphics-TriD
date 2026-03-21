@@ -97,7 +97,7 @@ my @demo = (
 [actnw => q|
 	# Now, let's update them in real time!
 	nokeeptwiddling3d(); # Don't wait for user while drawing
-	while(1) {
+	while (1) {
 		$p = grabpic3d();
 		$p = ($p + $l) / (1 + $l);
 		$pic .= $p; $pic1 .= $p;

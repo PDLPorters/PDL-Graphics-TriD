@@ -50,9 +50,9 @@ sub new {
 	my($type,$c,$x,$y,$z) = @_;
 	my $this;
 
-   if(ref($type)){
+   if (ref($type)) {
 	  $this = $type;
-	}else{
+	} else {
 	  $this = bless [$c,$x,$y,$z],$type;
 	}
 	return $this;

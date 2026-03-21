@@ -43,8 +43,8 @@ sub flatten {
 # Calculate the whole width of the image.
 	my $ind = 0;
 	my $xm = 0; my $ym = 0;
-	for(@dims[2..$#dims]) {
-		if($ind % 2 == 0) {
+	for (@dims[2..$#dims]) {
+		if ($ind % 2 == 0) {
 			$xd ++; # = $dims[$ind-2];
 			$xd *= $_;
 			$xdr ++;
@@ -66,13 +66,13 @@ sub flatten {
 # R because the final texture must be 2**x-aligned ;(
 	my ($txd ,$tyd, $xxd, $yyd);
 	if ($bin_align) {
-	  for($txd = 0; $txd < 12 and 2**$txd < $xdr; $txd++) {};
-	  for($tyd = 0; $tyd < 12 and 2**$tyd < $ydr; $tyd++) {};
+	  for ($txd = 0; $txd < 12 and 2**$txd < $xdr; $txd++) {};
+	  for ($tyd = 0; $tyd < 12 and 2**$tyd < $ydr; $tyd++) {};
 	  $txd = 2**$txd; $tyd = 2**$tyd;
 	  $xxd = ($xdr > $txd ? $xdr : $txd);
 	  $yyd = ($ydr > $tyd ? $ydr : $tyd);
 
-	  if($#dims > 1) {
+	  if ($#dims > 1) {
 #		print "XALL: $xd $yd $xdr $ydr $txd $tyd\n";
 #		print "DIMS: ",(join ',',$this->{Colors}->dims),"\n";
 	  }
@@ -85,7 +85,7 @@ sub flatten {
 	my $p = PDL->zeroes(PDL::float(),3,$xxd,$yyd);
 
 
-	if(defined $this->{Options}{Bg}) {
+	if (defined $this->{Options}{Bg}) {
 		$p .= $this->{Options}{Bg};
 	}
 
@@ -97,8 +97,8 @@ sub flatten {
 	my $firstx = 1;
 	my $firsty = 1;
 	my $spi;
-	for(@dims[reverse(2..$#dims)]) {
-		if($ind % 2 == 0) {
+	for (@dims[reverse(2..$#dims)]) {
+		if ($ind % 2 == 0) {
 			$spi = $foop->getdim(1)/$_;
 			$foop = $foop->splitdim(1,$spi)->slice(":,0:-2")->
 				mv(2,3);

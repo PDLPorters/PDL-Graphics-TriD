@@ -72,7 +72,7 @@ Used for widget initialization by Tk, this function should never be called direc
 sub Populate {
   my($TriD, $args) = @_;
 
-  if(defined $PDL::Graphics::TriD::current_window){
+  if (defined $PDL::Graphics::TriD::current_window) {
 	 print "Current code limitations prevent TriD:Tk from being loaded after ";
     print "another TriD graphics window has been defined.  If you are running the ";
 	 print "PDL demo package, please start it again and run this demo first.\n";
@@ -86,7 +86,7 @@ sub Populate {
   # This bind causes GL to be initialized after the 
   # Tk frame is ready to accept it
   $TriD->bind("<Configure>", [ \&GLinit ]);
-  print "Populate complete\n" if($PDL::Graphics::TriD::Tk::verbose);
+  print "Populate complete\n" if $PDL::Graphics::TriD::Tk::verbose;
 }
 
 =head2 MainLoop
@@ -109,17 +109,17 @@ sub MainLoop
     while (Tk::MainWindow->Count)
     {
       DoOneEvent(Tk::DONT_WAIT());
-      if(defined $self->{GLwin}){
-	if( &XPending()){
+      if (defined $self->{GLwin}) {
+	if ( &XPending()) {
 	  my @e = &glpXNextEvent();
-#	  if($e[0] == &ConfigureNotify) {
-#	    print "CONFIGNOTIFE\n" if($PDL::Graphics::TriD::verbose);
+#	  if ($e[0] == &ConfigureNotify) {
+#	    print "CONFIGNOTIFE\n" if $PDL::Graphics::TriD::verbose;
 #	    $self->reshape($e[1],$e[2]);
 #	  }
 	  $self->refresh();
 	}
 	my $job=shift(@{$self->{WorkQue}});
-	if(defined $job){
+	if (defined $job) {
 	  my($cmd,@args) = @$job;
 	  &{$cmd}(@args);
 	}
@@ -141,7 +141,7 @@ that the required Tk::Frame is initialized before the TriD::GL window that will 
 sub GLinit{
   my($self,@args) = @_;
   
-  if(defined $self->{GLwin}){
+  if (defined $self->{GLwin}) {
 #    print "OW= ",$self->width," OH= ",$self->height,"\n";
 #    $self->update;
 #    print "NW= ",$self->width," NH= ",$self->height,"\n";
@@ -149,7 +149,7 @@ sub GLinit{
 
     $self->{GLwin}->reshape($self->width,$self->height);
     $self->refresh();
-  }else{
+  } else {
 # width and height represent the largest size on my screen so that the
 # graphics window always fills the frame.
     my $options={parent=> ${$self->WindowId},
@@ -212,7 +212,7 @@ sub AUTOLOAD {
   # get subroutine name
 
   #print "In AutoLoad $self $sub\n";
-  if(defined($self->{GLwin})){
+  if (defined($self->{GLwin})) {
     $sub =~ s/.*:://;
     return($self->{GLwin}->$sub(@args));
   }
@@ -236,7 +236,7 @@ sub buttonmotion{
 
   $but--;
 
-  foreach my $vp (@{$self->viewports()}){
+  foreach my $vp (@{$self->viewports()}) {
 #    use Data::Dumper;        
 #    my $out = Dumper($vp);
 #    print "$out\n";

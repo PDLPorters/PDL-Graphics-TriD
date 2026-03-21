@@ -156,7 +156,7 @@ my @demo = (
 
 [actnw => q|
 	nokeeptwiddling3d(); # Don't wait for user while drawing
-	for(-2,-1,0,1,2) {
+	for (-2,-1,0,1,2) {
 		line3d [$cx,$cy,$cz+$_]; # ... and corkscrews...
 	}
 	keeptwiddling3d();   # Do wait for user while drawing...
@@ -209,9 +209,9 @@ my @demo = (
   my $lin = arrows3d($c, {FromTo => $fromto});
   my $sph = spheres3d($c);
   my $ind = 0;
-  while(1) {
+  while (1) {
           $e->step();
-          if(++$ind%2 == 0) {
+          if (++$ind%2 == 0) {
                   $_->data_changed for $lab, $lin, $sph;
                   $graph->scalethings() if (($ind % 200) == 0 or 1);
                   last if twiddle3d();

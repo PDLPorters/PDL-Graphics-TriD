@@ -16,7 +16,7 @@ sub demo {[actnw => q|
 |]}
 
 #BEGIN{
-#  if(defined $PDL::Graphics::TriD::cur){
+#  if (defined $PDL::Graphics::TriD::cur) {
 #	 print "Configuration error in TkTriD demo\n";
 #	 print "This demo cannot be run after you have loaded TriD\n";
 #	 print "Please restart perldl then try again.\n";
@@ -82,26 +82,26 @@ my  $e_button = $bframe->Button(-text => "Exit",
 		Value=>'Pointer'}
 	 ];
   
-  foreach my $menu (@$menus){
+  foreach my $menu (@$menus) {
     my $mew = $bframe->Menubutton(-text=>$menu->{Name},
 				  -relief=>'raised'
 				 )->pack(-side=>'left');
     
-    if($menu->{Type} eq "radio"){
-      foreach(@{$menu->{Options}}){
+    if ($menu->{Type} eq "radio") {
+      foreach(@{$menu->{Options}}) {
 	
 		  $mew->radiobutton(-label=> $_,
 				    -value=> $_,
 				    -variable=> \$menu->{Value},
 				    -command=> [$menu->{Command},$_] );
       }
-    }elsif($menu->{Type} eq "command"){
-      foreach(@{$menu->{Options}}){
-        if(/^Un-Split/){
+    } elsif ($menu->{Type} eq "command") {
+      foreach(@{$menu->{Options}}) {
+        if (/^Un-Split/) {
 		     $mew->AddItems(["command" => $_,
 				  -state => 'disabled',
 				  -command=> [$menu->{Command},$mew,$_] ]);
-		  }else{
+		  } else {
 		     $mew->AddItems(["command" => $_,
 				  -command=> [$menu->{Command},$mew,$_] ]);
 		  }
@@ -135,7 +135,7 @@ sub linedemos{
   $graph = $TriDW->{GLwin}->current_viewport->graph();
   $demo="B&W" unless(defined $demo);
 
-  unless(defined $graph){
+  unless(defined $graph) {
     # define the graph object
     $graph = PDL::Graphics::TriD::Graph->new;
     $graph->default_axes();
@@ -143,16 +143,16 @@ sub linedemos{
   $graph->delete_data("LinesB&W");
   $graph->delete_data("LinesColor");
 
-  if($demo ne "Off"){
+  if ($demo ne "Off") {
     my $data;
     my $size = 25;
     my $cz = (xvals $size+1) / $size;  # interval 0..1
     my $cx = 0.5+sin($cz*12.6)/2;	# Corkscrew
     my $cy = 0.5+cos($cz*12.6)/2;
-    if($demo eq "B&W"){
+    if ($demo eq "B&W") {
       $graph->delete_data("LinesColor");
       $data=PDL::Graphics::TriD::LineStrip->new([$cx,$cy,$cz]);
-    }elsif($demo eq "Color"){
+    } elsif ($demo eq "Color") {
       $graph->delete_data("LinesB&W");
 
       my $r = sin($cz*6.3)/2 + 0.5;
@@ -182,7 +182,7 @@ sub Linesdemos{
   $graph = $TriDW->{GLwin}->current_viewport->graph();
   $demo="Lattice" unless(defined $demo);
 
-  unless(defined $graph){
+  unless(defined $graph) {
     # define the graph object
     $graph = PDL::Graphics::TriD::Graph->new;
     $graph->default_axes();
@@ -191,18 +191,18 @@ sub Linesdemos{
   $graph->delete_data("LinesLines");
   $graph->delete_data("LinesLattice");
 
-  if($demo ne "Off"){
+  if ($demo ne "Off") {
     my $data;
     my $size = 25;
     my($x,$y,$z);
     $x = (xvals $size+1,$size+1) / $size;
     $y = (yvals $size+1,$size+1) / $size;
     $z = 0.5 + 0.5 * (sin($x*6.3) * sin($y*6.3)) ** 3; 
-    if($demo eq "Lines"){
+    if ($demo eq "Lines") {
       $data=PDL::Graphics::TriD::LineStrip->new([$x,$y,$z],[$x,$y,$z]);
-    }elsif($demo eq "Lattice"){
+    } elsif ($demo eq "Lattice") {
       $data=PDL::Graphics::TriD::Lattice->new([$x,$y,$z],[$x,$y,$z]);
-    }elsif($demo eq "Points"){
+    } elsif ($demo eq "Points") {
       $data=PDL::Graphics::TriD::Points->new([$x,$y,$z],[$x,$y,$z]);
     }
 
@@ -227,7 +227,7 @@ sub Contourdemos{
   $graph = $TriDW->{GLwin}->current_viewport->graph();
   $demo="3DColor" unless(defined $demo);
 
-  unless(defined $graph){
+  unless(defined $graph) {
     # define the graph object
     $graph = PDL::Graphics::TriD::Graph->new;
     $graph->default_axes();
@@ -236,7 +236,7 @@ sub Contourdemos{
   $graph->delete_data("Contours2DColor");
   $graph->delete_data("Contours3DColor");
 
-  if($demo ne "Off"){
+  if ($demo ne "Off") {
     my $data;
     my $size = 25;
     my($x,$y,$z);
@@ -244,12 +244,12 @@ sub Contourdemos{
     $y = (yvals $size,$size) / $size;
     $z = (sin($x*6.3) * sin($y*6.3)) ** 3;
   
-    if($demo eq "2DB&W"){
+    if ($demo eq "2DB&W") {
       $data=PDL::Graphics::TriD::Contours->new($z,[$z->xvals/$size,$z->yvals/$size,0]);
-    }elsif($demo eq "2DColor"){
+    } elsif ($demo eq "2DColor") {
       $data=PDL::Graphics::TriD::Contours->new($z,[$z->xvals/$size,$z->yvals/$size,0]);
       $data->set_colortable(\&PDL::Graphics::TriD::Contours::coldhot_colortable);
-    }elsif($demo eq "3DColor"){
+    } elsif ($demo eq "3DColor") {
       $data=PDL::Graphics::TriD::Contours->new($z,[$z->xvals/$size,$z->yvals/$size,$z], {Labels=>[2,5]});
       $data->set_colortable(\&PDL::Graphics::TriD::Contours::coldhot_colortable);
     }
@@ -275,7 +275,7 @@ sub Torusdemos{
   $graph = $TriDW->{GLwin}->current_viewport->graph();
   $demo="Lighting" unless defined $demo;
   
-  unless(defined $graph){
+  unless(defined $graph) {
     # define the graph object
     $graph = PDL::Graphics::TriD::Graph->new;
     $graph->default_axes();
@@ -284,7 +284,7 @@ sub Torusdemos{
   $graph->delete_data("TorusColors");
   $graph->delete_data("TorusLighting");
 
-  if($demo ne "Off"){
+  if ($demo ne "Off") {
     my $data;
     my $s=40;
     my $x=zeroes 2*$s,$s/2;
@@ -298,13 +298,13 @@ sub Torusdemos{
     my $y = $v*cos $t;
     my $z = $i*cos($u)+$o*sin(3*$t);
 
-    if($demo eq "Colors"){
+    if ($demo eq "Colors") {
       $data=PDL::Graphics::TriD::Lattice->new(
         [$x,$y,$z],
         [0.5*(1+sin $t),0.5*(1+cos $t),0.25*(2+cos($u)+sin(3*$t))],
         {Shading=>2}
       );
-    }else{
+    } else {
       $data=PDL::Graphics::TriD::Lattice->new([$x,$y,$z], {Shading=>3, Smooth=>1});
     }
     $graph->add_dataseries($data,"Torus$demo");
@@ -338,28 +338,28 @@ sub setviewports{
 
   my $vp = $TriDW->current_viewport();
   my $nvp;  
-  if($request eq 'Split Horizontal'){
+  if ($request eq 'Split Horizontal') {
     $nvp=$TriDW->new_viewport($vp->{X0}+$vp->{W}/2,$vp->{Y0},$vp->{W}/2,$vp->{H});
     $vp->resize($vp->{X0},$vp->{Y0},$vp->{W}/2,$vp->{H});
-  }elsif($request eq 'Split Vertical'){
+  } elsif ($request eq 'Split Vertical') {
     $nvp=$TriDW->new_viewport($vp->{X0},$vp->{Y0}+$vp->{H}/2,$vp->{W},$vp->{H}/2);
     $vp->resize($vp->{X0},$vp->{Y0},$vp->{W},$vp->{H}/2);
-  }elsif($request eq 'Un-Split (Save This)'){
+  } elsif ($request eq 'Un-Split (Save This)') {
 	 my $cnt=0;
-	 foreach (@{$TriDW->viewports()}){
-		if(defined $_ && $_ != $vp){
+	 foreach (@{$TriDW->viewports()}) {
+		if (defined $_ && $_ != $vp) {
 		  $TriDW->clear_viewport($cnt);
 		}
 		$cnt++;
 	 }
 	 $vp->resize(0,0,$TriDW->{GLwin}{Width},$TriDW->{GLwin}{Height});
-  }elsif($request eq 'Un-Split (Save Others)'){
-	 if($vp->{W} < $TriDW->{GLwin}{Width}){
+  } elsif ($request eq 'Un-Split (Save Others)') {
+	 if ($vp->{W} < $TriDW->{GLwin}{Width}) {
 	    my $x0 = $vp->{X0};
 	    my $x1 = $vp->{X0}+$vp->{W};
-	    foreach (@{$TriDW->viewports()}){
-	      if(($_->{X0} == $x1) || ($_->{X0}+$_->{W} == $x0)){
-	       $x0 = $_->{X0} if($x0>$_->{X0});
+	    foreach (@{$TriDW->viewports()}) {
+	      if (($_->{X0} == $x1) || ($_->{X0}+$_->{W} == $x0)) {
+	       $x0 = $_->{X0} if ($x0>$_->{X0});
 	       $_->resize(min($x0,$_->{X0}),$_->{Y0},$_->{W}+$vp->{W},$_->{H});
 	      }
 	    }
@@ -368,10 +368,10 @@ sub setviewports{
 	 $TriDW->clear_viewport($vp);
   }
   
-  if($#{$TriDW->viewports()} > 0){
+  if ($#{$TriDW->viewports()} > 0) {
 	 $menu->entryconfigure('Un-Split (Save This)', -state=>'normal');
 	 $menu->entryconfigure('Un-Split (Save Others)', -state=>'normal');
-  }else{
+  } else {
 	 $menu->entryconfigure('Un-Split (Save This)', -state=>'disabled');
 	 $menu->entryconfigure('Un-Split (Save Others)', -state=>'disabled');
   }
@@ -380,10 +380,10 @@ sub setviewports{
 sub setfocusstyle{
   my($fs) = @_;
 
-  if($fs eq 'Pointer'){
+  if ($fs eq 'Pointer') {
 	 $TriDW->bind("<Motion>",[ \&setfocus, Ev('x'),Ev('y')]); 
 	 $TriDW->bind("<Double-Button>",'');
-  }else{
+  } else {
 	 $TriDW->bind("<Motion>",'');
 	 $TriDW->bind("<Double-Button>",[ \&setfocus, Ev('x'),Ev('y')]); 
   }
@@ -396,16 +396,16 @@ sub setfocus{
   
   my $num=0;
 
-  foreach my $vp (@{$TriDW->{GLwin}->viewports()}){ 
-    if($vp->{X0}+4 <= $x && $vp->{X0}+$vp->{W}-4>=$x 
-	    && $vp->{Y0}+4 <= $y && $vp->{Y0}+$vp->{H}-4>=$y ){
-		next if($vp->{Active}==1);
+  foreach my $vp (@{$TriDW->{GLwin}->viewports()}) { 
+    if ($vp->{X0}+4 <= $x && $vp->{X0}+$vp->{W}-4>=$x 
+	    && $vp->{Y0}+4 <= $y && $vp->{Y0}+$vp->{H}-4>=$y ) {
+		next if ($vp->{Active}==1);
 	   $vp->{Active} = 1;
       $TriDW->{GLwin}->current_viewport($num);
 
 		$TriDW->refresh();
 
-    }else{
+    } else {
 	   $vp->{Active} = 0;
     }
     $num++;

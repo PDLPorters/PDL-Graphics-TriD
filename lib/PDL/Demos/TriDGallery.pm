@@ -159,14 +159,14 @@ points3d[map $_+$_->float->random, whichND(($x!=0)&($x != 255))->transpose->dog]
 
 # use PDL; use PDL::Image2D; use PDL::Graphics::TriD;nokeeptwiddling3d;
 # $d=byte(random(90,90)>0.5);do{$k=byte [[1,1,1],[1,0,1],[1,1,1]];
-# imagrgb[$d]if($k++%2); $s=conv2d($d,$k)/8;$i=90*90*random(50);$t=$d->
-# clump(2)-> index($i);$t.=($s->clump(2)->index($i)>.5);}while(!twiddle3d)
+# imagrgb[$d] if $k++%2; $s=conv2d($d,$k)/8;$i=90*90*random(50);$t=$d->
+# clump(2)-> index($i);$t.=($s->clump(2)->index($i)>.5);}while !twiddle3d
 
 [actnw => q~
 # Fractal mountain range [Tuomas Lukka]
 use PDL::Image2D;
 $k=ones(5,5) / 25; $x=5; $y=ones(1,1)/2;
-for(1..7) {
+for (1..7) {
   $c=$y->dupN(2,2)->copy;
   $c+=$x*$c->random; $x/=3;
   $y=conv2d($c,$k); imag3d[$y],{Lines => 0, Smooth => 0};
@@ -225,7 +225,7 @@ my @disabled = (
 nokeeptwiddling3d();
 sub smth {use PDL::Image2D; conv2d($_[0],exp(-(rvals ones(3,3))**2));}
 $x=rfits("m51.fits")->float; $c=$d=avg($x)+0*$x;
-while(max $c>1.1) {$c=smth($x/smth($d));$d*=$c;imagrgb[$d/850];}
+while (max $c>1.1) {$c=smth($x/smth($d));$d*=$c;imagrgb[$d/850];}
 keeptwiddling3d();
 twiddle3d();
 # [press 'q' in the graphics window when done]
@@ -242,7 +242,7 @@ do{
   $r = $s->float->random;
   $e = ($s>$r);
   $d .= $e;
-} while(!twiddle3d);
+} while !twiddle3d;
 keeptwiddling3d();
 ~],
 );

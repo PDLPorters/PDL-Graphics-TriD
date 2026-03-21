@@ -618,7 +618,7 @@ user explicitly presses 'q'.
  do {
 	$c .= nextfunc($c);
 	$o->data_changed;
- } while(!twiddle3d()); # animate one step, then iterate
+ } while !twiddle3d(); # animate one step, then iterate
  keeptwiddling3d();
  twiddle3d(); # wait one last time
 
@@ -804,27 +804,27 @@ sub tridsettings {$Settings}
 # x(3,..)  [x(..),y(..),z(..)]
 sub realcoords {
   my($type,$c) = @_;
-  if(ref $c ne "ARRAY") {
+  if (ref $c ne "ARRAY") {
     my $dim0 = $c->getdim(0);
     barf "If one ndarray given for coordinate, must be (2|3,...) or have default interpretation" if $dim0 != 2 and $dim0 != 3;
     return $c->float;
   }
   my @c = @$c;
-  if(!ref $c[0]) {$type = shift @c}
+  if (!ref $c[0]) {$type = shift @c}
   barf "Must have 1..3 array members for coordinates" if !@c || @c>3;
-  if(@c == 1 and $type eq "SURF2D") {
+  if (@c == 1 and $type eq "SURF2D") {
     # surf2d -> this is z axis
     @c = ($c[0]->xvals,$c[0]->yvals,$c[0]);
-  } elsif(@c == 1 and $type eq "POLAR2D") {
+  } elsif (@c == 1 and $type eq "POLAR2D") {
     my $t = 6.283 * $c[0]->xvals / ($c[0]->getdim(0)-1);
     my $r = $c[0]->yvals / ($c[0]->getdim(1)-1);
     @c = ($r * sin($t), $r * cos($t), $c[0]);
-  } elsif(@c == 1 and $type eq "COLOR") {
+  } elsif (@c == 1 and $type eq "COLOR") {
     # color -> 1 ndarray = grayscale
     @c = @c[0,0,0];
-  } elsif(@c == 1 and $type eq "LINE") {
+  } elsif (@c == 1 and $type eq "LINE") {
     @c = ($c[0]->xvals, $c[0], 0);
-  } elsif(@c == 2 and $type eq "LINE") {
+  } elsif (@c == 2 and $type eq "LINE") {
     @c = (@c[0,1], $c[0]->xvals);
   }
   # XXX
@@ -843,7 +843,7 @@ sub realcoords {
 sub checkargs {
   return unless ref $_[-1] eq "HASH" and $PDL::Graphics::TriD::verbose;
   print "enter checkargs \n";
-  for(['KeepTwiddling',\&keeptwiddling3d]) {
+  for (['KeepTwiddling',\&keeptwiddling3d]) {
     print "checkargs >$_<\n";
     if (defined $_[-1]{$_->[0]}) {
       &{$_->[1]}(delete $_[-1]{$_->[0]});
@@ -871,12 +871,12 @@ sub PDL::close3d {
 
 sub graph_object {
   my($obj) = @_;
-  if(!defined $obj or !ref $obj) {
+  if (!defined $obj or !ref $obj) {
     barf("Invalid object to TriD::graph_object");
   }
-  print "graph_object: calling get_new_graph\n" if($PDL::Graphics::TriD::verbose);
+  print "graph_object: calling get_new_graph\n" if $PDL::Graphics::TriD::verbose;
   my $g = get_new_graph();
-  print "graph_object: back from get_new_graph\n" if($PDL::Graphics::TriD::verbose);
+  print "graph_object: back from get_new_graph\n" if $PDL::Graphics::TriD::verbose;
   my $name = $g->add_dataseries($obj);
   $g->bind_default($name);
   $g->scalethings();
@@ -923,7 +923,7 @@ sub PDL::labels3d {
 sub PDL::line3d {
   &checkargs;
   my $obj = PDL::Graphics::TriD::LineStrip->new(@_);
-  print "line3d: object is $obj\n" if($PDL::Graphics::TriD::verbose);
+  print "line3d: object is $obj\n" if $PDL::Graphics::TriD::verbose;
   graph_object($obj);
 }
 
@@ -931,7 +931,7 @@ sub PDL::line3d {
 sub PDL::line3d_segs {
   &checkargs;
   my $obj = PDL::Graphics::TriD::Lines->new(@_);
-  print "line3d_segs: object is $obj\n" if($PDL::Graphics::TriD::verbose);
+  print "line3d_segs: object is $obj\n" if $PDL::Graphics::TriD::verbose;
   graph_object($obj);
 }
 
@@ -1016,7 +1016,7 @@ sub PDL::release3d {$PDL::Graphics::TriD::only_one = 1;}
 *release3d=*release3d=\&PDL::release3d;
 
 sub get_new_graph {
-  print "get_new_graph: calling PDL::Graphics::TriD::get_current_window...\n" if($PDL::Graphics::TriD::verbose);
+  print "get_new_graph: calling PDL::Graphics::TriD::get_current_window...\n" if $PDL::Graphics::TriD::verbose;
   my $win = PDL::Graphics::TriD::get_current_window();
   print "get_new_graph: calling get_current_graph...\n" if $PDL::Graphics::TriD::verbose;
   my $g = get_current_graph($win);

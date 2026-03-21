@@ -98,8 +98,8 @@ sub ButtonPress{
 
 #  print "$x $y ",$this->{Win}{X0}," ",$this->{Win}{Y0}," ",$this->{Win}{W}," ",$this->{Win}{H},"\n";
 
-  if($this->{Win}{X0} <= $x && $this->{Win}{X0}+$this->{Win}{W}>=$x 
-	  && $this->{Win}{Y0} <= $y && $this->{Win}{Y0}+$this->{Win}{H}>=$y ){
+  if ($this->{Win}{X0} <= $x && $this->{Win}{X0}+$this->{Win}{W}>=$x 
+	  && $this->{Win}{Y0} <= $y && $this->{Win}{Y0}+$this->{Win}{H}>=$y ) {
 	 $this->{Win}{Active} = 1;
   }
 }
@@ -119,7 +119,7 @@ sub set_wh {
   $this->{H} = $h;
   $w = 0 unless defined $w;
   $h = 0 unless defined $h;
-  if($w > $h) {
+  if ($w > $h) {
 	 $this->{SC} = $h/2;
   } else {
 	 $this->{SC} = $w/2;

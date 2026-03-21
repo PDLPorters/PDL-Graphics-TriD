@@ -130,8 +130,8 @@ sub PDL::Graphics::TriD::Material::tovrml {
 }
 
 sub PDL::Graphics::TriD::Quaternion::tovrml {my($this) = @_;
-	if(abs($this->[0]) == 1) { return ; }
-	if(abs($this->[0]) >= 1) {
+	if (abs($this->[0]) == 1) { return ; }
+	if (abs($this->[0]) >= 1) {
 		# die "Unnormalised Quaternion!\n";
 		$this->normalise;
 	}
@@ -251,7 +251,7 @@ sub PDL::Graphics::TriD::Image::tovrml {
 sub PDL::Graphics::TriD::Image::vdraw {
   my ($this,$vert) = @_;
   my $p = $this->flatten(0); # no binary alignment
-  if(!defined $vert) {$vert = $this->{Points}}
+  if (!defined $vert) {$vert = $this->{Points}}
   my $url = PDL::Graphics::TriD::VRML::URL->new('image/JPG');
   $url->save($p);
   vrn('Shape',
@@ -272,11 +272,11 @@ sub PDL::Graphics::TriD::Image::vdraw {
 sub PDL::Graphics::TriD::Graph::tovrml {
 	my($this) = @_;
 	my @children = ();
-	for(sort keys %{$this->{Axis}}) {
-		if($_ eq "Default") {next}
+	for (sort keys %{$this->{Axis}}) {
+		if ($_ eq "Default") {next}
 		push @children, @{$this->{Axis}{$_}->tovrml($this)};
 	}
-	for(sort keys %{$this->{Data}}) {
+	for (sort keys %{$this->{Data}}) {
 	    push @children,
 	     $this->{Data}{$_}->tovrml($this->get_points($_));
 	}
@@ -303,15 +303,15 @@ sub PDL::Graphics::TriD::EuclidAxes::tovrml {
   for my $dim (0..2) {
     my @coords = (0,0,0);
     my @coords0 = (0,0,0);
-    for(0..2) {
-      if($dim != $_) { $coords[$_] -= 0.1 }
+    for (0..2) {
+      if ($dim != $_) { $coords[$_] -= 0.1 }
     }
     my $s = $this->{Scale}[$dim];
     my $ndiv = 3;
     my $radd = 1.0/$ndiv;
     my $nadd = ($s->[1]-$s->[0])/$ndiv;
     my $nc = $s->[0];
-    for(0..$ndiv) {
+    for (0..$ndiv) {
       push @children, $vrml->vrmltext(sprintf("%.3f",$nc),[@coords]);
       push @$vert,(vrml3v([@coords0]),vrml3v([@coords]));
       push @$indx,$j++.", ".$j++.", -1";
@@ -634,7 +634,7 @@ sub display {
     $vrmlparam->gifmode();
     # print STDERR "writing a GIF image\n";
     # print STDERR "Filename: ",$vrmlparam->wfile,"\n";
-    for(@{$this->{_ViewPorts}}) {
+    for (@{$this->{_ViewPorts}}) {
       $_->togif_vp($this,$_,$vrmlparam->wfile);
     }
     my ($hfile,$gfile) = ($vrmlparam->file,$vrmlparam->wfile);

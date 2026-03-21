@@ -32,7 +32,7 @@ sub graph {
 sub delete_graph {
   my ($this,$graph) = @_;
   $this->delete_object($graph);
-  for (0..$#{$this->{Graphs}}){
+  for (0..$#{$this->{Graphs}}) {
     if ($graph == $this->{Graphs}[$_]) {
       splice @{$this->{Graphs}},$_,1;
       redo;
@@ -71,7 +71,7 @@ sub set_transformer {
 
 sub transformer {
   my ($this,$t) = @_;
-  if(defined $t){
+  if (defined $t) {
     $this->{Transformer} = $t;
   }
   $this->{Transformer};
@@ -83,13 +83,13 @@ sub transformer {
 sub setview{
   my($vp,$view) = @_;
   my $transformer = $vp->transformer();
-  if(ref($view) eq "ARRAY"){
+  if (ref($view) eq "ARRAY") {
 	 $transformer->set({WRotation=>$view});
-  }elsif($view eq "Top"){
+  } elsif ($view eq "Top") {
 	 $transformer->set({WRotation=>[1,0,0,0]});
-  }elsif($view eq "East"){
+  } elsif ($view eq "East") {
 	 $transformer->set({WRotation=>[0.5,-0.5,-0.5,-0.5]});
-  }elsif($view eq "South"){
+  } elsif ($view eq "South") {
 	 $transformer->set({WRotation=>[0.6,-0.6,0,0]});
   }
 }

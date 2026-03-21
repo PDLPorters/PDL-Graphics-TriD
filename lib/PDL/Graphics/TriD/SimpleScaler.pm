@@ -24,7 +24,7 @@ sub new {
 # coordinates normalised relative to center
 sub xy2norm {
 	my($this,$x,$y) = @_;
-	print "xy2norm: this->{W}=$this->{W}; this->{H}=$this->{H}; this->{SC}=$this->{SC}\n" if($PDL::Graphics::TriD::verbose);
+	print "xy2norm: this->{W}=$this->{W}; this->{H}=$this->{H}; this->{SC}=$this->{SC}\n" if $PDL::Graphics::TriD::verbose;
 	$x -= $this->{W}/2; $y -= $this->{H}/2;
 	$x /= $this->{SC}; $y /= $this->{SC};
 	return ($x,$y);

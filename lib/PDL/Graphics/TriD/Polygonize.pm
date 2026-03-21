@@ -28,7 +28,7 @@ sub stupidpolygonize {
 	$x += $center;
 	my $cur = $initrad;
 	my $inita = $x->copy;
-	for(1..$nrounds) {
+	for (1..$nrounds) {
 		$cur /= 2;
 		my $vp = $func->($x);
 		my $vps = ($vp > 0);
@@ -75,9 +75,9 @@ sub contourpolygonize {
 	my($in,$oscale,$scale,$func) = @_;
 	my $ccube = $cube * $oscale;
 	my $maxstep=0;
-	while(($func->($ccube)>=0)->sum->sclr > 0) {
+	while (($func->($ccube)>=0)->sum->sclr > 0) {
 		$ccube *= 1.5;
-		if($maxstep ++ > 30) {
+		if ($maxstep ++ > 30) {
 			die("Too far inside");
 		}
 	}
@@ -109,7 +109,7 @@ sub polygonize {
 	my $ov = $func->($outv);
 	my $s;
 # Find a close enough point to zero.
-	while(((sqrt(($iv-$ov))**2))->sum->sclr > $cubesize) {
+	while (((sqrt(($iv-$ov))**2))->sum->sclr > $cubesize) {
 		my $s = $iv + $ov; $s /= 2;
 		my $v = $func->($s);
 		$v->sum->sclr < 0 ?
@@ -119,7 +119,7 @@ sub polygonize {
 # Correct the smaller distance to cubesize.
 	$iv = $ov + ($iv-$ov) * $cubesize / sqrt(($iv-$ov)**2)
 # If it went outside, do it the other way around.
-#	if($func->($iv)->sum->sclr < 0) {
+#	if ($func->($iv)->sum->sclr < 0) {
 #		$ov = $iv + ($ov-$iv) * $cubesize / sqrt(($iv-$ov)**2)
 #	}
 # Now, |$iv-$ov| = $cubesize
