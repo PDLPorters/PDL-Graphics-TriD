@@ -27,7 +27,7 @@ use warnings;
 use base qw/PDL::Graphics::TriD::Object/;
 use PDL::LiteF; # XXX F needed?
 
-use fields qw(Data DataBind UnBound DefaultAxes Axis );
+use fields qw(Data DataBind UnBound DefaultAxes DefaultAxisName Axis );
 
 sub add_dataseries {
   my ($this, $data, $name, $no_changed) = @_;
@@ -58,7 +58,7 @@ sub bind_data {
 
 sub bind_default {
   my ($this,$dser,$axes) = @_;
-  $this->bind_data($dser, $axes // $this->{DefaultAxes}, 'Default');
+  $this->bind_data($dser, $axes // $this->{DefaultAxes}, $this->{DefaultAxisName});
 }
 
 sub set_axis {
@@ -117,7 +117,7 @@ sub default_axes {
 
 sub set_default_axis {
 	my($this,$name,$axes) = @_;
-	$this->{Axis}{Default} = $this->{Axis}{$name};
+	$this->{DefaultAxisName} = $name;
 	$this->{DefaultAxes} = $axes;
 }
 

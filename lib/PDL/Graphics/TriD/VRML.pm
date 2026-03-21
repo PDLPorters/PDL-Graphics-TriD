@@ -273,7 +273,6 @@ sub PDL::Graphics::TriD::Graph::tovrml {
 	my($this) = @_;
 	my @children = ();
 	for (sort keys %{$this->{Axis}}) {
-		if ($_ eq "Default") {next}
 		push @children, @{$this->{Axis}{$_}->tovrml($this)};
 	}
 	for (sort keys %{$this->{Data}}) {

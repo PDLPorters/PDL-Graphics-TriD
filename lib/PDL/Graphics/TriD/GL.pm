@@ -67,7 +67,7 @@ sub translate {
   PDL::Graphics::TriD::Graph;
 sub togl_setup {
   my ($this, $points_arg, @args) = @_;
-  $this->{Axis}{$_}->togl_setup($points_arg, @args) for grep $_ ne "Default", keys %{$this->{Axis}};
+  $_->togl_setup($points_arg, @args) for values %{$this->{Axis}};
   while (my ($series,$h) = each %{ $this->{Data} }) {
     for my $data (values %$h) {
       $data->togl_setup($this->get_points($series, $data), @args);
@@ -76,7 +76,7 @@ sub togl_setup {
 }
 sub togl {
   my ($this, @args) = @_;
-  $this->{Axis}{$_}->togl(@args) for grep $_ ne "Default", keys %{$this->{Axis}};
+  $_->togl(@args) for values %{$this->{Axis}};
   while (my ($series,$h) = each %{ $this->{Data} }) {
     for my $data (values %$h) {
       $data->togl($this->get_points($series, $data), @args);
