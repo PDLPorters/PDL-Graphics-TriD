@@ -769,14 +769,14 @@ use OpenGL::Modern qw/
 /;
 
 use base qw/PDL::Graphics::TriD::Object/;
-use fields qw/Ev Width Height Interactive _GLObject
+use fields qw/Ev Width Height Interactive
               _ViewPorts _CurrentViewPort /;
 
 my @GL_VERSION_NEEDED = (3, 3, 1);
 sub gdriver {
   my($this, $options) = @_;
   print "GL gdriver...\n" if $PDL::Graphics::TriD::verbose;
-  if (defined $this->{_GLObject}) {
+  if (defined $this->{Impl}) {
     print "WARNING: Graphics Driver already defined for this window \n";
     return;
   }
@@ -786,8 +786,8 @@ sub gdriver {
     'PDL::Graphics::TriD::GL::GLFW';
   (my $file = $gl_class) =~ s#::#/#g; require "$file.pm";
   print "gdriver: Calling $gl_class(@$options{qw(width height)} @GL_VERSION_NEEDED)\n" if $PDL::Graphics::TriD::verbose;
-  $this->{_GLObject} = $gl_class->new($options, $this, @GL_VERSION_NEEDED);
-  $this->{_GLObject}->set_window;
+  $this->{Impl} = $gl_class->new($options, $this, @GL_VERSION_NEEDED);
+  $this->{Impl}->set_window;
   print "gdriver: Calling glClearColor...\n" if $PDL::Graphics::TriD::verbose;
   glClearColor(0,0,0,1);
   print "STARTED OPENGL!\n" if $PDL::Graphics::TriD::verbose;
@@ -824,15 +824,15 @@ sub twiddle {
     wpic($this->read_picture(),"PDL_$PDL::Graphics::TriD::offlineindex.jpg");
     return;
   }
-  return if $getout and $dontshow and !$this->{_GLObject}->event_pending;
+  return if $getout and $dontshow and !$this->{Impl}->event_pending;
   $getout //= !($PDL::Graphics::TriD::keeptwiddling && $PDL::Graphics::TriD::keeptwiddling);
   $this->display();
   TWIDLOOP: while (1) {
     print "EVENT!\n" if $PDL::Graphics::TriD::verbose;
     my $hap = 0;
     my $gotev = 0;
-    if ($this->{_GLObject}->event_pending or !$getout) {
-      @e = $this->{_GLObject}->next_event;
+    if ($this->{Impl}->event_pending or !$getout) {
+      @e = $this->{Impl}->next_event;
       $gotev=1;
     }
     print "e= ".join(",",$e[0]//'undef',@e[1..$#e])."\n" if $PDL::Graphics::TriD::verbose;
@@ -868,7 +868,7 @@ sub twiddle {
         }
       }
     }
-    if (!$this->{_GLObject}->event_pending) {
+    if (!$this->{Impl}->event_pending) {
            $this->display if $hap;
            last TWIDLOOP if $getout;
     }
@@ -881,7 +881,7 @@ sub twiddle {
 sub close {
   my ($this, $close_window) = @_;
   print "CLOSE\n" if $PDL::Graphics::TriD::verbose;
-  undef $this->{_GLObject};
+  undef $this->{Impl};
   $PDL::Graphics::TriD::current_window = undef;
 }
 
@@ -892,8 +892,8 @@ use constant TAN => sin(ANGLE)/cos(ANGLE);
 use constant fH => TAN * zNEAR;
 sub display {
   my ($this) = @_;
-  return if !defined($this) or !defined $this->{_GLObject}; # eg global destroy
-  $this->{_GLObject}->set_window; # for multiwindow support
+  return if !defined($this) or !defined $this->{Impl}; # eg global destroy
+  $this->{Impl}->set_window; # for multiwindow support
   print "display: calling glClear()\n" if $PDL::Graphics::TriD::verbose;
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
   for my $vp (@{$this->{_ViewPorts}}) {
@@ -927,7 +927,7 @@ sub display {
       uNormalMatrix => [ Mat3 => [1, 1, $mv->slice('0:2,0:2')->inv->t->list] ],
     });
   }
-  $this->{_GLObject}->swap_buffers;
+  $this->{Impl}->swap_buffers;
   print "display: after SwapBuffers\n" if $PDL::Graphics::TriD::verbose;
 }
 
@@ -1068,7 +1068,7 @@ OO interface to swapping frame buffers
 
 sub swap_buffers {
   my ($this) = @_;
-  die "swap_buffers: got object with inconsistent _GLObject info\n";
+  die "swap_buffers: got object with inconsistent GLObject info\n";
 }
 
 =head2 set_window
