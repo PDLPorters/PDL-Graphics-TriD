@@ -90,13 +90,13 @@ sub get_points {
   my $d = $data->get_points;
   my @ddims = $d->dims; shift @ddims;
   my $p = PDL->zeroes(PDL::float(),3,@ddims);
-  my $pnew;
   for (@{$this->{DataBind}{$name}}) {
-    defined($this->{Axis}{$_->[0]}) or die("Axis not defined: $_->[0]");
+    my ($axisname, $indices) = @$_;
+    my $axis = $this->{Axis}{$axisname} // die "Axis not defined: $axisname";
 # Transform can return the same or a different ndarray.
-    $p = $pnew = $this->{Axis}{$_->[0]}->transform($p,$d,$_->[1]);
+    $p = $axis->transform($p,$d,$indices);
   }
-  $pnew;
+  $p;
 }
 
 sub clear_data {
