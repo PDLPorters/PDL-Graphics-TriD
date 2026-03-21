@@ -117,17 +117,14 @@ sub viewports {
 
 sub _vp_num_fromref {
   my ($this,$vp) = @_;
-  if (! defined $vp) {  
-    $vp = $this->{_CurrentViewPort};
-  } elsif (ref($vp)) {
-    my $cnt=0;
-    foreach (@{$this->{_ViewPorts}}) {
-      last if $vp == $_;
-      $cnt++;
-    }
-    $vp = $cnt;
+  return $this->{_CurrentViewPort} if !defined $vp;
+  return $vp if !ref $vp;
+  my $cnt=0;
+  foreach (@{$this->{_ViewPorts}}) {
+    last if $vp == $_;
+    $cnt++;
   }
-  return $vp;
+  $cnt;
 }
 
 sub delete_viewport {
@@ -138,7 +135,6 @@ sub delete_viewport {
     return;
   }
   $vp = $this->_vp_num_fromref($vp);
-  $this->{_ViewPorts}[$vp] = undef;
   splice(@{$this->{_ViewPorts}},$vp,1);
   if ($vp == $cnt) {
     $this->current_viewport($vp-1);
