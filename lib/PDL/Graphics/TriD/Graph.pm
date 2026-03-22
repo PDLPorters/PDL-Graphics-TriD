@@ -300,11 +300,8 @@ sub finish_scale {
 
 sub transform {
   my($this,$point,$data,$inds) = @_;
+  barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
   my $i = 0;
-  if ($#$inds!=2) {
-    barf("Wrong number of arguments to transform $this\n");
-    exit;
-  }
   my $pio180 = 0.017453292;
   $point->slice("(0)") +=
     0.5+($data->slice("($inds->[0])")-$this->{Center}[0]) /
@@ -395,10 +392,7 @@ sub finish_scale {
 sub transform {
   my($this,$point,$data,$inds) = @_;
   my $i = 0;
-  if ($#$inds!=2) {
-    barf("Wrong number of arguments to transform $this\n");
-    exit;
-  }
+  barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
   my $pio180 = 0.017453292;
   $point->slice("(0)") +=
     0.5+($data->slice("($inds->[0])")-$this->{Center}[0]) /
