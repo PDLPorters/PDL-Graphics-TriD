@@ -110,9 +110,10 @@ sub delete_data {
 }
 
 sub default_axes {
-	my($this) = @_;
-	$this->set_axis(PDL::Graphics::TriD::EuclidAxes->new(),"Euclid3");
-	$this->set_default_axis("Euclid3",[0,1,2]);
+  my ($this) = @_;
+  return if $this->{Axis}{Euclid3};
+  $this->set_axis(PDL::Graphics::TriD::EuclidAxes->new(),"Euclid3");
+  $this->set_default_axis("Euclid3",[0,1,2]);
 }
 
 sub set_default_axis {
