@@ -113,7 +113,7 @@ use constant { DEFAULT_AXIS=>'Euclid3', DEFAULT_AXIS_CLASS=>'PDL::Graphics::TriD
 sub default_axes {
   my ($this) = @_;
   return if $this->{Axis}{DEFAULT_AXIS()};
-  $this->set_axis(PDL::Graphics::TriD::EuclidAxes->new(),DEFAULT_AXIS);
+  $this->set_axis(DEFAULT_AXIS_CLASS->new(),DEFAULT_AXIS);
   $this->set_default_axis(DEFAULT_AXIS,DEFAULT_INDICES);
 }
 
