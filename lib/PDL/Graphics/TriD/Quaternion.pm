@@ -136,8 +136,8 @@ sub as_matrix {
   my ($this) = @_;
   my ($rot, $vec) = map PDL->pdl(PDL::float, $_), $this->[0], [@$this[1..3]];
   $rot->inplace->acos; $rot *= 2;
-  $vec = $vec->norm;
-  my $uuT = $vec->t * $vec;
+  $vec->inplace->norm;
+  my $uuT = $vec->outer($vec);
   my ($cos, $sin) = map $rot->$_, qw(cos sin);
   my ($x, $y, $z) = $vec->list;
   my $S = PDL->pdl(PDL::float,

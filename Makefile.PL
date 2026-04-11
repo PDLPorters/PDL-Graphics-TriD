@@ -13,10 +13,10 @@ WriteMakefile (
   VERSION_FROM => 'lib/PDL/Graphics/TriD.pm',
   CONFIGURE_REQUIRES => {
     'ExtUtils::MakeMaker' => '7.72',
-    'PDL' => '2.103',
+    'PDL' => '2.104',
   },
   PREREQ_PM => {
-    'PDL' => '2.103', # allaxislinvals, fixed *linvals
+    'PDL' => '2.104', # inplace norm
     'OpenGL::Modern' => '0.0403',
     'OpenGL::GLFW' => '0.0402',
   },
