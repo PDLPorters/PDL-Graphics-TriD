@@ -203,6 +203,8 @@ package PDL::Graphics::TriD::CylindricalEquidistantAxes;
 use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/Name Scale/;
 use PDL::Core '';
+use PDL::Constants qw(DEGRAD);
+use constant DEG2RAD => 1/DEGRAD;
 
 sub new {
   my ($type) = @_;
@@ -305,11 +307,10 @@ sub transform {
   PDL::barf "no \$inds given" if !defined $inds;
   barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
   my $i = 0;
-  my $pio180 = 0.017453292;
   $point->slice("(0)") +=
     0.5+($data->slice("($inds->[0])")-$this->{Center}[0]) /
       ($this->{Scale}[0][1] - $this->{Scale}[0][0])
-	*cos($data->slice("($inds->[1])")*$pio180);
+	*cos($data->slice("($inds->[1])")*DEG2RAD);
   $point->slice("(1)") +=
     0.5+($data->slice("($inds->[1])")-$this->{Center}[1]) /
       ($this->{Scale}[1][1] - $this->{Scale}[1][0]);
@@ -320,6 +321,8 @@ sub transform {
 
 package PDL::Graphics::TriD::PolarStereoAxes;
 use PDL::Core '';
+use PDL::Constants qw(DEGRAD);
+use constant DEG2RAD => 1/DEGRAD;
 
 sub new {
   my ($type) = @_;
@@ -398,15 +401,14 @@ sub transform {
   PDL::barf "no \$inds given" if !defined $inds;
   my $i = 0;
   barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
-  my $pio180 = 0.017453292;
   $point->slice("(0)") +=
     0.5+($data->slice("($inds->[0])")-$this->{Center}[0]) /
       ($this->{Scale}[0][1] - $this->{Scale}[0][0])
-	*cos($data->slice("($inds->[1])")*$pio180);
+	*cos($data->slice("($inds->[1])")*DEG2RAD);
   $point->slice("(1)") +=
     0.5+($data->slice("($inds->[1])")-$this->{Center}[1]) /
       ($this->{Scale}[1][1] - $this->{Scale}[1][0])
-	*cos($data->slice("($inds->[1])")*$pio180);
+	*cos($data->slice("($inds->[1])")*DEG2RAD);
 # Longitude transformation
 #  $point->slice("(0)") =
 #    ($this->{Center}[0]-$point->slice("(0)"))*cos($data->slice("(1)"));
