@@ -110,12 +110,14 @@ sub delete_data {
   $this->changed;
 }
 
-use constant { DEFAULT_AXIS=>'Euclid3', DEFAULT_AXIS_CLASS=>'PDL::Graphics::TriD::EuclidAxes', DEFAULT_INDICES=>[0,1,2] };
+our $default_axis = 'Euclid3';
+our $default_axis_class = 'PDL::Graphics::TriD::EuclidAxes';
+our $default_indices = [0,1,2];
 sub default_axes {
   my ($this) = @_;
-  return if $this->{Axis}{DEFAULT_AXIS()};
-  $this->set_axis(DEFAULT_AXIS_CLASS->new(),DEFAULT_AXIS);
-  $this->set_default_axis(DEFAULT_AXIS,DEFAULT_INDICES);
+  return if $this->{Axis}{$default_axis};
+  $this->set_axis($default_axis_class->new(), $default_axis);
+  $this->set_default_axis($default_axis, $default_indices);
 }
 
 sub set_default_axis {
@@ -195,12 +197,8 @@ sub transform {
 }
 
 # projects from the sphere to a cylinder, with x & y in degrees, z = value
-# to try: set axis class on line 'Euclid3' to this
-# use PDL; use PDL::Graphics::TriD;
-# $size = 160;
-# $x = (xvals($size+1,$size+1) - $size/2);
-# $y = (yvals($size+1,$size+1) - $size/2);
-# $z = $x->random * 100 + 800; points3d [$x,$y,$z];
+# to try:
+# make && perl -Mblib -MPDL -MPDL::Graphics::TriD -e '$PDL::Graphics::TriD::Graph::default_axis_class = "PDL::Graphics::TriD::CylindricalEquidistantAxes"; spheres3d pdl("-80 -80 800; 80 80 900")'
 package PDL::Graphics::TriD::CylindricalEquidistantAxes;
 use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/Name Scale/;
