@@ -26,6 +26,7 @@ use strict;
 use warnings;
 use base qw/PDL::Graphics::TriD::Object/;
 use PDL::LiteF; # XXX F needed?
+use PDL::Graphics::TriD::Objects; # axes use Lines etc
 
 use fields qw(Data DataBind UnBound DefaultAxes DefaultAxisName Axis );
 
