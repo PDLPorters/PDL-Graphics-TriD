@@ -187,6 +187,7 @@ sub finish_scale {
 # Add 0..1 to each axis.
 sub transform {
   my ($this,$point,$data,$inds) = @_;
+  PDL::barf "no \$inds given" if !defined $inds;
   my ($min, $max) = map $this->{Scale}->slice("0:$#$inds,$_"), 0, 1;
   $point->slice("0:$#$inds") +=
     ($data->dice_axis(0, $inds) - $min) / ($max - $min);
@@ -303,6 +304,7 @@ sub finish_scale {
 
 sub transform {
   my ($this,$point,$data,$inds) = @_;
+  PDL::barf "no \$inds given" if !defined $inds;
   barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
   my $i = 0;
   my $pio180 = 0.017453292;
@@ -395,6 +397,7 @@ sub finish_scale {
 
 sub transform {
   my ($this,$point,$data,$inds) = @_;
+  PDL::barf "no \$inds given" if !defined $inds;
   my $i = 0;
   barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
   my $pio180 = 0.017453292;
