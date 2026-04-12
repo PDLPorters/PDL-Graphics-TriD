@@ -35,8 +35,48 @@ sub normalise_as {
     die "Given 1D ndarray as colour but no points to match" if !defined $points;
     return $this->cdummies($what->float,$points);
   }
-  return PDL::Graphics::TriD::realcoords($as, $what) if !defined $points or defined $what;
+  return realcoords($as, $what) if !defined $points or defined $what;
   $this->cdummies(PDL->pdl(PDL::float(),1,1,1),$points);
+}
+
+# Allowable forms:
+# x(3,..)  [x(..),y(..),z(..)]
+sub realcoords {
+  my($type,$c) = @_;
+  if (ref $c ne "ARRAY") {
+    my $dim0 = $c->getdim(0);
+    confess "If one ndarray given for coordinate, must be (2|3,...) or have default interpretation" if $dim0 != 2 and $dim0 != 3;
+    return $c->float;
+  }
+  my @c = @$c;
+  if (!ref $c[0]) {$type = shift @c}
+  confess "Must have 1..3 array members for coordinates" if !@c || @c>3;
+  if (@c == 1 and $type eq "SURF2D") {
+    # surf2d -> this is z axis
+    @c = ($c[0]->xvals,$c[0]->yvals,$c[0]);
+  } elsif (@c == 1 and $type eq "POLAR2D") {
+    my $t = 6.283 * $c[0]->xvals / ($c[0]->getdim(0)-1);
+    my $r = $c[0]->yvals / ($c[0]->getdim(1)-1);
+    @c = ($r * sin($t), $r * cos($t), $c[0]);
+  } elsif (@c == 1 and $type eq "COLOR") {
+    # color -> 1 ndarray = grayscale
+    @c = @c[0,0,0];
+  } elsif (@c == 1 and $type eq "LINE") {
+    @c = ($c[0]->xvals, $c[0], 0);
+  } elsif (@c == 2 and $type eq "LINE") {
+    @c = (@c[0,1], $c[0]->xvals);
+  }
+  # XXX
+  confess "Must have 3 coordinates if no interpretation (here '$type')" if @c != 3;
+  # allow a constant (either pdl or not) to be introduced in one dimension
+  foreach(0..2) {
+    if (ref($c[$_]) ne "PDL" or $c[$_]->nelem==1) {
+      $c[$_] = $c[$_]*(PDL->ones($c[($_+1)%3]->dims));
+    }
+  }
+  my $g = PDL::ImageND::combcoords(@c);
+  $g->dump if $PDL::Graphics::TriD::verbose;
+  $g;
 }
 
 sub check_options {
