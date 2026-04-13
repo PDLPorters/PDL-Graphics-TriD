@@ -134,6 +134,7 @@ sub rotate {
 
 sub as_matrix {
   my ($this) = @_;
+  $this->normalise;
   my ($rot, $vec) = map PDL->pdl(PDL::float, $_), $this->[0], [@$this[1..3]];
   $rot->inplace->acos; $rot *= 2;
   $vec->inplace->norm;
