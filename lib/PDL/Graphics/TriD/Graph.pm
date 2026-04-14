@@ -227,7 +227,8 @@ sub add_lattice_axis {
   $this->add_object($this->{LatticeObj} = PDL::Graphics::TriD::Lattice->new($tverts, {Shading=>0}));
 }
 
-# projects from the sphere to a cylinder, with x & y in degrees, z = value
+# Is actually a Sinusoidal projection despite name
+# x & y in degrees, z = value
 # to try:
 # make && perl -Mblib -MPDL -MPDL::Graphics::TriD -e '$PDL::Graphics::TriD::Graph::default_axis_class = "PDL::Graphics::TriD::CylindricalEquidistantAxes"; spheres3d pdl("-80 -80 800; 80 80 900")'
 package PDL::Graphics::TriD::CylindricalEquidistantAxes;
@@ -327,6 +328,7 @@ sub transform {
   $point;
 }
 
+# Despite name (which is like the UN map), is actually Spherical or Orthographic-style projection
 # try this:
 # make && perl -Mblib -MPDL -MPDL::Graphics::TriD -e '$PDL::Graphics::TriD::Graph::default_axis_class = "PDL::Graphics::TriD::PolarStereoAxes"; spheres3d pdl("-80 -80 800; 80 80 900")'
 package PDL::Graphics::TriD::PolarStereoAxes;
