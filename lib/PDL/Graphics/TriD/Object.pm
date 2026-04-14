@@ -102,13 +102,10 @@ sub clear_objects {
 
 sub delete_object {
   my($this,$object) = @_;
-  return unless(defined $object && defined $this->{Objects});
-  for (0..$#{$this->{Objects}}) {
-    if ($object == $this->{Objects}[$_]) {
-      splice(@{$this->{Objects}},$_,1);
-      redo;
-    }
-  }
+  my $ref = $this->{Objects};
+  return unless defined $object && defined $ref;
+  my @inds = grep $object == $ref->[$_], 0..$#$ref;
+  splice @$ref, $_, 1 for reverse @inds;
 }
 
 sub add_object {

@@ -32,12 +32,9 @@ sub graph {
 sub delete_graph {
   my ($this,$graph) = @_;
   $this->delete_object($graph);
-  for (0..$#{$this->{Graphs}}) {
-    if ($graph == $this->{Graphs}[$_]) {
-      splice @{$this->{Graphs}},$_,1;
-      redo;
-    }
-  }
+  my $ref = $this->{Graphs};
+  my @inds = grep $graph == $ref->[$_], 0..$#$ref;
+  splice @$ref, $_, 1 for reverse @inds;
 }
 
 sub resize {
