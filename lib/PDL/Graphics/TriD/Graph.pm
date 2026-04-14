@@ -201,7 +201,7 @@ sub transform {
 # make && perl -Mblib -MPDL -MPDL::Graphics::TriD -e '$PDL::Graphics::TriD::Graph::default_axis_class = "PDL::Graphics::TriD::CylindricalEquidistantAxes"; spheres3d pdl("-80 -80 800; 80 80 900")'
 package PDL::Graphics::TriD::CylindricalEquidistantAxes;
 use base qw/PDL::Graphics::TriD::Object/;
-use fields qw/Name Scale/;
+use fields qw(Names Scale LatticeObj);
 use PDL::Core '';
 use PDL::Constants qw(DEGRAD);
 use constant DEG2RAD => 1/DEGRAD;
@@ -299,7 +299,8 @@ sub finish_scale {
   $verts->slice("1")->inplace->zlinvals($nc[1],$nc[1]+$nadd[1]*($ns[1]-1));
   my $tverts = PDL->zeroes(PDL::float(),3,$ns[0],$ns[1]);
   $tverts = $this->transform($tverts,$verts,[0,1,2]);
-  $this->add_object(PDL::Graphics::TriD::Lattice->new($tverts, {Shading=>0}));
+  $this->delete_object($this->{LatticeObj}) if $this->{LatticeObj};
+  $this->add_object($this->{LatticeObj} = PDL::Graphics::TriD::Lattice->new($tverts, {Shading=>0}));
 }
 
 sub transform {
