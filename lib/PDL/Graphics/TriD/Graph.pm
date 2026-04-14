@@ -46,7 +46,7 @@ sub add_dataseries {
     $this->add_object($data);
   }
   $this->changed if !$no_changed;
-  return $name;
+  $name;
 }
 
 sub bind_data {
@@ -193,7 +193,7 @@ sub transform {
   my ($min, $max) = map $this->{Scale}->slice("0:$#$inds,$_"), 0, 1;
   $point->slice("0:$#$inds") +=
     ($data->dice_axis(0, $inds) - $min) / ($max - $min);
-  return $point;
+  $point;
 }
 
 # projects from the sphere to a cylinder, with x & y in degrees, z = value
@@ -306,7 +306,6 @@ sub transform {
   my ($this,$point,$data,$inds) = @_;
   PDL::barf "no \$inds given" if !defined $inds;
   barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
-  my $i = 0;
   $point->slice("(0)") +=
     0.5+($data->slice("($inds->[0])")-$this->{Center}[0]) /
       ($this->{Scale}[0][1] - $this->{Scale}[0][0])
@@ -316,7 +315,7 @@ sub transform {
       ($this->{Scale}[1][1] - $this->{Scale}[1][0]);
   $point->slice("(2)") .=
     log($data->slice("($inds->[2])")/1012.5)/log($this->{Scale}[2][1]/1012.5);
-  return $point;
+  $point;
 }
 
 package PDL::Graphics::TriD::PolarStereoAxes;
@@ -419,7 +418,7 @@ sub transform {
 #  -7.2*log($data->slice("(2)")/1012.5
   $point->slice("(2)") .=
     log($data->slice("($inds->[2])")/1012.5)/log($this->{Scale}[2][1]/1012.5);
-  return $point;
+  $point;
 }
 
 1;
