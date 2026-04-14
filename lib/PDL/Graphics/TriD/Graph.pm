@@ -327,7 +327,11 @@ sub transform {
   $point;
 }
 
+# try this:
+# make && perl -Mblib -MPDL -MPDL::Graphics::TriD -e '$PDL::Graphics::TriD::Graph::default_axis_class = "PDL::Graphics::TriD::PolarStereoAxes"; spheres3d pdl("-80 -80 800; 80 80 900")'
 package PDL::Graphics::TriD::PolarStereoAxes;
+use base qw(PDL::Graphics::TriD::LatticeAxes);
+use fields qw(Names Scale);
 use PDL::Core '';
 use PDL::Constants qw(DEGRAD);
 use constant DEG2RAD => 1/DEGRAD;
@@ -402,6 +406,7 @@ sub finish_scale {
     $this->{Scale}[1][0] -= (90-$dist[1])/2;
     $this->{Scale}[1][1] += (90-$dist[1])/2;
   }
+  $this->add_lattice_axis;
 }
 
 sub transform {
