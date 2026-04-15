@@ -5,8 +5,6 @@
 # Should probably use PDL and C... ?
 #
 # Stored as [c,x,y,z].
-#
-# XXX REMEMBER!!!! First component = cos(angle/2), *NOT* cos(angle)
 
 package PDL::Graphics::TriD::Quaternion;
 

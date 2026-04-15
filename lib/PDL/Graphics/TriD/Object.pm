@@ -67,14 +67,7 @@ sub realcoords {
   } elsif (@c == 2 and $type eq "LINE") {
     @c = (@c[0,1], $c[0]->xvals);
   }
-  # XXX
   confess "Must have 3 coordinates if no interpretation (here '$type')" if @c != 3;
-  # allow a constant (either pdl or not) to be introduced in one dimension
-  foreach(0..2) {
-    if (ref($c[$_]) ne "PDL" or $c[$_]->nelem==1) {
-      $c[$_] = $c[$_]*(PDL->ones($c[($_+1)%3]->dims));
-    }
-  }
   my $g = PDL::ImageND::combcoords(@c);
   $g->dump if $PDL::Graphics::TriD::verbose;
   $g;

@@ -899,7 +899,6 @@ sub PDL::contour3d {
   graph_object(PDL::Graphics::TriD::Contours->new(@_));
 }
 
-# XXX Should enable different positioning...
 *imagrgb3d=*imagrgb3d=\&PDL::imagrgb3d;
 sub PDL::imagrgb3d { &checkargs;
   require PDL::Graphics::TriD::Image;
