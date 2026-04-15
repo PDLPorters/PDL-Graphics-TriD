@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Scalar::Util qw(weaken);
 use Carp 'confess';
+use PDL::ImageND;
 
 use fields qw(Objects IsValid ChangedSub Impl Options);
 

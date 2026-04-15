@@ -41,5 +41,6 @@ MANIFEST			This list of files
 MANIFEST.SKIP
 t/arcball.t
 t/graph.t
+t/object.t
 t/objects.t
 t/quaternion.t
