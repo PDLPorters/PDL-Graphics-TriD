@@ -182,8 +182,8 @@ sub finish_scale {
   my ($min_big, $max_big, $shift) = map $_->dice_axis(0, $got_bigdiff), $min, $max, $diff;
   $shift = $shift * 0.05; # don't mutate
   $min_big -= $shift, $max_big += $shift;
-  my $axisvals = ylinvals(PDL::float(),$this->{Scale}->dog,3,$this->{NDiv}+1)->t->flat->t;
-  $this->{AxisLabelsObj}->set_labels([map sprintf("%.3f", $_), @{ $axisvals->flat->unpdl }]);
+  my $axisvals = ylinvals(PDL::float(),$this->{Scale}->dog,3,$this->{NDiv}+1);
+  $this->{AxisLabelsObj}->set_labels([map sprintf("%.3f", $_), $axisvals->t->list]);
 }
 
 # Add 0..1 to each axis.
