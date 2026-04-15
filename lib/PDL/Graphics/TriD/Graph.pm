@@ -128,9 +128,23 @@ sub set_default_axis {
 
 sub changed {}
 
-package PDL::Graphics::TriD::EuclidAxes;
+package PDL::Graphics::TriD::AxesBase;
 use base qw/PDL::Graphics::TriD::Object/;
-use fields qw/NDiv Scale AxisLabelsObj/;
+sub normalise_scale { # Normalize the smallest differences away.
+  my ($this) = @_;
+  my ($min, $max) = $this->{Scale}->dog;
+  my $diff = $max - $min;
+  my ($got_smalldiff, $got_bigdiff) = PDL::which_both(abs($diff) < 1e-6);
+  $max->dice_axis(0, $got_smalldiff) .= $min->dice_axis(0, $got_smalldiff) + 1;
+  my ($min_big, $max_big, $shift) = map $_->dice_axis(0, $got_bigdiff), $min, $max, $diff;
+  $shift = $shift * 0.05; # don't mutate
+  $min_big -= $shift, $max_big += $shift;
+  ($min, $max);
+}
+
+package PDL::Graphics::TriD::EuclidAxes;
+use base qw(PDL::Graphics::TriD::AxesBase);
+use fields qw(NDiv Scale AxisLabelsObj);
 use PDL;
 
 sub get_valid_options { +{
@@ -174,15 +188,8 @@ sub add_scale {
 
 sub finish_scale {
   my ($this) = @_;
-# Normalize the smallest differences away.
-  my ($min, $max) = $this->{Scale}->dog;
-  my $diff = $max - $min;
-  my ($got_smalldiff, $got_bigdiff) = PDL::which_both(abs($diff) < 1e-6);
-  $max->dice_axis(0, $got_smalldiff) .= $min->dice_axis(0, $got_smalldiff) + 1;
-  my ($min_big, $max_big, $shift) = map $_->dice_axis(0, $got_bigdiff), $min, $max, $diff;
-  $shift = $shift * 0.05; # don't mutate
-  $min_big -= $shift, $max_big += $shift;
-  my $axisvals = ylinvals(PDL::float(),$this->{Scale}->dog,3,$this->{NDiv}+1);
+  my ($min, $max) = $this->normalise_scale;
+  my $axisvals = ylinvals(PDL::float(),$min,$max,3,$this->{NDiv}+1);
   $this->{AxisLabelsObj}->set_labels([map sprintf("%.3f", $_), $axisvals->t->list]);
 }
 
