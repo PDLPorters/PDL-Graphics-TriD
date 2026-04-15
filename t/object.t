@@ -26,6 +26,12 @@ is_pdl $o->normalise_as('', [SURF2D=>pdl('1 4 7;5 8 9')]), float('
 is_pdl $o->normalise_as('', [LINE=>pdl('1 4 7'), pdl('5 8 9')]), float('
   1 5 0; 4 8 1; 7 9 2
 ');
+is_pdl $o->normalise_as('', [LINE=>pdl('1 4 7'), pdl('5')]), float('
+  1 5 0; 4 5 1; 7 5 2
+');
+is_pdl $o->normalise_as('', [LINE=>pdl('1 4 7'), 5]), float('
+  1 5 0; 4 5 1; 7 5 2
+');
 is_pdl $o->normalise_as('', [LINE=>pdl('1 4 7')]), float('
   0 1 0; 1 4 0; 2 7 0
 ');
