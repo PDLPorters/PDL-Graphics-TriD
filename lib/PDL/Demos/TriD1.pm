@@ -11,8 +11,8 @@ require File::Spec;
 my @f = qw(PDL IO STL owl.stl);
 our $owlfile = undef;
 foreach my $path ( @INC ) {
-    my $file = File::Spec->catfile( $path, @f );
-    if ( -f $file ) { $owlfile = $file; last; }
+  my $file = File::Spec->catfile( $path, @f );
+  if ( -f $file ) { $owlfile = $file; last; }
 }
 
 sub info {('3d', '3d demo (requires TriD with OpenGL or Mesa)')}
@@ -22,204 +22,202 @@ use PDL::Graphics::TriD;
 
 my @demo = (
 [comment => q|
-	Welcome to a short tour of the capabilities of
-	PDL::Graphics::TriD.
+Welcome to a short tour of the capabilities of
+PDL::Graphics::TriD.
 
-	Press 'q' in the graphics window for the next screen.
-	Rotate the image by pressing mouse button one and
-	dragging in the graphics window.
-	Zoom in/out by pressing MB3 and drag up/down.
-	Note that a standalone TriD script must start with
+Press 'q' in the graphics window for the next screen.
+Rotate the image by pressing mouse button one and
+dragging in the graphics window.
+Zoom in/out by pressing MB3 and drag up/down.
+Note that a standalone TriD script must start with
 
-		use PDL;
-		use PDL::Graphics::TriD;
+  use PDL;
+  use PDL::Graphics::TriD;
 
-	to work properly.
+to work properly.
 |],
 
 [actnw => q|
-	# See if we had a 3D window open already
-	$|.__PACKAGE__.q|::we_opened = !defined $PDL::Graphics::TriD::current_window;
-	$vertices = pdl([ [0,0,-1], [1,0,-1], [0.5,1,-1], [0.5,0.5,0] ]);
-	$faceidx = pdl([ [0,2,1], [0,1,3], [0,3,2], [1,2,3] ]);
-	# show the vertex and face normal vectors on a triangular grid
-	trigrid3d($vertices,$faceidx,{ShowNormals=>1});
-	# [press 'q' in the graphics window when done]
+# See if we had a 3D window open already
+$|.__PACKAGE__.q|::we_opened = !defined $PDL::Graphics::TriD::current_window;
+$vertices = pdl([ [0,0,-1], [1,0,-1], [0.5,1,-1], [0.5,0.5,0] ]);
+$faceidx = pdl([ [0,2,1], [0,1,3], [0,3,2], [1,2,3] ]);
+# show the vertex and face normal vectors on a triangular grid
+trigrid3d($vertices,$faceidx,{ShowNormals=>1});
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	# Show a PDL logo
-	use PDL::Constants qw(PI);
-	require PDL::Graphics::TriD::Logo;
-	$vertices = $PDL::Graphics::TriD::Logo::POINTS;
-	$faceidx = $PDL::Graphics::TriD::Logo::FACES;
-	$rotate_m = pdl [1,0,0],[0,0,1],[0,-1,0]; # top towards X axis
-	$c22 = cos(PI/8); $s22 = sin(PI/8);
-	$rot22 = pdl [$c22,$s22,0],[-$s22,$c22,0],[0,0,1]; # +22deg about vert
-	$vertices = ($vertices x $rotate_m x $rot22);
-	trigrid3d($vertices,$faceidx,{Smooth=>0});
-	# [press 'q' in the graphics window when done]
+# Show a PDL logo
+use PDL::Constants qw(PI);
+require PDL::Graphics::TriD::Logo;
+$vertices = $PDL::Graphics::TriD::Logo::POINTS;
+$faceidx = $PDL::Graphics::TriD::Logo::FACES;
+$rotate_m = pdl [1,0,0],[0,0,1],[0,-1,0]; # top towards X axis
+$c22 = cos(PI/8); $s22 = sin(PI/8);
+$rot22 = pdl [$c22,$s22,0],[-$s22,$c22,0],[0,0,1]; # +22deg about vert
+$vertices = ($vertices x $rotate_m x $rot22);
+trigrid3d($vertices,$faceidx,{Smooth=>0});
+# [press 'q' in the graphics window when done]
 |],
 
 (!defined $owlfile ? () : [actnw => q|
-	# Show an owl loaded from an STL file
-	use PDL::IO::STL;
-	($vertices, $faceidx) = rstl $|.__PACKAGE__.q|::owlfile;
-	trigrid3d($vertices,$faceidx,{Smooth=>0});
-	# [press 'q' in the graphics window when done]
+# Show an owl loaded from an STL file
+use PDL::IO::STL;
+($vertices, $faceidx) = rstl $|.__PACKAGE__.q|::owlfile;
+trigrid3d($vertices,$faceidx,{Smooth=>0});
+# [press 'q' in the graphics window when done]
 |]),
 
 [actnw => q|
-	# Number of subdivisions for lines / surfaces.
-	$size = 25;
-	$cz = (xvals $size+1) / $size;  # interval 0..1
-	$cx = sin($cz*12.6);	# Corkscrew
-	$cy = cos($cz*12.6);
-	line3d [$cx,$cy,$cz];	# Draw a line
-	# [press 'q' in the graphics window when done]
+# Number of subdivisions for lines / surfaces.
+$size = 25;
+$cz = (xvals $size+1) / $size;  # interval 0..1
+$cx = sin($cz*12.6);	# Corkscrew
+$cy = cos($cz*12.6);
+line3d [$cx,$cy,$cz];	# Draw a line
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	$r = sin($cz*6.3)/2 + 0.5;
-	$g = cos($cz*6.3)/2 + 0.5;
-	$b = $cz;
-	line3d [$cx,$cy,$cz], [$r,$g,$b];    # Draw a colored line
-	# [press 'q' in the graphics window when done]
+$r = sin($cz*6.3)/2 + 0.5;
+$g = cos($cz*6.3)/2 + 0.5;
+$b = $cz;
+line3d [$cx,$cy,$cz], [$r,$g,$b];    # Draw a colored line
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	$x = (xvals $size+1,$size+1) / $size;
-	$y = (yvals $size+1,$size+1) / $size;
-	$z = 0.5 + 0.5 * (sin($x*6.3) * sin($y*6.3)) ** 3;   # Bumps
-	line3d [$x,$y,$z];	# Draw several lines
-	# [press 'q' in the graphics window when done]
+$x = (xvals $size+1,$size+1) / $size;
+$y = (yvals $size+1,$size+1) / $size;
+$z = 0.5 + 0.5 * (sin($x*6.3) * sin($y*6.3)) ** 3;   # Bumps
+line3d [$x,$y,$z];	# Draw several lines
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	$r = $x;
-	$g = $y;
-	$b = $z;
-	line3d [$x,$y,$z], [$r,$g,$b];	# Draw several colored lines
-	# [press 'q' in the graphics window when done]
+$r = $x;
+$g = $y;
+$b = $z;
+line3d [$x,$y,$z], [$r,$g,$b];	# Draw several colored lines
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	lattice3d [$x,$y,$z], [$r,$g,$b];  # Draw a colored lattice
-	# [press 'q' in the graphics window when done]
+lattice3d [$x,$y,$z], [$r,$g,$b];  # Draw a colored lattice
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	points3d [$x,$y,$z], [$r,$g,$b], {PointSize=>4};  # Draw colored points
-	# [press 'q' in the graphics window when done]
+points3d [$x,$y,$z], [$r,$g,$b], {PointSize=>4};  # Draw colored points
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	imag3d_ns [$x,$y,$z], [$r,$g,$b];  # Draw a colored surface
-	# [press 'q' in the graphics window when done]
+imag3d_ns [$x,$y,$z], [$r,$g,$b];  # Draw a colored surface
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	imag3d [$x,$y,$z]; # Draw a shaded surface
-	# [press 'q' in the graphics window when done]
+imag3d [$x,$y,$z]; # Draw a shaded surface
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	# Draw a shaded, coloured, unsmoothed (default is on) surface
-	imag3d [$x,$y,$z], [$x,$y,$z], { Smooth => 0 };
-	# [press 'q' in the graphics window when done]
+# Draw a shaded, coloured, unsmoothed (default is on) surface
+imag3d [$x,$y,$z], [$x,$y,$z], { Smooth => 0 };
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	# Draw a shaded, coloured, smoothed (the default) surface
-	imag3d [$x,$y,$z], [$x,$y,$z];
-	# [press 'q' in the graphics window when done]
+# Draw a shaded, coloured, smoothed (the default) surface
+imag3d [$x,$y,$z], [$x,$y,$z];
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	hold3d();	# Leave the previous object in..
-	imag3d_ns [$x,$y,$z+1], [$r,$g,$b];
-			# ...and draw a colored surface on top of it...
-	# [press 'q' in the graphics window when done]
+hold3d();	# Leave the previous object in..
+imag3d_ns [$x,$y,$z+1], [$r,$g,$b];
+		# ...and draw a colored surface on top of it...
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	lattice3d [$x,$y,$z-1], [$r,$g,$b];
-			# ...and draw a colored lattice under it...
-	# [press 'q' in the graphics window when done]
+lattice3d [$x,$y,$z-1], [$r,$g,$b];
+		# ...and draw a colored lattice under it...
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	contour3d($z, [$x,$y,$z-1], {Labels=>[1,15]});
-			# ...and draw contours on that
-	# [press 'q' in the graphics window when done]
+contour3d($z, [$x,$y,$z-1], {Labels=>[1,15]}); # ...and draw contours on that
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	nokeeptwiddling3d(); # Don't wait for user while drawing
-	for (-2,-1,0,1,2) {
-		line3d [$cx,$cy,$cz+$_]; # ... and corkscrews...
-	}
-	keeptwiddling3d();   # Do wait for user while drawing...
-	twiddle3d();	     # and actually, wait right now.
-	release3d();
-	# [press 'q' in the graphics window when done]
+nokeeptwiddling3d(); # Don't wait for user while drawing
+for (-2,-1,0,1,2) {
+  line3d [$cx,$cy,$cz+$_]; # ... and corkscrews...
+}
+keeptwiddling3d();   # Do wait for user while drawing...
+twiddle3d();	     # and actually, wait right now.
+release3d();
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	# The reason for the [] around $x,$y,$z:
-	# 1. You can give all the coordinates and colors in one ndarray.
-	$c = zeroes 3,$size+1;
-	$colors = $coords = sin((3+3*xvals $c)*yvals $c);
-	line3d $coords, $colors;        # Draw a curved line, colored
-					# (this works also for lattices, etc.)
-	# [press 'q' in the graphics window when done]
+# The reason for the [] around $x,$y,$z:
+# 1. You can give all the coordinates and colors in one ndarray.
+$c = zeroes 3,$size+1;
+$colors = $coords = sin((3+3*xvals $c)*yvals $c);
+line3d $coords, $colors; # Draw a curved line, colored
+                         # (this works also for lattices, etc.)
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	# 2. You can use defaults inside the brackets:
-	lattice3d [$z], [$r];  # Note: no $x, $y, and $r is greyscale
-	# [press 'q' in the graphics window when done]
+# 2. You can use defaults inside the brackets:
+lattice3d [$z], [$r];  # Note: no $x, $y, and $r is greyscale
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-	# 3. You can plot in certain other systems as defaults
-	imag3d_ns [POLAR2D, $z], [$r, $g, $b];  # Draw the familiar
-						# bumpy surface in polar
-						# coordinates
-	# [press 'q' in the graphics window when done]
+# 3. You can plot in certain other systems as defaults
+imag3d_ns [POLAR2D, $z], [$r, $g, $b];  # Draw the familiar
+                                        # bumpy surface in polar coordinates
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
-  # Show graph-evolver
-  use PDL::Graphics::TriD::MathGraph;
-  my @coords = ([0,-1,0], [-1,-1,-2], [3,5,2],
-      [2,1,-3], [1,3,1], [1,1,2]);
-  my $from = PDL->pdl(ulong, [0,1,2,3,4,4,4,5,5,5]);
-  my $to =   PDL->pdl(ulong, [1,2,3,1,0,2,3,0,1,2]);
-  my $fromto = $from->t->append($to->t);
-  my @names = map '  '.join(",",@$_), @coords;
-  # Coords must be float, else will get converted and not flow
-  my $e = PDL::GraphEvolver->new(PDL->pdl(float, @coords));
-  $e->set_links($from,$to,PDL->ones(1));
-  my $c = $e->getcoords;
-  my $graph = PDL::Graphics::TriD::get_new_graph(); # also clears
-  hold3d();
-  nokeeptwiddling3d();
-  my $lab = labels3d($c, \@names);
-  my $lin = arrows3d($c, {FromTo => $fromto});
-  my $sph = spheres3d($c);
-  my $ind = 0;
-  while (1) {
-          $e->step();
-          if (++$ind%2 == 0) {
-                  $_->data_changed for $lab, $lin, $sph;
-                  $graph->scalethings() if (($ind % 200) == 0 or 1);
-                  last if twiddle3d();
-          }
+# Show graph-evolver
+use PDL::Graphics::TriD::MathGraph;
+my @coords = ([0,-1,0], [-1,-1,-2], [3,5,2],
+    [2,1,-3], [1,3,1], [1,1,2]);
+my $from = PDL->pdl(ulong, [0,1,2,3,4,4,4,5,5,5]);
+my $to =   PDL->pdl(ulong, [1,2,3,1,0,2,3,0,1,2]);
+my $fromto = $from->t->append($to->t);
+my @names = map '  '.join(",",@$_), @coords;
+# Coords must be float, else will get converted and not flow
+my $e = PDL::GraphEvolver->new(PDL->pdl(float, @coords));
+$e->set_links($from,$to,PDL->ones(1));
+my $c = $e->getcoords;
+my $graph = PDL::Graphics::TriD::get_new_graph(); # also clears
+hold3d();
+nokeeptwiddling3d();
+my $lab = labels3d($c, \@names);
+my $lin = arrows3d($c, {FromTo => $fromto});
+my $sph = spheres3d($c);
+my $ind = 0;
+while (1) {
+  $e->step();
+  if (++$ind%2 == 0) {
+    $_->data_changed for $lab, $lin, $sph;
+    $graph->scalethings() if (($ind % 200) == 0 or 1);
+    last if twiddle3d();
   }
-  keeptwiddling3d();
-  release3d();
-  # [press 'q' in the graphics window when done]
+}
+keeptwiddling3d();
+release3d();
+# [press 'q' in the graphics window when done]
 |],
 
 [actnw => q|
