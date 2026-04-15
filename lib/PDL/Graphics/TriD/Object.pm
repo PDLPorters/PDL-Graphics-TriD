@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Scalar::Util qw(weaken);
 use Carp 'confess';
-use PDL::ImageND;
+use PDL::ImageND ();
 
 use fields qw(Objects IsValid ChangedSub Impl Options);
 
@@ -43,7 +43,7 @@ sub normalise_as {
 # Allowable forms:
 # x(3,..)  [x(..),y(..),z(..)]
 sub realcoords {
-  my($type,$c) = @_;
+  my ($type,$c) = @_;
   if (ref $c ne "ARRAY") {
     my $dim0 = $c->getdim(0);
     confess "If one ndarray given for coordinate, must be (2|3,...) or have default interpretation" if $dim0 != 2 and $dim0 != 3;
@@ -96,13 +96,13 @@ sub get_valid_options { +{
 }}
 
 sub clear_objects {
-	my($this) = @_;
+	my ($this) = @_;
 	$this->{Objects} = [];
 	$this->{IsValid} = 0;
 }
 
 sub delete_object {
-  my($this,$object) = @_;
+  my ($this,$object) = @_;
   my $ref = $this->{Objects};
   return unless defined $object && defined $ref;
   my @inds = grep $object == $ref->[$_], 0..$#$ref;
@@ -127,13 +127,13 @@ sub contained_objects {
 }
 
 sub changed_from_above {
-	my($this) = @_;
+	my ($this) = @_;
 	print "CHANGED_FROM_ABOVE\n" if $PDL::Graphics::TriD::verbose;
 	$this->changed;
 }
 
 sub add_changedsub {
-	my($this,$chsub) = @_;
+	my ($this,$chsub) = @_;
 	push @{$this->{ChangedSub}}, $chsub;
 	for (@{$this->{Objects}}) {
 		$_->add_changedsub($chsub);
@@ -142,7 +142,7 @@ sub add_changedsub {
 
 
 sub clear {
-	my($this) = @_;
+	my ($this) = @_;
 	# print "Clear: $this\n";
 	for (@{$this->{Objects}}) {
 		$_->clear();
@@ -153,7 +153,7 @@ sub clear {
 }
 
 sub changed {
-  my($this) = @_;
+  my ($this) = @_;
   print "VALID0 $this\n" if $PDL::Graphics::TriD::verbose;
   $this->{IsValid} = 0;
   $_->($this) for @{$this->{ChangedSub}};
@@ -161,7 +161,7 @@ sub changed {
 
 # In the future, have this happen automatically by the ndarrays.
 sub data_changed {
-  my($this) = @_;
+  my ($this) = @_;
   $this->changed;
   $_->changed for $this->contained_objects;
 }

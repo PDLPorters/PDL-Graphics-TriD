@@ -100,7 +100,7 @@ package # hide from PAUSE
   PDL::Graphics::TriD::Lines;
 use base qw/PDL::Graphics::TriD::GObject/;
 sub cdummies { $_[1]->slice(":," . join ',', map "*$_", grep defined, ($_[2]->dims)[1,2]) }
-sub r_type { return "SURF2D";}
+sub r_type { "SURF2D" }
 sub get_valid_options { +{
   UseDefcols => 0,
 }}
@@ -109,7 +109,7 @@ package # hide from PAUSE
   PDL::Graphics::TriD::LineStrip;
 use base qw/PDL::Graphics::TriD::Object/;
 sub cdummies { $_[1]->slice(":," . join ',', map "*$_", grep defined, ($_[2]->dims)[1,2]) }
-sub r_type { return "SURF2D";}
+sub r_type { "SURF2D" }
 sub get_valid_options { +{
   UseDefcols => 0,
 }}
@@ -155,7 +155,7 @@ sub new {
   }
   $this;
 }
-sub r_type { return "";}
+sub r_type { "" }
 sub get_valid_options { +{
   UseDefcols => 0,
   Lines => 0,
@@ -234,7 +234,7 @@ use base qw/PDL::Graphics::TriD::Object/;
 sub cdummies {
   $_[1]->slice(":," . join ',', map "*$_", ($_[2]->dims)[1,2])
 }
-sub r_type {return "SURF2D";}
+sub r_type {"SURF2D" }
 sub get_valid_options { +{
   UseDefcols => 0,
   Lines => 1,
@@ -324,7 +324,7 @@ sub set_labels {
 package # hide from PAUSE
   PDL::Graphics::TriD::Arrows;
 use base qw/PDL::Graphics::TriD::Object/;
-sub r_type { return "";}
+sub r_type { "" }
 sub get_valid_options { +{
   UseDefcols => 0,
   FromTo => [],
