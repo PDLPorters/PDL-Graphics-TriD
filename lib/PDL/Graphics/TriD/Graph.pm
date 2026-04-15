@@ -129,7 +129,7 @@ sub set_default_axis {
 sub changed {}
 
 package PDL::Graphics::TriD::AxesBase;
-use base qw/PDL::Graphics::TriD::Object/;
+use base qw(PDL::Graphics::TriD::Object);
 sub normalise_scale { # Normalize the smallest differences away.
   my ($this) = @_;
   my ($min, $max) = $this->{Scale}->dog;
@@ -141,8 +141,9 @@ sub normalise_scale { # Normalize the smallest differences away.
 
 package PDL::Graphics::TriD::EuclidAxes;
 use base qw(PDL::Graphics::TriD::AxesBase);
-use fields qw(NDiv Scale AxisLabelsObj);
+use fields qw(NDiv Scale AxisLabelsObj Transform);
 use PDL;
+use PDL::Transform;
 
 sub get_valid_options { +{
   NDiv => 4,
@@ -186,17 +187,15 @@ sub add_scale {
 sub finish_scale {
   my ($this) = @_;
   my ($min, $max) = $this->normalise_scale;
+  $this->{Transform} = t_linear(pre => -$min, s => 1/($max - $min));
   my $axisvals = ylinvals(PDL::float(),$min,$max,3,$this->{NDiv}+1);
   $this->{AxisLabelsObj}->set_labels([map sprintf("%.3f", $_), $axisvals->t->list]);
 }
 
-# Add 0..1 to each axis.
 sub transform {
   my ($this,$point,$data,$inds) = @_;
   PDL::barf "no \$inds given" if !defined $inds;
-  my ($min, $max) = map $this->{Scale}->slice("0:$#$inds,$_"), 0, 1;
-  $point->slice("0:$#$inds") +=
-    ($data->dice_axis(0, $inds) - $min) / ($max - $min);
+  $point->slice("0:$#$inds") += $this->{Transform}->apply($data->dice_axis(0, $inds));
   $point;
 }
 
