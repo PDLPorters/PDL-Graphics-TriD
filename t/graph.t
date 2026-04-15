@@ -9,13 +9,13 @@ my $euclid = PDL::Graphics::TriD::EuclidAxes->new;
 $euclid->add_scale(my $points = float('0 0 0; 2 1 1'), my $inds = [0..2]);
 $euclid->finish_scale;
 is_deeply $euclid->{AxisLabelsObj}{Strings}, [qw(
-  -0.100 0.450 1.000 1.550 2.100
-  -0.050 0.225 0.500 0.775 1.050
-  -0.050 0.225 0.500 0.775 1.050
+  0.000 0.500 1.000 1.500 2.000
+  0.000 0.250 0.500 0.750 1.000
+  0.000 0.250 0.500 0.750 1.000
 )]
   or diag explain $euclid->{AxisLabelsObj}{Strings};
 is_pdl $euclid->transform($points->zeroes, $points, $inds), float('
-  0.045454 0.045454 0.045454; 0.954545 0.954545 0.954545
+  0 0 0; 1 1 1
 ');
 
 my $cyl = PDL::Graphics::TriD::CylindricalEquidistantAxes->new;

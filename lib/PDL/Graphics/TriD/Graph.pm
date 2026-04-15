@@ -136,9 +136,6 @@ sub normalise_scale { # Normalize the smallest differences away.
   my $diff = $max - $min;
   my ($got_smalldiff, $got_bigdiff) = PDL::which_both(abs($diff) < 1e-6);
   $max->dice_axis(0, $got_smalldiff) .= $min->dice_axis(0, $got_smalldiff) + 1;
-  my ($min_big, $max_big, $shift) = map $_->dice_axis(0, $got_bigdiff), $min, $max, $diff;
-  $shift = $shift * 0.05; # don't mutate
-  $min_big -= $shift, $max_big += $shift;
   ($min, $max);
 }
 
