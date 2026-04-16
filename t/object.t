@@ -40,5 +40,6 @@ is_pdl $o->normalise_as('', [POLAR2D=>pdl('1 4 7;5 8 9')]), float('
   [0 0 1; 0         0 4;  0        0 7]
   [0 1 5; 0.000092 -1 8; -0.000185 1 9]
 ');
+is_pdl $o->normalise_as('', [POLAR2D=>pdl(1), pdl(4), pdl(7)]), float(1,4,7);
 
 done_testing;
