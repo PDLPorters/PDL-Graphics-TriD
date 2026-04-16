@@ -58,15 +58,15 @@ sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : {};
   my ($type,$points,$colors) = @_;
   my $this = $type->SUPER::new($options);
-  $this->{Points} = $points = $this->normalise_as($type->r_type,$points);
+  (undef, ($this->{Points} = $points)) = $this->normalise_as($type->r_type,$points);
   $this->{Options}{UseDefcols} = 1 if !defined $colors; # for VRML efficiency
-  $this->{Colors} = $this->normalise_as("COLOR",$colors,$points);
+  (undef, $this->{Colors})= $this->normalise_as("COLOR",$colors,$points);
   $this;
 }
 
 sub set_colors {
   my($this,$colors) = @_;
-  $colors = $this->normalise_as("COLOR",$colors) if ref($colors) eq "ARRAY";
+  (undef, $colors) = $this->normalise_as("COLOR",$colors) if ref($colors) eq "ARRAY";
   $this->{Colors} = $colors;
   $this->data_changed;
 }
@@ -117,8 +117,8 @@ sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : {};
   my ($class,$points,$colors) = @_;
   my $this = $class->SUPER::new($options);
-  $points = $this->normalise_as($class->r_type,$points);
-  $colors = $this->normalise_as("COLOR",$colors,$points);
+  (undef, $points) = $this->normalise_as($class->r_type,$points);
+  (undef, $colors) = $this->normalise_as("COLOR",$colors,$points);
   $options = $this->{Options};
   my (undef, $x, $y, @extradims) = $points->dims;
   $y //= 1,
@@ -146,7 +146,7 @@ sub new {
   $less{Shading} = 3 if $options->{Shading};
   $this->add_object(PDL::Graphics::TriD::Triangles->new($points, $faceidx, $colors, \%less));
   if ($options->{Lines}) {
-    $points = $this->normalise_as($type->r_type,$points);
+    (undef, $points) = $this->normalise_as($type->r_type,$points);
     my $f = $faceidx->dim(1);
     my $counts = (PDL->ones(PDL::long, $f) * 3)->flat;
     my $starts = (PDL->sequence(PDL::ulong, $f) * 3)->flat;
@@ -187,7 +187,7 @@ sub new {
   if ($options->{Shading} or $options->{ShowNormals}) {
     my ($fn, $vn) = triangle_normals($this->{Points}, $faceidx);
     if ($options->{ShowNormals}) {
-      $points = $this->normalise_as($type->r_type,$points);
+      (undef, $points) = $this->normalise_as($type->r_type,$points);
       my $faces = $points->dice_axis(1,$idxflat)->splitdim(1,$idx0);
       my $facecentres = $faces->transpose->avgover;
       my $facearrows = $facecentres->append($facecentres + $fn*0.1)->splitdim(0,$idx0)->clump(1,2);
@@ -246,8 +246,8 @@ sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : {};
   my ($class,$points,$colors) = @_;
   my $this = $class->SUPER::new($options);
-  $points = $this->normalise_as($class->r_type,$points);
-  $colors = $this->normalise_as("COLOR",$colors,$points);
+  (undef, $points) = $this->normalise_as($class->r_type,$points);
+  (undef, $colors) = $this->normalise_as("COLOR",$colors,$points);
   $options = $this->{Options};
   my $shading = $options->{Shading};
   my ($tri, $x, $y, @extradims) = $points->dims;
@@ -337,7 +337,7 @@ sub new {
   my $this = $class->SUPER::new($options);
   $options = $this->{Options};
   my ($fromto, $w, $hl) = delete @$options{qw(FromTo ArrowWidth ArrowLen)};
-  $points = $this->normalise_as($class->r_type,$points);
+  (undef, $points) = $this->normalise_as($class->r_type,$points);
   $this->add_object(PDL::Graphics::TriD::Lines->new(
     $points->dice_axis(1,$fromto->flat),
     $colors, $options

@@ -78,7 +78,7 @@ sub new {
   $points //= [$data->xvals,$data->yvals,$data->zvals];
   my $this = $type->SUPER::new($options);
   $options = $this->{Options};
-  $points = $this->normalise_as($type->r_type,$points);
+  (undef, $points) = $this->normalise_as($type->r_type,$points);
 
   my $cvals;
   if (!defined($options->{ContourVals}) || $options->{ContourVals}->isempty) {

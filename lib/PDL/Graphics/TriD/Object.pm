@@ -30,14 +30,14 @@ sub normalise_as {
     die "Given \\[\$x,\$y] as 'COLOR' but \$x is not float(3,x,y)" if @xdims != 3 or $xdims[0] != 3 or $$what->[0]->type ne 'float';
     my @ydims = $$what->[1]->dims;
     die "Given \\[\$x,\$y] as 'COLOR' but \$y is not float(2,...)" if @ydims < 2 or $ydims[0] != 2 or $$what->[1]->type ne 'float';
-    return $what;
+    return ($as, $what);
   }
   if ($as eq "COLOR" and UNIVERSAL::isa($what, 'PDL') and $what->ndims == 1) {
     die "Given 1D ndarray as colour but no points to match" if !defined $points;
-    return $this->cdummies($what->float,$points);
+    return ($as, $this->cdummies($what->float,$points));
   }
   return realcoords($as, $what) if !defined $points or defined $what;
-  $this->cdummies(PDL->pdl(PDL::float(),1,1,1),$points);
+  ($as, $this->cdummies(PDL->pdl(PDL::float(),1,1,1),$points));
 }
 
 my %type2func = (
@@ -66,7 +66,7 @@ sub realcoords {
   if (ref $c ne "ARRAY") {
     my $dim0 = $c->getdim(0);
     confess "If one ndarray given for coordinate, must be (2|3,...) or have default interpretation" if $dim0 != 2 and $dim0 != 3;
-    return $c->float;
+    return ($type, $c->float);
   }
   my @c = @$c;
   if (!ref $c[0]) {$type = shift @c}
@@ -75,7 +75,7 @@ sub realcoords {
   @c = $type2func{$type}->(@c) if $type2func{$type};
   my $g = PDL::ImageND::combcoords(@c);
   $g->dump if $PDL::Graphics::TriD::verbose;
-  $g;
+  ($type, $g);
 }
 
 sub check_options {
