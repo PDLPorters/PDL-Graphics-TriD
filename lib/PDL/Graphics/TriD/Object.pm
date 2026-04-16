@@ -40,8 +40,27 @@ sub normalise_as {
   $this->cdummies(PDL->pdl(PDL::float(),1,1,1),$points);
 }
 
-# Allowable forms:
-# x(3,..)  [x(..),y(..),z(..)]
+my %type2func = (
+  POLAR2D => sub {
+    return @_ if @_ != 1;
+    my $t = 6.283 * $_[0]->xvals / ($_[0]->getdim(0)-1);
+    my $r = $_[0]->yvals / ($_[0]->getdim(1)-1);
+    ($r * sin($t), $r * cos($t), $_[0]);
+  },
+  SURF2D => sub {
+    return @_ if @_ != 1;
+    ($_[0]->xvals,$_[0]->yvals,$_[0]); # surf2d -> this is z axis
+  },
+  COLOR => sub {
+    return @_ if @_ != 1;
+    @_[0,0,0]; # color -> 1 ndarray = grayscale
+  },
+  LINE => sub {
+    return ($_[0]->xvals, $_[0], 0) if @_ == 1;
+    return (@_[0,1], $_[0]->xvals) if @_ == 2;
+    @_;
+  },
+);
 sub realcoords {
   my ($type,$c) = @_;
   if (ref $c ne "ARRAY") {
@@ -52,22 +71,8 @@ sub realcoords {
   my @c = @$c;
   if (!ref $c[0]) {$type = shift @c}
   confess "Must have 1..3 array members for coordinates" if !@c || @c>3;
-  if (@c == 1 and $type eq "SURF2D") {
-    # surf2d -> this is z axis
-    @c = ($c[0]->xvals,$c[0]->yvals,$c[0]);
-  } elsif (@c == 1 and $type eq "POLAR2D") {
-    my $t = 6.283 * $c[0]->xvals / ($c[0]->getdim(0)-1);
-    my $r = $c[0]->yvals / ($c[0]->getdim(1)-1);
-    @c = ($r * sin($t), $r * cos($t), $c[0]);
-  } elsif (@c == 1 and $type eq "COLOR") {
-    # color -> 1 ndarray = grayscale
-    @c = @c[0,0,0];
-  } elsif (@c == 1 and $type eq "LINE") {
-    @c = ($c[0]->xvals, $c[0], 0);
-  } elsif (@c == 2 and $type eq "LINE") {
-    @c = (@c[0,1], $c[0]->xvals);
-  }
-  confess "Must have 3 coordinates if no interpretation (here '$type')" if @c != 3;
+  confess "Must have 3 coordinates if no interpretation (here '$type', known: @{[sort keys %type2func]})" if @c != 3 and !$type2func{$type};
+  @c = $type2func{$type}->(@c) if $type2func{$type};
   my $g = PDL::ImageND::combcoords(@c);
   $g->dump if $PDL::Graphics::TriD::verbose;
   $g;
