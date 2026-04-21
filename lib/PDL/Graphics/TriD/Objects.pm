@@ -58,7 +58,8 @@ sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : {};
   my ($type,$points,$colors) = @_;
   my $this = $type->SUPER::new($options);
-  (undef, ($this->{Points} = $points)) = $this->normalise_as($type->r_type,$points);
+  (undef, $points) = $this->normalise_as($type->r_type,$points);
+  $this->{Points} = $points;
   $this->{Options}{UseDefcols} = 1 if !defined $colors; # for VRML efficiency
   (undef, $this->{Colors})= $this->normalise_as("COLOR",$colors,$points);
   $this;
