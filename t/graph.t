@@ -6,6 +6,7 @@ use PDL::Graphics::TriD::Graph;
 use Test::PDL;
 
 my $euclid = PDL::Graphics::TriD::EuclidAxes->new;
+$euclid->init_scale;
 $euclid->add_scale(my $points = float('0 0 0; 2 1 1'), my $inds = [0..2]);
 $euclid->finish_scale;
 is_deeply $euclid->{AxisLabelsObj}{Strings}, [qw(
@@ -19,6 +20,7 @@ is_pdl $euclid->transform($points->zeroes, $points, $inds), float('
 ');
 
 my $cyl = PDL::Graphics::TriD::CylindricalEquidistantAxes->new;
+$cyl->init_scale;
 $cyl->add_scale(my $points2 = float('-80 -80 800; 80 80 900'), $inds);
 $cyl->finish_scale;
 is_pdl $cyl->transform($points2->zeroes, $points2, $inds), float('
