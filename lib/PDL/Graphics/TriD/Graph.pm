@@ -315,15 +315,17 @@ sub transform {
   my ($this,$point,$data,$inds) = @_;
   PDL::barf "no \$inds given" if !defined $inds;
   barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
+  my ($longrange, $latrange) = map $this->{Scale}[$_][1] - $this->{Scale}[$_][0], 0,1;
+  my $pressure_max = $this->{Scale}[2][1];
   $point->slice("(0)") +=
     0.5+($data->slice("($inds->[0])")-$this->{Center}[0]) /
-      ($this->{Scale}[0][1] - $this->{Scale}[0][0])
+      $longrange
 	*cos($data->slice("($inds->[1])")*DEG2RAD);
   $point->slice("(1)") +=
     0.5+($data->slice("($inds->[1])")-$this->{Center}[1]) /
-      ($this->{Scale}[1][1] - $this->{Scale}[1][0]);
+      $latrange;
   $point->slice("(2)") .=
-    log($data->slice("($inds->[2])")/1012.5)/log($this->{Scale}[2][1]/1012.5);
+    log($data->slice("($inds->[2])")/1012.5)/log($pressure_max/1012.5);
   $point;
 }
 
