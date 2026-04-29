@@ -317,15 +317,16 @@ sub transform {
   barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
   my ($longrange, $latrange) = map $this->{Scale}[$_][1] - $this->{Scale}[$_][0], 0,1;
   my $pressure_max = $this->{Scale}[2][1];
+  $data = $data->dice_axis(0, $inds);
   $point->slice("(0)") +=
-    0.5+($data->slice("($inds->[0])")-$this->{Center}[0]) /
+    0.5+($data->slice("(0)")-$this->{Center}[0]) /
       $longrange
-	*cos($data->slice("($inds->[1])")*DEG2RAD);
+	*cos($data->slice("(1)")*DEG2RAD);
   $point->slice("(1)") +=
-    0.5+($data->slice("($inds->[1])")-$this->{Center}[1]) /
+    0.5+($data->slice("(1)")-$this->{Center}[1]) /
       $latrange;
   $point->slice("(2)") .=
-    log($data->slice("($inds->[2])")/1012.5)/log($pressure_max/1012.5);
+    log($data->slice("(2)")/1012.5)/log($pressure_max/1012.5);
   $point;
 }
 
@@ -417,14 +418,15 @@ sub transform {
   PDL::barf "no \$inds given" if !defined $inds;
   my $i = 0;
   barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
+  $data = $data->dice_axis(0, $inds);
   $point->slice("(0)") +=
-    0.5+($data->slice("($inds->[0])")-$this->{Center}[0]) /
+    0.5+($data->slice("(0)")-$this->{Center}[0]) /
       ($this->{Scale}[0][1] - $this->{Scale}[0][0])
-	*cos($data->slice("($inds->[1])")*DEG2RAD);
+	*cos($data->slice("(1)")*DEG2RAD);
   $point->slice("(1)") +=
-    0.5+($data->slice("($inds->[1])")-$this->{Center}[1]) /
+    0.5+($data->slice("(1)")-$this->{Center}[1]) /
       ($this->{Scale}[1][1] - $this->{Scale}[1][0])
-	*cos($data->slice("($inds->[1])")*DEG2RAD);
+	*cos($data->slice("(1)")*DEG2RAD);
 # Longitude transformation
 #  $point->slice("(0)") =
 #    ($this->{Center}[0]-$point->slice("(0)"))*cos($data->slice("(1)"));
@@ -434,7 +436,7 @@ sub transform {
 # Vertical transformation
 #  -7.2*log($data->slice("(2)")/1012.5
   $point->slice("(2)") .=
-    log($data->slice("($inds->[2])")/1012.5)/log($this->{Scale}[2][1]/1012.5);
+    log($data->slice("(2)")/1012.5)/log($this->{Scale}[2][1]/1012.5);
   $point;
 }
 
