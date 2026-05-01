@@ -27,4 +27,12 @@ is_pdl $cyl->transform($points2->zeroes, $points2, $inds), float('
   0.413176 0 0.101756; 0.586824 1 0.050878
 ');
 
+my $pol = PDL::Graphics::TriD::PolarStereoAxes->new;
+$pol->init_scale;
+$pol->add_scale($points2, $inds);
+$pol->finish_scale;
+is_pdl $pol->transform($points2->zeroes, $points2, $inds), float('
+  0.413176 0.413176 0.101756; 0.586824 0.586824 0.050878
+');
+
 done_testing;
