@@ -347,7 +347,7 @@ sub new {
 
 sub init_scale {
   my ($this) = @_;
-  $this->{Scale} = [];
+  $this->{Scale} = [undef, undef, [100,1012.5]];
 }
 
 sub add_scale {
@@ -362,10 +362,6 @@ sub add_scale {
       if ($max > 89.9999 or $min < -89.9999) {
 	barf "Error in Latitude $max $min\n";
       }
-    }
-    elsif ($i==2) {
-      $max = 1012.5 if $max<1012.5;
-      $min = 100 if $min>100;
     }
     if (!defined $this->{Scale}[$i]) {
       $this->{Scale}[$i] = [$min,$max];
