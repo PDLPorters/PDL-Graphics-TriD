@@ -128,7 +128,8 @@ sub set_default_axis {
 
 sub changed {}
 
-package PDL::Graphics::TriD::AxesBase;
+package # hide from PAUSE
+  PDL::Graphics::TriD::AxesBase;
 use base qw(PDL::Graphics::TriD::Object);
 sub normalise_scale { # Normalize the smallest differences away.
   my ($this) = @_;
@@ -139,7 +140,8 @@ sub normalise_scale { # Normalize the smallest differences away.
   ($min, $max);
 }
 
-package PDL::Graphics::TriD::EuclidAxes;
+package # hide from PAUSE
+  PDL::Graphics::TriD::EuclidAxes;
 use base qw(PDL::Graphics::TriD::AxesBase);
 use fields qw(NDiv Scale AxisLabelsObj Transform);
 use PDL;
@@ -199,7 +201,8 @@ sub transform {
   $point;
 }
 
-package PDL::Graphics::TriD::LatticeAxes;
+package # hide from PAUSE
+  PDL::Graphics::TriD::LatticeAxes;
 use base qw(PDL::Graphics::TriD::Object);
 use fields qw(LatticeObj);
 sub add_lattice_axis {
@@ -235,7 +238,8 @@ sub add_lattice_axis {
 # x & y in degrees, z = value
 # to try:
 # make && perl -Mblib -MPDL -MPDL::Graphics::TriD -e '$PDL::Graphics::TriD::Graph::default_axis_class = "PDL::Graphics::TriD::CylindricalEquidistantAxes"; spheres3d pdl("-80 -80 800; 80 80 900")'
-package PDL::Graphics::TriD::CylindricalEquidistantAxes;
+package # hide from PAUSE
+  PDL::Graphics::TriD::CylindricalEquidistantAxes;
 use base qw(PDL::Graphics::TriD::LatticeAxes);
 use fields qw(Names Scale);
 use PDL::Core '';
@@ -322,7 +326,8 @@ sub transform {
 # Despite name (which is like the UN map), is actually Spherical or Orthographic-style projection
 # try this:
 # make && perl -Mblib -MPDL -MPDL::Graphics::TriD -e '$PDL::Graphics::TriD::Graph::default_axis_class = "PDL::Graphics::TriD::PolarStereoAxes"; spheres3d pdl("-80 -80 800; 80 80 900")'
-package PDL::Graphics::TriD::PolarStereoAxes;
+package # hide from PAUSE
+  PDL::Graphics::TriD::PolarStereoAxes;
 use base qw(PDL::Graphics::TriD::LatticeAxes);
 use fields qw(Names Scale);
 use PDL::Core '';
