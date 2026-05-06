@@ -197,7 +197,7 @@ my $to =   PDL->pdl(ulong, [1,2,3,1,0,2,3,0,1,2]);
 my $fromto = $from->t->append($to->t);
 my @names = map '  '.join(",",@$_), @coords;
 # Coords must be float, else will get converted and not flow
-my $e = PDL::GraphEvolver->new(PDL->pdl(float, @coords));
+my $e = PDL::Graphics::TriD::MathGraph->new(PDL->pdl(float, @coords));
 $e->set_links($from,$to,PDL->ones(1));
 my $c = $e->getcoords;
 my $graph = PDL::Graphics::TriD::get_new_graph(); # also clears

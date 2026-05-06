@@ -28,7 +28,7 @@ the copyright notice should be included in the file.
 
 =cut
 
-package PDL::GraphEvolver;
+package PDL::Graphics::TriD::MathGraph;
 use PDL::Lite;
 use PDL::ImageND ":Func";
 
