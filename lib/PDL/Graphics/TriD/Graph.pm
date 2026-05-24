@@ -208,19 +208,7 @@ use fields qw(LatticeObj);
 sub add_lattice_axis {
   my ($this) = @_;
   my @widths = $this->{Scale}->slice('0:1')->t->diff2->list;
-  my @nadd;
-  for my $dim (0..1) {
-    my $width = $widths[$dim];
-    if ($width > 100) {
-      $nadd[$dim] = 10;
-    } elsif ($width>30) {
-      $nadd[$dim] = 5;
-    } elsif ($width>20) {
-      $nadd[$dim] = 2;
-    } else {
-      $nadd[$dim] = 1;
-    }
-  }
+  my @nadd = map $_ > 100 ? 10 : $_ > 30 ? 5 : $_ > 20 ? 2 : 1, @widths;
   my @nc = map int($this->{Scale}->slice("$_,0")->sclr/$nadd[$_])*$nadd[$_], 0,1;
   my @ns = map int($widths[$_]/$nadd[$_])+1, 0,1;
   # can be changed to topo heights?
