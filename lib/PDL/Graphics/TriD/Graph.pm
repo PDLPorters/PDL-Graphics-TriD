@@ -207,8 +207,8 @@ use base qw(PDL::Graphics::TriD::Object);
 use fields qw(LatticeObj);
 sub add_lattice_axis {
   my ($this) = @_;
-  my (@nadd,@nc,@ns);
   my @widths = $this->{Scale}->slice('0:1')->t->diff2->list;
+  my @nadd;
   for my $dim (0..1) {
     my $width = $widths[$dim];
     if ($width > 100) {
@@ -220,9 +220,9 @@ sub add_lattice_axis {
     } else {
       $nadd[$dim] = 1;
     }
-    $nc[$dim] = int($this->{Scale}->slice("$dim,0")->sclr/$nadd[$dim])*$nadd[$dim];
-    $ns[$dim] = int($width/$nadd[$dim])+1;
   }
+  my @nc = map int($this->{Scale}->slice("$_,0")->sclr/$nadd[$_])*$nadd[$_], 0,1;
+  my @ns = map int($widths[$_]/$nadd[$_])+1, 0,1;
   # can be changed to topo heights?
   my $verts = PDL->zeroes(PDL::float(),3,$ns[0],$ns[1]);
   $verts->slice("2") .= 1012.5;
