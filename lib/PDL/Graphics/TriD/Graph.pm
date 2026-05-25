@@ -230,7 +230,7 @@ package # hide from PAUSE
   PDL::Graphics::TriD::CylindricalEquidistantAxes;
 use base qw(PDL::Graphics::TriD::LatticeAxes);
 use fields qw(Names Scale Center);
-use PDL::Core '';
+use PDL::Core qw(barf float);
 use PDL::Constants qw(DEGRAD);
 use constant DEG2RAD => 1/DEGRAD;
 
@@ -248,7 +248,7 @@ sub init_scale {
 
 sub add_scale {
   my ($this,$data,$inds) = @_;
-  PDL::barf "no \$inds given" if !defined $inds;
+  barf "no \$inds given" if !defined $inds;
   $data = $data->dice_axis(0, $inds);
   my $to_minmax = $data->clump(1..$data->ndims-1); # xyz,...
   $to_minmax = $to_minmax->glue(1, $this->{Scale}); # include old min/max
@@ -258,8 +258,7 @@ sub add_scale {
   }
   $this->{Scale} = PDL->pdl($mins, $maxes); # xyz,minmax
 # Should make the projection center an option
-  $this->{Center} = [(($maxes->slice(0) + $mins->slice(0))/2)->sclr,
-     0];
+  $this->{Center} = float([($maxes + $mins)->slice("(0)")/2, 0]);
 }
 
 sub finish_scale {
@@ -296,17 +295,18 @@ sub finish_scale {
 
 sub transform {
   my ($this,$point,$data,$inds) = @_;
-  PDL::barf "no \$inds given" if !defined $inds;
+  barf "no \$inds given" if !defined $inds;
   barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
   my ($longrange, $latrange) = $this->{Scale}->slice('0:1')->t->diff2->dog;
   my $pressure_max = $this->{Scale}->slice('2,1');
   $data = $data->dice_axis(0, $inds);
+  my $data01_ctr = $data->slice("0:1")-$this->{Center};
   $point->slice("(0)") +=
-    0.5+($data->slice("(0)")-$this->{Center}[0]) /
+    0.5+$data01_ctr->slice("(0)") /
       $longrange
 	*cos($data->slice("(1)")*DEG2RAD);
   $point->slice("(1)") +=
-    0.5+($data->slice("(1)")-$this->{Center}[1]) /
+    0.5+$data01_ctr->slice("(1)") /
       $latrange;
   $point->slice("(2)") .=
     log($data->slice("(2)")/1012.5)/log($pressure_max/1012.5);
@@ -320,7 +320,7 @@ package # hide from PAUSE
   PDL::Graphics::TriD::PolarStereoAxes;
 use base qw(PDL::Graphics::TriD::LatticeAxes);
 use fields qw(Names Scale Center);
-use PDL::Core '';
+use PDL::Core qw(barf float);
 use PDL::Constants qw(DEGRAD);
 use constant DEG2RAD => 1/DEGRAD;
 
@@ -338,7 +338,7 @@ sub init_scale {
 
 sub add_scale {
   my ($this,$data,$inds) = @_;
-  PDL::barf "no \$inds given" if !defined $inds;
+  barf "no \$inds given" if !defined $inds;
   $data = $data->dice_axis(0, $inds);
   my $to_minmax = $data->clump(1..$data->ndims-1); # xyz,...
   $to_minmax = $to_minmax->glue(1, $this->{Scale}); # include old min/max
@@ -347,8 +347,7 @@ sub add_scale {
     barf "Error in Latitude ", $maxes->slice(1), " ", $mins->slice(1);
   }
   $this->{Scale} = PDL->pdl($mins, $maxes); # xyz,minmax
-  $this->{Center} = [(($maxes->slice(0) + $mins->slice(0))/2)->sclr,
-     (($maxes->slice(1) + $mins->slice(1))/2)->sclr];
+  $this->{Center} = (($maxes + $mins)/2)->slice("0:1");
 }
 
 sub finish_scale {
@@ -385,18 +384,19 @@ sub finish_scale {
 
 sub transform {
   my ($this,$point,$data,$inds) = @_;
-  PDL::barf "no \$inds given" if !defined $inds;
+  barf "no \$inds given" if !defined $inds;
   my $i = 0;
   barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
   $data = $data->dice_axis(0, $inds);
   my ($longrange, $latrange) = $this->{Scale}->slice('0:1')->t->diff2->dog;
   my $pressure_max = $this->{Scale}->slice('2,1');
+  my $data01_ctr = $data->slice("0:1")-$this->{Center};
   $point->slice("(0)") +=
-    0.5+($data->slice("(0)")-$this->{Center}[0]) /
+    0.5+$data01_ctr->slice("(0)") /
       $longrange
 	*cos($data->slice("(1)")*DEG2RAD);
   $point->slice("(1)") +=
-    0.5+($data->slice("(1)")-$this->{Center}[1]) /
+    0.5+$data01_ctr->slice("(1)") /
       $latrange
 	*cos($data->slice("(1)")*DEG2RAD);
 # Longitude transformation
