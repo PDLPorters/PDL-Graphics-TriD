@@ -229,14 +229,16 @@ sub add_lattice_axis {
 package # hide from PAUSE
   PDL::Graphics::TriD::CylindricalEquidistantAxes;
 use base qw(PDL::Graphics::TriD::LatticeAxes);
-use fields qw(Names Scale);
+use fields qw(Names Scale Center);
 use PDL::Core '';
 use PDL::Constants qw(DEGRAD);
 use constant DEG2RAD => 1/DEGRAD;
 
 sub new {
   my ($type) = @_;
-  bless {Names => [qw(LON LAT Pressure)]},$type;
+  my $self = $type->SUPER::new;
+  $self->{Names} = [qw(LON LAT Pressure)];
+  $self;
 }
 
 sub init_scale {
@@ -317,14 +319,16 @@ sub transform {
 package # hide from PAUSE
   PDL::Graphics::TriD::PolarStereoAxes;
 use base qw(PDL::Graphics::TriD::LatticeAxes);
-use fields qw(Names Scale);
+use fields qw(Names Scale Center);
 use PDL::Core '';
 use PDL::Constants qw(DEGRAD);
 use constant DEG2RAD => 1/DEGRAD;
 
 sub new {
   my ($type) = @_;
-  bless {Names => [qw(LONGITUDE LATITUDE HEIGHT)]},$type;
+  my $self = $type->SUPER::new;
+  $self->{Names} = [qw(LONGITUDE LATITUDE HEIGHT)];
+  $self;
 }
 
 sub init_scale {
