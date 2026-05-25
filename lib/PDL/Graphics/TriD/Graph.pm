@@ -297,17 +297,15 @@ sub transform {
   my ($this,$point,$data,$inds) = @_;
   barf "no \$inds given" if !defined $inds;
   barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
-  my ($longrange, $latrange) = $this->{Scale}->slice('0:1')->t->diff2->dog;
+  my $range2 = $this->{Scale}->t->diff2->t->slice('0:1');
   my $pressure_max = $this->{Scale}->slice('2,1');
   $data = $data->dice_axis(0, $inds);
-  my $data01_ctr = $data->slice("0:1")-$this->{Center};
+  my $data01_ctr = ($data->slice("0:1")-$this->{Center}) / $range2;
   $point->slice("(0)") +=
-    0.5+$data01_ctr->slice("(0)") /
-      $longrange
+    0.5+$data01_ctr->slice("(0)")
 	*cos($data->slice("(1)")*DEG2RAD);
   $point->slice("(1)") +=
-    0.5+$data01_ctr->slice("(1)") /
-      $latrange;
+    0.5+$data01_ctr->slice("(1)");
   $point->slice("(2)") .=
     log($data->slice("(2)")/1012.5)/log($pressure_max/1012.5);
   $point;
@@ -388,16 +386,14 @@ sub transform {
   my $i = 0;
   barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
   $data = $data->dice_axis(0, $inds);
-  my ($longrange, $latrange) = $this->{Scale}->slice('0:1')->t->diff2->dog;
+  my $range2 = $this->{Scale}->t->diff2->t->slice('0:1');
   my $pressure_max = $this->{Scale}->slice('2,1');
-  my $data01_ctr = $data->slice("0:1")-$this->{Center};
+  my $data01_ctr = ($data->slice("0:1")-$this->{Center}) / $range2;
   $point->slice("(0)") +=
-    0.5+$data01_ctr->slice("(0)") /
-      $longrange
+    0.5+$data01_ctr->slice("(0)")
 	*cos($data->slice("(1)")*DEG2RAD);
   $point->slice("(1)") +=
-    0.5+$data01_ctr->slice("(1)") /
-      $latrange
+    0.5+$data01_ctr->slice("(1)")
 	*cos($data->slice("(1)")*DEG2RAD);
 # Longitude transformation
 #  $point->slice("(0)") =
