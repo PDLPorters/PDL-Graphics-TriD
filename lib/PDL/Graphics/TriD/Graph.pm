@@ -133,7 +133,7 @@ package # hide from PAUSE
 use base qw(PDL::Graphics::TriD::Object);
 sub normalise_scale { # Normalize the smallest differences away.
   my ($this) = @_;
-  my ($min, $max) = $this->{Scale}->dog;
+  my ($min, $max) = $this->{Bounds}->dog;
   my $diff = $max - $min;
   my ($got_smalldiff, $got_bigdiff) = PDL::which_both(abs($diff) < 1e-6);
   $max->dice_axis(0, $got_smalldiff) .= $min->dice_axis(0, $got_smalldiff) + 1;
@@ -143,7 +143,7 @@ sub normalise_scale { # Normalize the smallest differences away.
 package # hide from PAUSE
   PDL::Graphics::TriD::EuclidAxes;
 use base qw(PDL::Graphics::TriD::AxesBase);
-use fields qw(NDiv Scale AxisLabelsObj Transform);
+use fields qw(NDiv Bounds AxisLabelsObj Transform);
 use PDL;
 use PDL::Transform;
 
@@ -173,7 +173,7 @@ sub new {
 
 sub init_scale {
   my ($this) = @_;
-  $this->{Scale} = undef;
+  $this->{Bounds} = undef;
 }
 
 sub add_scale {
@@ -181,9 +181,9 @@ sub add_scale {
   PDL::barf "no \$inds given" if !defined $inds;
   $data = $data->dice_axis(0, $inds);
   my $to_minmax = $data->clump(1..$data->ndims-1); # xyz,...
-  $to_minmax = $to_minmax->glue(1, $this->{Scale}); # include old min/max
+  $to_minmax = $to_minmax->glue(1, $this->{Bounds}); # include old min/max
   my ($mins, $maxes) = $to_minmax->transpose->minmaxover; # each is xyz
-  $this->{Scale} = PDL->pdl($mins, $maxes); # xyz,minmax
+  $this->{Bounds} = PDL->pdl($mins, $maxes); # xyz,minmax
 }
 
 sub finish_scale {
@@ -207,9 +207,9 @@ use base qw(PDL::Graphics::TriD::Object);
 use fields qw(LatticeObj);
 sub add_lattice_axis {
   my ($this) = @_;
-  my @widths = $this->{Scale}->slice('0:1')->t->diff2->list;
+  my @widths = $this->{Bounds}->slice('0:1')->t->diff2->list;
   my @nadd = map $_ > 100 ? 10 : $_ > 30 ? 5 : $_ > 20 ? 2 : 1, @widths;
-  my @nc = map int($this->{Scale}->slice("$_,0")->sclr/$nadd[$_])*$nadd[$_], 0,1;
+  my @nc = map int($this->{Bounds}->slice("$_,0")->sclr/$nadd[$_])*$nadd[$_], 0,1;
   my @ns = map int($widths[$_]/$nadd[$_])+1, 0,1;
   # can be changed to topo heights?
   my $verts = PDL->zeroes(PDL::float(),3,$ns[0],$ns[1]);
@@ -229,7 +229,7 @@ sub add_lattice_axis {
 package # hide from PAUSE
   PDL::Graphics::TriD::CylindricalEquidistantAxes;
 use base qw(PDL::Graphics::TriD::LatticeAxes);
-use fields qw(Names Scale Center);
+use fields qw(Names Bounds Center);
 use PDL::Core qw(barf float);
 use PDL::Constants qw(DEGRAD);
 use constant DEG2RAD => 1/DEGRAD;
@@ -243,7 +243,7 @@ sub new {
 
 sub init_scale {
   my ($this) = @_;
-  $this->{Scale} = PDL->pdl(PDL::float(), 'BAD BAD 100; BAD BAD 1012.5');
+  $this->{Bounds} = PDL->pdl(PDL::float(), 'BAD BAD 100; BAD BAD 1012.5');
 }
 
 sub add_scale {
@@ -251,12 +251,12 @@ sub add_scale {
   barf "no \$inds given" if !defined $inds;
   $data = $data->dice_axis(0, $inds);
   my $to_minmax = $data->clump(1..$data->ndims-1); # xyz,...
-  $to_minmax = $to_minmax->glue(1, $this->{Scale}); # include old min/max
+  $to_minmax = $to_minmax->glue(1, $this->{Bounds}); # include old min/max
   my ($mins, $maxes) = $to_minmax->transpose->minmaxover; # each is xyz
   if ($maxes->slice(1) >= 90 or $mins->slice(1) <= -90) {
     barf "Error in Latitude ", $maxes->slice(1), " ", $mins->slice(1);
   }
-  $this->{Scale} = PDL->pdl($mins, $maxes); # xyz,minmax
+  $this->{Bounds} = PDL->pdl($mins, $maxes); # xyz,minmax
 # Should make the projection center an option
   $this->{Center} = float([($maxes + $mins)->slice("(0)")/2, 0]);
 }
@@ -265,31 +265,31 @@ sub finish_scale {
   my ($this) = @_;
   my @dist;
   # Normalize the smallest differences away.
-  my $scale = $this->{Scale}->t->unpdl;
-  for (@$scale) {
+  my $bounds = $this->{Bounds}->t->unpdl;
+  for (@$bounds) {
     if (abs($_->[0] - $_->[1]) < 0.000001) {
       $_->[1] = $_->[0] + 1;
     }
     push(@dist,$_->[1]-$_->[0]);
   }
   # for the z coordinate reverse the min and max values
-  my $max = $scale->[2][0];
-  if ($max < $scale->[2][1]) {
-    $scale->[2][0] = $scale->[2][1];
-    $scale->[2][1] = $max;
+  my $max = $bounds->[2][0];
+  if ($max < $bounds->[2][1]) {
+    $bounds->[2][0] = $bounds->[2][1];
+    $bounds->[2][1] = $max;
   }
-# Normalize longitude and latitude scale
+# Normalize longitude and latitude bounds
   if ($dist[1] > $dist[0]) {
-    $scale->[0][0] -= ($dist[1]-$dist[0])/2;
-    $scale->[0][1] += ($dist[1]-$dist[0])/2;
+    $bounds->[0][0] -= ($dist[1]-$dist[0])/2;
+    $bounds->[0][1] += ($dist[1]-$dist[0])/2;
   } elsif ($dist[0] > $dist[1] && $dist[0]<90) {
-    $scale->[1][0] -= ($dist[0]-$dist[1])/2;
-    $scale->[1][1] += ($dist[0]-$dist[1])/2;
+    $bounds->[1][0] -= ($dist[0]-$dist[1])/2;
+    $bounds->[1][1] += ($dist[0]-$dist[1])/2;
   } elsif ($dist[0] > $dist[1]) {
-    $scale->[1][0] -= (90-$dist[1])/2;
-    $scale->[1][1] += (90-$dist[1])/2;
+    $bounds->[1][0] -= (90-$dist[1])/2;
+    $bounds->[1][1] += (90-$dist[1])/2;
   }
-  $this->{Scale} = PDL->pdl(PDL::float(), $scale)->t;
+  $this->{Bounds} = PDL->pdl(PDL::float(), $bounds)->t;
   $this->add_lattice_axis;
 }
 
@@ -297,8 +297,8 @@ sub transform {
   my ($this,$point,$data,$inds) = @_;
   barf "no \$inds given" if !defined $inds;
   barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
-  my $range2 = $this->{Scale}->t->diff2->t->slice('0:1');
-  my $pressure_max = $this->{Scale}->slice('2,1');
+  my $range2 = $this->{Bounds}->t->diff2->t->slice('0:1');
+  my $pressure_max = $this->{Bounds}->slice('2,1');
   $data = $data->dice_axis(0, $inds);
   my $data01_ctr = ($data->slice("0:1")-$this->{Center}) / $range2;
   $point->slice("(0)") +=
@@ -317,7 +317,7 @@ sub transform {
 package # hide from PAUSE
   PDL::Graphics::TriD::PolarStereoAxes;
 use base qw(PDL::Graphics::TriD::LatticeAxes);
-use fields qw(Names Scale Center);
+use fields qw(Names Bounds Center);
 use PDL::Core qw(barf float);
 use PDL::Constants qw(DEGRAD);
 use constant DEG2RAD => 1/DEGRAD;
@@ -331,7 +331,7 @@ sub new {
 
 sub init_scale {
   my ($this) = @_;
-  $this->{Scale} = PDL->pdl(PDL::float(), 'BAD BAD 100; BAD BAD 1012.5');
+  $this->{Bounds} = PDL->pdl(PDL::float(), 'BAD BAD 100; BAD BAD 1012.5');
 }
 
 sub add_scale {
@@ -339,12 +339,12 @@ sub add_scale {
   barf "no \$inds given" if !defined $inds;
   $data = $data->dice_axis(0, $inds);
   my $to_minmax = $data->clump(1..$data->ndims-1); # xyz,...
-  $to_minmax = $to_minmax->glue(1, $this->{Scale}); # include old min/max
+  $to_minmax = $to_minmax->glue(1, $this->{Bounds}); # include old min/max
   my ($mins, $maxes) = $to_minmax->transpose->minmaxover; # each is xyz
   if ($maxes->slice(1) >= 90 or $mins->slice(1) <= -90) {
     barf "Error in Latitude ", $maxes->slice(1), " ", $mins->slice(1);
   }
-  $this->{Scale} = PDL->pdl($mins, $maxes); # xyz,minmax
+  $this->{Bounds} = PDL->pdl($mins, $maxes); # xyz,minmax
   $this->{Center} = (($maxes + $mins)/2)->slice("0:1");
 }
 
@@ -352,31 +352,31 @@ sub finish_scale {
   my ($this) = @_;
   my @dist;
   # Normalize the smallest differences away.
-  my $scale = $this->{Scale}->t->unpdl;
-  for (@$scale) {
+  my $bounds = $this->{Bounds}->t->unpdl;
+  for (@$bounds) {
     if (abs($_->[0] - $_->[1]) < 0.000001) {
       $_->[1] = $_->[0] + 1;
     }
     push(@dist,$_->[1]-$_->[0]);
   }
   # for the z coordinate reverse the min and max values
-  my $max = $scale->[2][0];
-  if ($max < $scale->[2][1]) {
-    $scale->[2][0] = $scale->[2][1];
-    $scale->[2][1] = $max;
+  my $max = $bounds->[2][0];
+  if ($max < $bounds->[2][1]) {
+    $bounds->[2][0] = $bounds->[2][1];
+    $bounds->[2][1] = $max;
   }
-# Normalize longitude and latitude scale
+# Normalize longitude and latitude bounds
   if ($dist[1] > $dist[0]) {
-    $scale->[0][0] -= ($dist[1]-$dist[0])/2;
-    $scale->[0][1] += ($dist[1]-$dist[0])/2;
+    $bounds->[0][0] -= ($dist[1]-$dist[0])/2;
+    $bounds->[0][1] += ($dist[1]-$dist[0])/2;
   } elsif ($dist[0] > $dist[1] && $dist[0]<90) {
-    $scale->[1][0] -= ($dist[0]-$dist[1])/2;
-    $scale->[1][1] += ($dist[0]-$dist[1])/2;
+    $bounds->[1][0] -= ($dist[0]-$dist[1])/2;
+    $bounds->[1][1] += ($dist[0]-$dist[1])/2;
   } elsif ($dist[0] > $dist[1]) {
-    $scale->[1][0] -= (90-$dist[1])/2;
-    $scale->[1][1] += (90-$dist[1])/2;
+    $bounds->[1][0] -= (90-$dist[1])/2;
+    $bounds->[1][1] += (90-$dist[1])/2;
   }
-  $this->{Scale} = PDL->pdl(PDL::float(), $scale)->t;
+  $this->{Bounds} = PDL->pdl(PDL::float(), $bounds)->t;
   $this->add_lattice_axis;
 }
 
@@ -386,8 +386,8 @@ sub transform {
   my $i = 0;
   barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
   $data = $data->dice_axis(0, $inds);
-  my $range2 = $this->{Scale}->t->diff2->t->slice('0:1');
-  my $pressure_max = $this->{Scale}->slice('2,1');
+  my $range2 = $this->{Bounds}->t->diff2->t->slice('0:1');
+  my $pressure_max = $this->{Bounds}->slice('2,1');
   my $data01_ctr = ($data->slice("0:1")-$this->{Center}) / $range2;
   $point->slice("(0)") +=
     0.5+$data01_ctr->slice("(0)")
