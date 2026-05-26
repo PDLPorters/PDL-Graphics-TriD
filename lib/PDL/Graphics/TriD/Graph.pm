@@ -202,7 +202,7 @@ sub transform {
 }
 
 package # hide from PAUSE
-  PDL::Graphics::TriD::LatticeAxes;
+  PDL::Graphics::TriD::FaceAxes;
 use base qw(PDL::Graphics::TriD::Object);
 use fields qw(LatticeObj);
 sub add_lattice_axis {
@@ -228,7 +228,7 @@ sub add_lattice_axis {
 # make && perl -Mblib -MPDL -MPDL::Graphics::TriD -e '$PDL::Graphics::TriD::Graph::default_axis_class = "PDL::Graphics::TriD::CylindricalEquidistantAxes"; spheres3d pdl("-80 -80 800; 80 80 900")'
 package # hide from PAUSE
   PDL::Graphics::TriD::CylindricalEquidistantAxes;
-use base qw(PDL::Graphics::TriD::LatticeAxes);
+use base qw(PDL::Graphics::TriD::FaceAxes);
 use fields qw(Names Bounds Center);
 use PDL::Core qw(barf float);
 use PDL::Constants qw(DEGRAD);
@@ -316,7 +316,7 @@ sub transform {
 # make && perl -Mblib -MPDL -MPDL::Graphics::TriD -e '$PDL::Graphics::TriD::Graph::default_axis_class = "PDL::Graphics::TriD::PolarStereoAxes"; spheres3d pdl("-80 -80 800; 80 80 900")'
 package # hide from PAUSE
   PDL::Graphics::TriD::PolarStereoAxes;
-use base qw(PDL::Graphics::TriD::LatticeAxes);
+use base qw(PDL::Graphics::TriD::FaceAxes);
 use fields qw(Names Bounds Center);
 use PDL::Core qw(barf float);
 use PDL::Constants qw(DEGRAD);
