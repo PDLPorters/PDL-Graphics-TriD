@@ -463,7 +463,7 @@ sub _font_setup {
   my ($fref) = @_;
   my ($texture, $rightbound, $orig) = gl_font_texture();
   $fref->{texture} = PDL::float(1,1,1,1) * $texture->dummy(0,1);
-  my $widthpix = $rightbound->numdiff; $widthpix->slice('0') += 1;
+  my $widthpix = $rightbound->numdiff; $widthpix->slice('0') ++;
   $fref->{widthflt} = $widthpix->float;
   $fref->{widthflt11} = $fref->{widthflt}->t->append([1,1])->dummy(1);
   $fref->{heightpix} = $texture->dim(1);
