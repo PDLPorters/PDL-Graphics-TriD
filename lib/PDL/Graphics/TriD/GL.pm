@@ -144,7 +144,7 @@ vec4 lightfuncgouraud(
   return ambient + diffuse + spec;
 }
 EOF
-(map _passthrough(@$_), [position=>3], [normal=>3], [colour=>3], [texcoord=>2]),
+(map _passthrough(@$_), [position=>3], [toffset=>2], [normal=>3], [colour=>3], [texcoord=>2]),
 fs_diffuse_colour => "  vec4 in_diffuse = vec4(vColour, 1);\n",
 fs_diffuse_tex => "  vec4 in_diffuse = $TEXFUNC(tex, vTexcoord);\n",
 fs_out_fragcolour_decl => "$FS_OUT vec4 $FRAG_OUT;\n",
@@ -152,6 +152,7 @@ fs_out_flat => "  $FRAG_OUT = in_diffuse;\n",
 vs_in => "  vec3 the_position = position;\n",
 vs_in_offset_decl => "$VS_IN vec3 offset;\n",
 vs_do_offset => "  the_position += offset;\n",
+vs_do_toffset => "  the_position += vec3(toffset.x, 0, toffset.y);\n",
 vs_out => "  gl_Position = uMVP * vec4(the_position, 1);\n",
 vs_out_light => <<'EOF',
   vNormal = normalize(uNormalMatrix * normal);
@@ -463,9 +464,9 @@ sub _font_setup {
   my ($fref) = @_;
   my ($texture, $rightbound, $orig) = gl_font_texture();
   $fref->{texture} = PDL::float(1,1,1,1) * $texture->dummy(0,1);
-  my $widthpix = $rightbound->numdiff; $widthpix->slice('0') ++;
+  my $widthpix = $rightbound->numdiff; $widthpix->slice('0')++;
   $fref->{widthflt} = $widthpix->float;
-  $fref->{widthflt11} = $fref->{widthflt}->t->append([1,1])->dummy(1);
+  $fref->{widthflt1} = $fref->{widthflt}->t->append([1])->dummy(1);
   $fref->{heightpix} = $texture->dim(1);
   $fref->{numchars} = my $numchars = $rightbound->nelem;
   my $texwidthm1 = $texture->dim(0) - 1;
@@ -483,8 +484,9 @@ sub _font_setup {
   $texcoords->slice('(1),0::2') .= 1;          # v of top, v bot=already 0
 }
 my $vertex_shader = join '', @SHADERBITS{qw(version
-  vs_in_position_decl vs_in_texcoord_decl vs_out_texcoord_decl u_matrix_decl
-  main_start vs_in vs_out vs_out_texcoord main_end
+  vs_in_position_decl vs_in_toffset_decl
+  vs_in_texcoord_decl vs_out_texcoord_decl u_matrix_decl
+  main_start vs_in vs_do_toffset vs_out vs_out_texcoord main_end
 )};
 my $fragment_shader = join '', @SHADERBITS{qw(version
   fs_in_texcoord_decl fs_out_fragcolour_decl u_tex_decl
@@ -499,10 +501,10 @@ sub togl_setup {
   });
   $points //= $this->{Points}; # as Labels is used in Graph
   my $numchars = $FONT{numchars};
-  my $vert_template = PDL->new(PDL::float, [0,0,1], [0,0,0], [1,0,1], [1,0,0]);
+  my $vert_template = PDL->new(PDL::float, [0,1], [0,0], [1,1], [1,0]);
   my $dwidth = $PDL::Graphics::TriD::Window::DEFAULT_WIDTH / 1.5;
   my $dheight = $PDL::Graphics::TriD::Window::DEFAULT_HEIGHT / 1.5;
-  $vert_template *= PDL::float(1 / $dwidth, 1, $FONT{heightpix} / $dheight);
+  $vert_template *= PDL::float(1 / $dwidth, $FONT{heightpix} / $dheight);
   my @codes = map [map ord, split //], @{ $this->{Strings} };
   my ($v2, @v1, @v3) = PDL->null;
   for (0..$#codes) {
@@ -512,13 +514,15 @@ sub togl_setup {
     push @v3, @$l;
     $v2 = PDL::glue(0,$v2,$FONT{widthflt}->dice_axis(0,$l)->cumusumover);
   }
-  my $v = $points->dice_axis(1, \@v1)->dummy(1) +
-    ($v2->t->append([0,0])->dummy(1) / $dwidth) +
-    $vert_template * $FONT{widthflt11}->dice_axis(2,\@v3);
+  my $v = $points->dice_axis(1, \@v1)->dummy(1,4);
+  my $toffset =
+    ($v2->t->append([0])->dummy(1) / $dwidth) +
+    $vert_template * $FONT{widthflt1}->dice_axis(2,\@v3);
   $this->{Impl}{program_nodestroy} = $this->cache_do(prog => 'shader', sub {
     $this->compile_program($vertex_shader, $fragment_shader);
   });
   $this->load_attrib(position => $v->clump(1,2));
+  $this->load_attrib(toffset => $toffset->clump(1,2));
   $this->load_attrib(texcoord => $FONT{texcoords}->dice_axis(2,\@v3)->clump(1,2));
   $this->load_idx_buffer(indx_buf => $this->{Impl}{idx} = $FONT{idx}->flat + 4 * PDL->sequence(PDL::ulong,1,0+@v1));
   $this->togl_unbind;
