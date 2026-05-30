@@ -152,7 +152,7 @@ fs_out_flat => "  $FRAG_OUT = in_diffuse;\n",
 vs_in => "  vec3 the_position = position;\n",
 vs_in_offset_decl => "$VS_IN vec3 offset;\n",
 vs_do_offset => "  the_position += offset;\n",
-vs_do_toffset => "  the_position += vec3(toffset.x, 0, toffset.y);\n",
+vs_do_toffset => "  gl_Position += vec4(toffset, 0, 0);\n",
 vs_out => "  gl_Position = uMVP * vec4(the_position, 1);\n",
 vs_out_light => <<'EOF',
   vNormal = normalize(uNormalMatrix * normal);
@@ -486,7 +486,7 @@ sub _font_setup {
 my $vertex_shader = join '', @SHADERBITS{qw(version
   vs_in_position_decl vs_in_toffset_decl
   vs_in_texcoord_decl vs_out_texcoord_decl u_matrix_decl
-  main_start vs_in vs_do_toffset vs_out vs_out_texcoord main_end
+  main_start vs_in vs_out vs_do_toffset vs_out_texcoord main_end
 )};
 my $fragment_shader = join '', @SHADERBITS{qw(version
   fs_in_texcoord_decl fs_out_fragcolour_decl u_tex_decl
@@ -502,8 +502,8 @@ sub togl_setup {
   $points //= $this->{Points}; # as Labels is used in Graph
   my $numchars = $FONT{numchars};
   my $vert_template = PDL->new(PDL::float, [0,1], [0,0], [1,1], [1,0]);
-  my $dwidth = $PDL::Graphics::TriD::Window::DEFAULT_WIDTH / 1.5;
-  my $dheight = $PDL::Graphics::TriD::Window::DEFAULT_HEIGHT / 1.5;
+  my $dwidth = $PDL::Graphics::TriD::Window::DEFAULT_WIDTH / 4;
+  my $dheight = $PDL::Graphics::TriD::Window::DEFAULT_HEIGHT / 4;
   $vert_template *= PDL::float(1 / $dwidth, $FONT{heightpix} / $dheight);
   my @codes = map [map ord, split //], @{ $this->{Strings} };
   my ($v2, @v1, @v3) = PDL->null;
