@@ -152,7 +152,7 @@ fs_out_flat => "  $FRAG_OUT = in_diffuse;\n",
 vs_in => "  vec3 the_position = position;\n",
 vs_in_offset_decl => "$VS_IN vec3 offset;\n",
 vs_do_offset => "  the_position += offset;\n",
-vs_do_toffset => "  gl_Position += vec4(toffset, 0, 0);\n",
+vs_do_toffset => "  gl_Position /= gl_Position.w;\n  gl_Position.xy += toffset;\n",
 vs_out => "  gl_Position = uMVP * vec4(the_position, 1);\n",
 vs_out_light => <<'EOF',
   vNormal = normalize(uNormalMatrix * normal);
@@ -502,8 +502,8 @@ sub togl_setup {
   $points //= $this->{Points}; # as Labels is used in Graph
   my $numchars = $FONT{numchars};
   my $vert_template = PDL->new(PDL::float, [0,1], [0,0], [1,1], [1,0]);
-  my $dwidth = $PDL::Graphics::TriD::Window::DEFAULT_WIDTH / 4;
-  my $dheight = $PDL::Graphics::TriD::Window::DEFAULT_HEIGHT / 4;
+  my $dwidth = $PDL::Graphics::TriD::Window::DEFAULT_WIDTH / 2.5;
+  my $dheight = $PDL::Graphics::TriD::Window::DEFAULT_HEIGHT / 2.5;
   $vert_template *= PDL::float(1 / $dwidth, $FONT{heightpix} / $dheight);
   my @codes = map [map ord, split //], @{ $this->{Strings} };
   my ($v2, @v1, @v3) = PDL->null;
