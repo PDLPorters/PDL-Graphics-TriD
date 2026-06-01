@@ -204,7 +204,7 @@ sub transform {
 package # hide from PAUSE
   PDL::Graphics::TriD::FaceAxes;
 use base qw(PDL::Graphics::TriD::Object);
-use fields qw(LatticeObj);
+use fields qw(LatticeObj Names Bounds Center);
 sub add_lattice_axis {
   my ($this) = @_;
   my @widths = $this->{Bounds}->slice('0:1')->t->diff2->list;
@@ -229,7 +229,6 @@ sub add_lattice_axis {
 package # hide from PAUSE
   PDL::Graphics::TriD::CylindricalEquidistantAxes;
 use base qw(PDL::Graphics::TriD::FaceAxes);
-use fields qw(Names Bounds Center);
 use PDL::Core qw(barf float);
 use PDL::Constants qw(DEGRAD);
 use constant DEG2RAD => 1/DEGRAD;
@@ -317,7 +316,6 @@ sub transform {
 package # hide from PAUSE
   PDL::Graphics::TriD::PolarStereoAxes;
 use base qw(PDL::Graphics::TriD::FaceAxes);
-use fields qw(Names Bounds Center);
 use PDL::Core qw(barf float);
 use PDL::Constants qw(DEGRAD);
 use constant DEG2RAD => 1/DEGRAD;
