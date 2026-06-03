@@ -131,6 +131,7 @@ sub changed {}
 package # hide from PAUSE
   PDL::Graphics::TriD::AxesBase;
 use base qw(PDL::Graphics::TriD::Object);
+use fields qw(Bounds);
 sub normalise_scale { # Normalize the smallest differences away.
   my ($this) = @_;
   my ($min, $max) = $this->{Bounds}->dog;
@@ -143,7 +144,7 @@ sub normalise_scale { # Normalize the smallest differences away.
 package # hide from PAUSE
   PDL::Graphics::TriD::EuclidAxes;
 use base qw(PDL::Graphics::TriD::AxesBase);
-use fields qw(NDiv Bounds AxisLabelsObj Transform);
+use fields qw(NDiv AxisLabelsObj Transform);
 use PDL;
 use PDL::Transform;
 
@@ -203,8 +204,8 @@ sub transform {
 
 package # hide from PAUSE
   PDL::Graphics::TriD::FaceAxes;
-use base qw(PDL::Graphics::TriD::Object);
-use fields qw(LatticeObj Names Bounds Center);
+use base qw(PDL::Graphics::TriD::AxesBase);
+use fields qw(LatticeObj Names Center);
 sub add_lattice_axis {
   my ($this) = @_;
   my @widths = $this->{Bounds}->slice('0:1')->t->diff2->list;
