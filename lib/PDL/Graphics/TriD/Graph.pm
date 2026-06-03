@@ -140,6 +140,12 @@ sub normalise_scale { # Normalize the smallest differences away.
   $max->dice_axis(0, $got_smalldiff) .= $min->dice_axis(0, $got_smalldiff) + 1;
   ($min, $max);
 }
+sub re_minmax {
+  my ($this, $data) = @_;
+  my $to_minmax = $data->clump(1..$data->ndims-1); # xyz,...
+  $to_minmax = $to_minmax->glue(1, $this->{Bounds}); # include old min/max
+  $to_minmax->transpose->minmaxover; # each min, max is xyz
+}
 
 package # hide from PAUSE
   PDL::Graphics::TriD::EuclidAxes;
@@ -180,11 +186,7 @@ sub init_scale {
 sub add_scale {
   my ($this,$data,$inds) = @_;
   PDL::barf "no \$inds given" if !defined $inds;
-  $data = $data->dice_axis(0, $inds);
-  my $to_minmax = $data->clump(1..$data->ndims-1); # xyz,...
-  $to_minmax = $to_minmax->glue(1, $this->{Bounds}); # include old min/max
-  my ($mins, $maxes) = $to_minmax->transpose->minmaxover; # each is xyz
-  $this->{Bounds} = PDL->pdl($mins, $maxes); # xyz,minmax
+  $this->{Bounds} = PDL->pdl($this->re_minmax($data->dice_axis(0, $inds))); # xyz,minmax
 }
 
 sub finish_scale {
@@ -249,10 +251,7 @@ sub init_scale {
 sub add_scale {
   my ($this,$data,$inds) = @_;
   barf "no \$inds given" if !defined $inds;
-  $data = $data->dice_axis(0, $inds);
-  my $to_minmax = $data->clump(1..$data->ndims-1); # xyz,...
-  $to_minmax = $to_minmax->glue(1, $this->{Bounds}); # include old min/max
-  my ($mins, $maxes) = $to_minmax->transpose->minmaxover; # each is xyz
+  my ($mins, $maxes) = $this->re_minmax($data->dice_axis(0, $inds)); # each is xyz
   if ($maxes->slice(1) >= 90 or $mins->slice(1) <= -90) {
     barf "Error in Latitude ", $maxes->slice(1), " ", $mins->slice(1);
   }
@@ -336,10 +335,7 @@ sub init_scale {
 sub add_scale {
   my ($this,$data,$inds) = @_;
   barf "no \$inds given" if !defined $inds;
-  $data = $data->dice_axis(0, $inds);
-  my $to_minmax = $data->clump(1..$data->ndims-1); # xyz,...
-  $to_minmax = $to_minmax->glue(1, $this->{Bounds}); # include old min/max
-  my ($mins, $maxes) = $to_minmax->transpose->minmaxover; # each is xyz
+  my ($mins, $maxes) = $this->re_minmax($data->dice_axis(0, $inds)); # each is xyz
   if ($maxes->slice(1) >= 90 or $mins->slice(1) <= -90) {
     barf "Error in Latitude ", $maxes->slice(1), " ", $mins->slice(1);
   }
