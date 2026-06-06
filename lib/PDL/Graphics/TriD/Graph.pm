@@ -215,7 +215,7 @@ sub add_lattice_axis {
   my @nc = map int($this->{Bounds}->slice("$_,0")->sclr/$nadd[$_])*$nadd[$_], 0,1;
   my @ns = map int($widths[$_]/$nadd[$_])+1, 0,1;
   # can be changed to topo heights?
-  my $verts = PDL->zeroes(PDL::float(),3,$ns[0],$ns[1]);
+  my $verts = PDL->zeroes(PDL::float(),3,@ns);
   $verts->slice("2") .= 1012.5;
   $verts->slice("0")->inplace->ylinvals($nc[0],$nc[0]+$nadd[0]*($ns[0]-1));
   $verts->slice("1")->inplace->zlinvals($nc[1],$nc[1]+$nadd[1]*($ns[1]-1));
