@@ -955,7 +955,7 @@ sub highlight {
   );
   my ($w, $h) = @$vp{qw(W H)};
   if (!$hl->{IsValid}) {
-    $hl->{Points} .= PDL->new(PDL::float, [[0,0], [$w-2,0], [$w-2,$h-2], [0,$h-2]]),
+    $hl->{Points} .= PDL->new(PDL::float, [[1,0], [$w-2,0], [$w-2,$h-2], [1,$h-2]]),
     $hl->togl_setup;
     $hl->{IsValid} = 1;
   }
