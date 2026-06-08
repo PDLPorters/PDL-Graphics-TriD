@@ -152,7 +152,7 @@ fs_out_flat => "  $FRAG_OUT = in_diffuse;\n",
 vs_in => "  vec3 the_position = position;\n",
 vs_in_offset_decl => "$VS_IN vec3 offset;\n",
 vs_do_offset => "  the_position += offset;\n",
-vs_do_toffset => "  gl_Position /= gl_Position.w;\n  gl_Position.xy += toffset;\n",
+vs_do_toffset => "  gl_Position /= gl_Position.w;\n  gl_Position.xy += toffset * 2.5 / uScreenSize;\n",
 vs_out => "  gl_Position = uMVP * vec4(the_position, 1);\n",
 vs_out_light => <<'EOF',
   vNormal = normalize(uNormalMatrix * normal);
@@ -206,6 +206,7 @@ uniform mat4 uMV;
 uniform mat4 uMVP;
 uniform mat3 uNormalMatrix;
 EOF
+u_screensize_decl => "uniform vec2 uScreenSize;\n",
 );
 
 { package # hide from PAUSE
@@ -225,7 +226,7 @@ use OpenGL::Modern qw(
   glCreateProgram glDeleteProgram glLinkProgram glUseProgram glIsProgram
   glGetProgramiv_p glGetProgramInfoLog_p
   glGetAttribLocation glEnableVertexAttribArray
-  glGetUniformLocation glUniform1i glUniform1f glUniform4f
+  glGetUniformLocation glUniform1i glUniform1f glUniform2f glUniform4f
   glUniformMatrix3fv_p glUniformMatrix4fv_p
   glVertexAttribPointer_c
   GL_COMPILE_STATUS GL_LINK_STATUS GL_FALSE GL_TRUE
@@ -292,6 +293,7 @@ sub load_attrib {
 my %SUFFIX2FUNC = (
   '1i' => \&glUniform1i,
   '1f' => \&glUniform1f,
+  '2f' => \&glUniform2f,
   '4f' => \&glUniform4f,
   'Mat3' => \&glUniformMatrix3fv_p,
   'Mat4' => \&glUniformMatrix4fv_p,
@@ -482,10 +484,12 @@ sub _font_setup {
   $texcoords->slice('(0),0:1') .= $leftbound->dummy(0,1);  # u of left
   $texcoords->slice('(0),2:3') .= $rightbound->dummy(0,1); # u of right
   $texcoords->slice('(1),0::2') .= 1;          # v of top, v bot=already 0
+  $fref->{vert_template} = PDL->new(PDL::float, [0,1], [0,0], [1,1], [1,0])
+    * PDL::float(1, $fref->{heightpix});
 }
 my $vertex_shader = join '', @SHADERBITS{qw(version
   vs_in_position_decl vs_in_toffset_decl
-  vs_in_texcoord_decl vs_out_texcoord_decl u_matrix_decl
+  vs_in_texcoord_decl vs_out_texcoord_decl u_matrix_decl u_screensize_decl
   main_start vs_in vs_out vs_do_toffset vs_out_texcoord main_end
 )};
 my $fragment_shader = join '', @SHADERBITS{qw(version
@@ -501,10 +505,6 @@ sub togl_setup {
   });
   $points //= $this->{Points}; # as Labels is used in Graph
   my $numchars = $FONT{numchars};
-  my $vert_template = PDL->new(PDL::float, [0,1], [0,0], [1,1], [1,0]);
-  my $dwidth = $PDL::Graphics::TriD::Window::DEFAULT_WIDTH / 2.5;
-  my $dheight = $PDL::Graphics::TriD::Window::DEFAULT_HEIGHT / 2.5;
-  $vert_template *= PDL::float(1 / $dwidth, $FONT{heightpix} / $dheight);
   my @codes = map [map ord, split //], @{ $this->{Strings} };
   my ($v2, @v1, @v3) = PDL->null;
   for (0..$#codes) {
@@ -516,8 +516,8 @@ sub togl_setup {
   }
   my $v = $points->dice_axis(1, \@v1)->dummy(1,4);
   my $toffset =
-    ($v2->t->append([0])->dummy(1) / $dwidth) +
-    $vert_template * $FONT{widthflt1}->dice_axis(2,\@v3);
+    $v2->t->append([0])->dummy(1) +
+    $FONT{vert_template} * $FONT{widthflt1}->dice_axis(2,\@v3);
   $this->{Impl}{program_nodestroy} = $this->cache_do(prog => 'shader', sub {
     $this->compile_program($vertex_shader, $fragment_shader);
   });
@@ -922,6 +922,7 @@ sub display {
     my $fW = fH * $vp->{W}/$vp->{H}; # aspect ratio
     my $p = $this->frustum(-$fW, $fW, -fH, fH, zNEAR, zFAR);
     $vp->togl({
+      uScreenSize => [ '2f' => [@$vp{qw(W H)}] ],
       uMV => [ Mat4 => [1, 1, $mv->list] ], # count, xpose, ...
       uMVP => [ Mat4 => [1, 1, ($p x $mv)->list] ], # count, xpose, ...
       uNormalMatrix => [ Mat3 => [1, 1, $mv->slice('0:2,0:2')->inv->t->list] ],
