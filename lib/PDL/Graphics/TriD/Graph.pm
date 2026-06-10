@@ -270,12 +270,6 @@ sub finish_scale {
     }
     push(@dist,$_->[1]-$_->[0]);
   }
-  # for the z coordinate reverse the min and max values
-  my $max = $bounds->[2][0];
-  if ($max < $bounds->[2][1]) {
-    $bounds->[2][0] = $bounds->[2][1];
-    $bounds->[2][1] = $max;
-  }
 # Normalize longitude and latitude bounds
   if ($dist[1] > $dist[0]) {
     $bounds->[0][0] -= ($dist[1]-$dist[0])/2;
@@ -296,7 +290,7 @@ sub transform {
   barf "no \$inds given" if !defined $inds;
   barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
   my $range2 = $this->{Bounds}->t->diff2->t->slice('0:1');
-  my $pressure_max = $this->{Bounds}->slice('2,1');
+  my $pressure_max = $this->{Bounds}->slice('2,0');
   $data = $data->dice_axis(0, $inds);
   my $data01_ctr = ($data->slice("0:1")-$this->{Center}) / $range2;
   $point->slice("(0)") +=
@@ -353,12 +347,6 @@ sub finish_scale {
     }
     push(@dist,$_->[1]-$_->[0]);
   }
-  # for the z coordinate reverse the min and max values
-  my $max = $bounds->[2][0];
-  if ($max < $bounds->[2][1]) {
-    $bounds->[2][0] = $bounds->[2][1];
-    $bounds->[2][1] = $max;
-  }
 # Normalize longitude and latitude bounds
   if ($dist[1] > $dist[0]) {
     $bounds->[0][0] -= ($dist[1]-$dist[0])/2;
@@ -381,7 +369,7 @@ sub transform {
   barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
   $data = $data->dice_axis(0, $inds);
   my $range2 = $this->{Bounds}->t->diff2->t->slice('0:1');
-  my $pressure_max = $this->{Bounds}->slice('2,1');
+  my $pressure_max = $this->{Bounds}->slice('2,0');
   my $data01_ctr = ($data->slice("0:1")-$this->{Center}) / $range2;
   $point->slice("(0)") +=
     0.5+$data01_ctr->slice("(0)")
