@@ -208,6 +208,29 @@ package # hide from PAUSE
   PDL::Graphics::TriD::FaceAxes;
 use base qw(PDL::Graphics::TriD::AxesBase);
 use fields qw(LatticeObj Names Center);
+sub normalise_scale { # Normalize the smallest differences away.
+  my ($this) = @_;
+  my @dist;
+  my $bounds = $this->{Bounds}->t->unpdl;
+  for (@$bounds) {
+    if (abs($_->[0] - $_->[1]) < 0.000001) {
+      $_->[1] = $_->[0] + 1;
+    }
+    push(@dist,$_->[1]-$_->[0]);
+  }
+# Normalize longitude and latitude bounds
+  if ($dist[1] > $dist[0]) {
+    $bounds->[0][0] -= ($dist[1]-$dist[0])/2;
+    $bounds->[0][1] += ($dist[1]-$dist[0])/2;
+  } elsif ($dist[0] > $dist[1] && $dist[0]<90) {
+    $bounds->[1][0] -= ($dist[0]-$dist[1])/2;
+    $bounds->[1][1] += ($dist[0]-$dist[1])/2;
+  } elsif ($dist[0] > $dist[1]) {
+    $bounds->[1][0] -= (90-$dist[1])/2;
+    $bounds->[1][1] += (90-$dist[1])/2;
+  }
+  $bounds;
+}
 sub add_lattice_axis {
   my ($this) = @_;
   my @widths = $this->{Bounds}->slice('0:1')->t->diff2->list;
@@ -261,27 +284,7 @@ sub add_scale {
 
 sub finish_scale {
   my ($this) = @_;
-  my @dist;
-  # Normalize the smallest differences away.
-  my $bounds = $this->{Bounds}->t->unpdl;
-  for (@$bounds) {
-    if (abs($_->[0] - $_->[1]) < 0.000001) {
-      $_->[1] = $_->[0] + 1;
-    }
-    push(@dist,$_->[1]-$_->[0]);
-  }
-# Normalize longitude and latitude bounds
-  if ($dist[1] > $dist[0]) {
-    $bounds->[0][0] -= ($dist[1]-$dist[0])/2;
-    $bounds->[0][1] += ($dist[1]-$dist[0])/2;
-  } elsif ($dist[0] > $dist[1] && $dist[0]<90) {
-    $bounds->[1][0] -= ($dist[0]-$dist[1])/2;
-    $bounds->[1][1] += ($dist[0]-$dist[1])/2;
-  } elsif ($dist[0] > $dist[1]) {
-    $bounds->[1][0] -= (90-$dist[1])/2;
-    $bounds->[1][1] += (90-$dist[1])/2;
-  }
-  $this->{Bounds} = PDL->pdl(PDL::float(), $bounds)->t;
+  $this->{Bounds} = PDL->pdl(PDL::float(), $this->normalise_scale)->t;
   $this->add_lattice_axis;
 }
 
@@ -338,27 +341,7 @@ sub add_scale {
 
 sub finish_scale {
   my ($this) = @_;
-  my @dist;
-  # Normalize the smallest differences away.
-  my $bounds = $this->{Bounds}->t->unpdl;
-  for (@$bounds) {
-    if (abs($_->[0] - $_->[1]) < 0.000001) {
-      $_->[1] = $_->[0] + 1;
-    }
-    push(@dist,$_->[1]-$_->[0]);
-  }
-# Normalize longitude and latitude bounds
-  if ($dist[1] > $dist[0]) {
-    $bounds->[0][0] -= ($dist[1]-$dist[0])/2;
-    $bounds->[0][1] += ($dist[1]-$dist[0])/2;
-  } elsif ($dist[0] > $dist[1] && $dist[0]<90) {
-    $bounds->[1][0] -= ($dist[0]-$dist[1])/2;
-    $bounds->[1][1] += ($dist[0]-$dist[1])/2;
-  } elsif ($dist[0] > $dist[1]) {
-    $bounds->[1][0] -= (90-$dist[1])/2;
-    $bounds->[1][1] += (90-$dist[1])/2;
-  }
-  $this->{Bounds} = PDL->pdl(PDL::float(), $bounds)->t;
+  $this->{Bounds} = PDL->pdl(PDL::float(), $this->normalise_scale)->t;
   $this->add_lattice_axis;
 }
 
