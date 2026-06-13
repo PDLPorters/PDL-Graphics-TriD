@@ -211,25 +211,25 @@ use fields qw(LatticeObj Names Center);
 sub normalise_scale { # Normalize the smallest differences away.
   my ($this) = @_;
   my @dist;
-  my $bounds = $this->{Bounds}->t->unpdl;
-  for (@$bounds) {
-    if (abs($_->[0] - $_->[1]) < 0.000001) {
-      $_->[1] = $_->[0] + 1;
+  my ($mins, $maxes) = @{ $this->{Bounds}->unpdl };
+  for (0..$#$mins) {
+    if (abs($mins->[$_] - $maxes->[$_]) < 0.000001) {
+      $maxes->[$_] = $mins->[$_] + 1;
     }
-    push(@dist,$_->[1]-$_->[0]);
+    push(@dist,$maxes->[$_]-$mins->[$_]);
   }
 # Normalize longitude and latitude bounds
   if ($dist[1] > $dist[0]) {
-    $bounds->[0][0] -= ($dist[1]-$dist[0])/2;
-    $bounds->[0][1] += ($dist[1]-$dist[0])/2;
+    $mins->[0] -= ($dist[1]-$dist[0])/2;
+    $maxes->[0] += ($dist[1]-$dist[0])/2;
   } elsif ($dist[0] > $dist[1] && $dist[0]<90) {
-    $bounds->[1][0] -= ($dist[0]-$dist[1])/2;
-    $bounds->[1][1] += ($dist[0]-$dist[1])/2;
+    $mins->[1] -= ($dist[0]-$dist[1])/2;
+    $maxes->[1] += ($dist[0]-$dist[1])/2;
   } elsif ($dist[0] > $dist[1]) {
-    $bounds->[1][0] -= (90-$dist[1])/2;
-    $bounds->[1][1] += (90-$dist[1])/2;
+    $mins->[1] -= (90-$dist[1])/2;
+    $maxes->[1] += (90-$dist[1])/2;
   }
-  $bounds;
+  ($mins, $maxes);
 }
 sub add_lattice_axis {
   my ($this) = @_;
@@ -284,7 +284,7 @@ sub add_scale {
 
 sub finish_scale {
   my ($this) = @_;
-  $this->{Bounds} = PDL->pdl(PDL::float(), $this->normalise_scale)->t;
+  $this->{Bounds} = PDL->pdl(PDL::float(), $this->normalise_scale);
   $this->add_lattice_axis;
 }
 
@@ -341,7 +341,7 @@ sub add_scale {
 
 sub finish_scale {
   my ($this) = @_;
-  $this->{Bounds} = PDL->pdl(PDL::float(), $this->normalise_scale)->t;
+  $this->{Bounds} = PDL->pdl(PDL::float(), $this->normalise_scale);
   $this->add_lattice_axis;
 }
 
