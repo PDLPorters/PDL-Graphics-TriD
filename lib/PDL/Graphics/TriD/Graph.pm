@@ -210,8 +210,9 @@ use base qw(PDL::Graphics::TriD::AxesBase);
 use fields qw(LatticeObj Names Center);
 sub normalise_scale { # Normalize the smallest differences away.
   my ($this) = @_;
-  my ($mins, $maxes) = map $_->unpdl, $this->SUPER::normalise_scale;
-  my @dist = map $maxes->[$_]-$mins->[$_], 0..$#$mins;
+  my ($mins, $maxes) = $this->SUPER::normalise_scale;
+  my @dist = ($maxes - $mins)->list;
+  ($mins, $maxes) = map $_->unpdl, $mins, $maxes;
 # Normalize longitude and latitude bounds
   if ($dist[1] > $dist[0]) {
     $mins->[0] -= ($dist[1]-$dist[0])/2;
