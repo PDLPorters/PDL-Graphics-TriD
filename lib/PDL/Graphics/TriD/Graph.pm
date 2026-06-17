@@ -214,15 +214,14 @@ sub normalise_scale { # Normalize the smallest differences away.
   my @dist = ($maxes - $mins)->list;
   ($mins, $maxes) = map $_->unpdl, $mins, $maxes;
 # Normalize longitude and latitude bounds
-  if ($dist[1] > $dist[0]) {
-    $mins->[0] -= ($dist[1]-$dist[0])/2;
-    $maxes->[0] += ($dist[1]-$dist[0])/2;
-  } elsif ($dist[0] > $dist[1] && $dist[0]<90) {
-    $mins->[1] -= ($dist[0]-$dist[1])/2;
-    $maxes->[1] += ($dist[0]-$dist[1])/2;
-  } elsif ($dist[0] > $dist[1]) {
-    $mins->[1] -= (90-$dist[1])/2;
-    $maxes->[1] += (90-$dist[1])/2;
+  my $little_ind = $dist[1] > $dist[0] ? 0 :
+    ($dist[0] > $dist[1] && $dist[0]<90) ? 1 :
+    $dist[0] > $dist[1] ? 1 : undef;
+  if (defined $little_ind) {
+    my $bigval = ($dist[0] > $dist[1] && $dist[0]>=90) ? 90 : $dist[1-$little_ind];
+    my $diffval = ($bigval - $dist[$little_ind]) / 2;
+    $mins->[$little_ind] -= $diffval;
+    $maxes->[$little_ind] += $diffval;
   }
   ($mins, $maxes);
 }
