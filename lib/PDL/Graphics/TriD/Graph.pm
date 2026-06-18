@@ -164,14 +164,13 @@ sub new {
   my $options = ref($_[-1]) eq 'HASH' ? pop : $class->get_valid_options;
   my $this = $class->SUPER::new($options);
   $options = $this->{Options};
-  my $ndiv = $options->{NDiv};
+  my $ndiv = $this->{NDiv} = $options->{NDiv};
   my $points = zeroes(PDL::float(),3,3)->append(my $id3 = identity(3));
   my $starts = ylinvals(PDL::float(),0,1,1,$ndiv+1)->append(zeroes(PDL::float(),2));
   my $ends = $starts + append(0, ones 2) * -0.1;
   my $dupseq = yvals($ndiv+1,3)->flat;
   $_ = $_->dup(1,3)->rotate($dupseq) for $starts, $ends;
   $points = $points->glue(1, $starts->append($ends))->splitdim(0,3)->clump(1,2);
-  $this->{NDiv} = $ndiv;
   $this->add_object(PDL::Graphics::TriD::Lines->new($points));
   $this->add_object(PDL::Graphics::TriD::Labels->new($id3, $options->{Names}));
   $this->add_object($this->{AxisLabelsObj} = PDL::Graphics::TriD::Labels->new($ends, [('') x (3*($ndiv+1))]));
