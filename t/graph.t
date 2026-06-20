@@ -15,6 +15,11 @@ is_deeply $euclid->{AxisLabelsObj}{Strings}, [qw(
   0.000 0.250 0.500 0.750 1.000
 )]
   or diag explain $euclid->{AxisLabelsObj}{Strings};
+is_pdl $euclid->{AxisLabelsObj}{Points}, float('
+  0 -0.1 -0.1; 0.25 -0.1 -0.1; 0.5 -0.1 -0.1; 0.75 -0.1 -0.1; 1 -0.1 -0.1;
+  -0.1 0 -0.1; -0.1 0.25 -0.1; -0.1 0.5 -0.1; -0.1 0.75 -0.1; -0.1 1 -0.1;
+  -0.1 -0.1 0; -0.1 -0.1 0.25; -0.1 -0.1 0.5; -0.1 -0.1 0.75; -0.1 -0.1 1
+');
 is_pdl $euclid->transform($points->zeroes, $points, $inds), float('
   0 0 0; 1 1 1
 ');
