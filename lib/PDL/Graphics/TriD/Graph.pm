@@ -233,8 +233,7 @@ sub add_lattice_axis {
   # can be changed to topo heights?
   my $verts = PDL->zeroes(PDL::float(),3,@ns);
   $verts->slice("2") .= 1012.5;
-  $verts->slice("0")->inplace->ylinvals($nc[0],$nc[0]+$nadd[0]*($ns[0]-1));
-  $verts->slice("1")->inplace->zlinvals($nc[1],$nc[1]+$nadd[1]*($ns[1]-1));
+  $verts->slice($_)->inplace->axislinvals($_+1,$nc[$_],$nc[$_]+$nadd[$_]*($ns[$_]-1)) for 0,1;
   my $tverts = $this->transform($verts->zeroes,$verts,[0,1,2]);
   $this->delete_object($this->{LatticeObj}) if $this->{LatticeObj};
   $this->add_object($this->{LatticeObj} = PDL::Graphics::TriD::Lattice->new($tverts, {Shading=>0}));
