@@ -146,6 +146,14 @@ sub re_minmax {
   $to_minmax = $to_minmax->glue(1, $this->{Bounds}); # include old min/max
   $to_minmax->transpose->minmaxover; # each min, max is xyz
 }
+sub gen_stalk_labels {
+  my ($this, $starts, $dimnot, $stalk_scale) = @_;
+  my $end_offset = PDL::float('[[0 1 1]]')->dup(1,$starts->dim(1))->rotate($dimnot);
+  my $ends = $starts + $end_offset * -$stalk_scale;
+  my $line_points = $starts->append($ends)->splitdim(0,3)->clump(1,2);
+  my $labels_obj = PDL::Graphics::TriD::Labels->new($ends, [('') x $ends->dim(1)]);
+  ($line_points, $labels_obj);
+}
 
 package # hide from PAUSE
   PDL::Graphics::TriD::EuclidAxes;
@@ -165,15 +173,17 @@ sub new {
   my $this = $class->SUPER::new($options);
   $options = $this->{Options};
   my $ndiv = $this->{NDiv} = $options->{NDiv};
-  my $points = zeroes(PDL::float(),3,3)->append(my $id3 = identity(3));
   my $starts = ylinvals(PDL::float(),0,1,1,$ndiv+1)->append(zeroes(PDL::float(),2));
-  my $ends = $starts + append(0, ones 2) * -0.1;
   my $dupseq = yvals($ndiv+1,3)->flat;
-  $_ = $_->dup(1,3)->rotate($dupseq) for $starts, $ends;
-  $points = $points->glue(1, $starts->append($ends))->splitdim(0,3)->clump(1,2);
-  $this->add_object(PDL::Graphics::TriD::Lines->new($points));
+  my ($line_points, $labels_obj) = $this->gen_stalk_labels(
+    $starts->dup(1,3)->rotate($dupseq),
+    $dupseq,
+    0.1,
+  );
+  my $points = zeroes(PDL::float(),3,3)->append(my $id3 = identity(3))->splitdim(0,3)->clump(1,2);
   $this->add_object(PDL::Graphics::TriD::Labels->new($id3, $options->{Names}));
-  $this->add_object($this->{AxisLabelsObj} = PDL::Graphics::TriD::Labels->new($ends, [('') x (3*($ndiv+1))]));
+  $this->add_object(PDL::Graphics::TriD::Lines->new($points->glue(1, $line_points)));
+  $this->add_object($this->{AxisLabelsObj} = $labels_obj);
   $this;
 }
 
