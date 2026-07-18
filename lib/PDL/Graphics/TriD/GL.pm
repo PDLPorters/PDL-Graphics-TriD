@@ -902,7 +902,7 @@ sub display {
       glpSetAutoCheckErrors(1);
       $vp->togl_setup(undef, {
         uLightposition => ['4f' => [1,1,1,0]],
-        uLightambient => ['4f' => [0,0,0,1]],
+        uLightambient => ['4f' => [0.9,0.9,0.9,1]],
         uLightdiffuse => ['4f' => [1,1,1,1]],
         uLightspecular => ['4f' => [1,1,1,1]],
         %{$vp->{DefMaterial}->to_uniforms},

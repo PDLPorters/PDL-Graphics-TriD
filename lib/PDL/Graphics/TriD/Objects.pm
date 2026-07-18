@@ -356,7 +356,7 @@ use fields qw(Shine Specular Ambient Diffuse Emission);
 sub get_valid_options { +{
   Shine => 0,
   Specular => [0,0,0,1],
-  Ambient => [0.2,0.2,0.2,1],
+  Ambient => [0.4,0.4,0.4,1],
   Diffuse => [0.8,0.8,0.8,1],
   Emission => [0,0,0,1],
 }}
