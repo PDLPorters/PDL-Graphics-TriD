@@ -216,7 +216,7 @@ sub transform {
 package # hide from PAUSE
   PDL::Graphics::TriD::FaceAxes;
 use base qw(PDL::Graphics::TriD::AxesBase);
-use fields qw(LatticeObj Names Center);
+use fields qw(LatticeObj Names Center AxisLinesObj AxisLabelsObj);
 sub normalise_scale { # Normalize the smallest differences away.
   my ($this) = @_;
   my ($mins, $maxes) = $this->SUPER::normalise_scale;
@@ -247,6 +247,25 @@ sub add_lattice_axis {
   my $tverts = $this->transform($verts->zeroes,$verts,[0,1,2]);
   $this->delete_object($this->{LatticeObj}) if $this->{LatticeObj};
   $this->add_object($this->{LatticeObj} = PDL::Graphics::TriD::Lattice->new($tverts, {Shading=>0}));
+  my $xdiv = int($tverts->dim(1) / 4);
+  my $nxdiv = int($tverts->dim(1) / $xdiv);
+  my $starts = $tverts->slice(",::$xdiv,(0)");
+  my $ydiv = int($tverts->dim(2) / 4);
+  my $nydiv = int($tverts->dim(2) / $ydiv);
+  $starts = $starts->glue(1,$tverts->slice(",(0),::$ydiv"));
+  my ($line_points, $labels_obj) = $this->gen_stalk_labels(
+    $starts,
+    PDL->zeroes(PDL::float(), $nxdiv+1)->append(
+      PDL->zeroes(PDL::float(), $nydiv+1) + 1
+    ),
+    0.1,
+  );
+  $this->delete_object($_) for grep $_, @$this{qw(AxisLinesObj AxisLabelsObj)};
+  $this->add_object($this->{AxisLinesObj} = PDL::Graphics::TriD::Lines->new($line_points));
+  $this->add_object($this->{AxisLabelsObj} = $labels_obj);
+  my $xlabels = $verts->slice("(0),::$xdiv,(0)");
+  my $ylabels = $verts->slice("(1),(0),::$ydiv");
+  $this->{AxisLabelsObj}->set_labels([map sprintf("%.3f", $_), $xlabels->list, $ylabels->list]);
 }
 
 # Is actually a Sinusoidal projection despite name

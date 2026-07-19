@@ -28,6 +28,10 @@ my $cyl = PDL::Graphics::TriD::CylindricalEquidistantAxes->new;
 $cyl->init_scale;
 $cyl->add_scale(my $points2 = float('-80 -80 800; 80 80 900'), $inds);
 $cyl->finish_scale;
+is_pdl $cyl->{AxisLabelsObj}{Points}, float('
+  0.413176 -0.1 -0.1; 0.456588 -0.1 -0.1; 0.5 -0.1 -0.1; 0.543412 -0.1 -0.1; 0.586824 -0.1 -0.1;
+  0.313176 0 -0.1; 0.0169778 0.25 -0.1; -0.1 0.5 -0.1; 0.0169778 0.75 -0.1; 0.313176 1 -0.1
+');
 is_pdl $cyl->transform($points2->zeroes, $points2, $inds), float('
   0.413176 0 0.101756; 0.586824 1 0.050878
 ');
