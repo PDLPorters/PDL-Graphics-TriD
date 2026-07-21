@@ -131,7 +131,7 @@ sub changed {}
 package # hide from PAUSE
   PDL::Graphics::TriD::AxesBase;
 use base qw(PDL::Graphics::TriD::Object);
-use fields qw(NDiv Bounds);
+use fields qw(NDiv AxisLabelsObj Bounds);
 sub new {
   my $class = $_[0];
   my $options = ref($_[-1]) eq 'HASH' ? pop : $class->get_valid_options;
@@ -168,7 +168,7 @@ sub get_valid_options { +{
 package # hide from PAUSE
   PDL::Graphics::TriD::EuclidAxes;
 use base qw(PDL::Graphics::TriD::AxesBase);
-use fields qw(AxisLabelsObj Transform);
+use fields qw(Transform);
 use PDL;
 use PDL::Transform;
 
@@ -224,7 +224,7 @@ sub transform {
 package # hide from PAUSE
   PDL::Graphics::TriD::FaceAxes;
 use base qw(PDL::Graphics::TriD::AxesBase);
-use fields qw(LatticeObj Names Center AxisLinesObj AxisLabelsObj);
+use fields qw(LatticeObj Names Center AxisLinesObj);
 sub normalise_scale { # Normalize the smallest differences away.
   my ($this) = @_;
   my ($mins, $maxes) = $this->SUPER::normalise_scale;
