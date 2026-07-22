@@ -133,10 +133,8 @@ package # hide from PAUSE
 use base qw(PDL::Graphics::TriD::Object);
 use fields qw(NDiv AxisLabelsObj Bounds);
 sub new {
-  my $class = $_[0];
-  my $options = ref($_[-1]) eq 'HASH' ? pop : $class->get_valid_options;
-  my $this = $class->SUPER::new($options);
-  my $ndiv = $this->{NDiv} = $this->{Options}{NDiv};
+  my $this = $_[0]->SUPER::new(@_[1..$#_]);
+  $this->{NDiv} = $this->{Options}{NDiv};
   $this;
 }
 sub normalise_scale { # Normalize the smallest differences away.
@@ -179,8 +177,7 @@ sub get_valid_options { +{
 
 sub new {
   my $this = $_[0]->SUPER::new(@_[1..$#_]);
-  my $options = $this->{Options};
-  my $ndiv = $this->{NDiv};
+  my ($options, $ndiv) = @$this{qw(Options NDiv)};
   my $starts = ylinvals(PDL::float(),0,1,1,$ndiv+1)->append(zeroes(PDL::float(),2));
   my $dupseq = yvals($ndiv+1,3)->flat;
   my ($line_points, $labels_obj) = $this->gen_stalk_labels(
