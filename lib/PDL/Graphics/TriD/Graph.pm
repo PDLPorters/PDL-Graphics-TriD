@@ -222,6 +222,7 @@ package # hide from PAUSE
   PDL::Graphics::TriD::FaceAxes;
 use base qw(PDL::Graphics::TriD::AxesBase);
 use fields qw(LatticeObj Names Center AxisLinesObj);
+use PDL;
 sub normalise_scale { # Normalize the smallest differences away.
   my ($this) = @_;
   my ($mins, $maxes) = $this->SUPER::normalise_scale;
@@ -241,35 +242,26 @@ sub normalise_scale { # Normalize the smallest differences away.
 }
 sub add_lattice_axis {
   my ($this) = @_;
-  my @widths = $this->{Bounds}->slice('0:1')->t->diff2->list;
-  my @nadd = map $_ > 100 ? 10 : $_ > 30 ? 5 : $_ > 20 ? 2 : 1, @widths;
-  my @nc = map int($this->{Bounds}->slice("$_,0")->sclr/$nadd[$_])*$nadd[$_], 0,1;
-  my @ns = map int($widths[$_]/$nadd[$_])+1, 0,1;
+  my $ndiv = $this->{NDiv};
   # can be changed to topo heights?
-  my $verts = PDL->zeroes(PDL::float(),3,@ns);
+  my $verts = zeroes(PDL::float(),3,(2*$ndiv+1) x 2);
   $verts->slice("2") .= 1012.5;
-  $verts->slice($_)->inplace->axislinvals($_+1,$nc[$_],$nc[$_]+$nadd[$_]*($ns[$_]-1)) for 0,1;
+  $verts->slice($_)->inplace->axislinvals($_+1,$this->{Bounds}->slice($_)->list) for 0,1;
   my $tverts = $this->transform($verts->zeroes,$verts,[0,1,2]);
   $this->delete_object($this->{LatticeObj}) if $this->{LatticeObj};
   $this->add_object($this->{LatticeObj} = PDL::Graphics::TriD::Lattice->new($tverts, {Shading=>0}));
-  my $xdiv = int($tverts->dim(1) / 4);
-  my $nxdiv = int($tverts->dim(1) / $xdiv);
-  my $starts = $tverts->slice(",::$xdiv,(0)");
-  my $ydiv = int($tverts->dim(2) / 4);
-  my $nydiv = int($tverts->dim(2) / $ydiv);
-  $starts = $starts->glue(1,$tverts->slice(",(0),::$ydiv"));
+  my $starts = $tverts->slice(",::2,(0)");
+  $starts = $starts->glue(1,$tverts->slice(",(0),::2"));
   my ($line_points, $labels_obj) = $this->gen_stalk_labels(
     $starts,
-    PDL->zeroes(PDL::float(), $nxdiv+1)->append(
-      PDL->zeroes(PDL::float(), $nydiv+1) + 1
-    ),
+    yvals(PDL::float(), $ndiv+1, 2)->flat,
     0.1,
   );
   $this->delete_object($_) for grep $_, @$this{qw(AxisLinesObj AxisLabelsObj)};
   $this->add_object($this->{AxisLinesObj} = PDL::Graphics::TriD::Lines->new($line_points));
   $this->add_object($this->{AxisLabelsObj} = $labels_obj);
-  my $xlabels = $verts->slice("(0),::$xdiv,(0)");
-  my $ylabels = $verts->slice("(1),(0),::$ydiv");
+  my $xlabels = $verts->slice("(0),::2,(0)");
+  my $ylabels = $verts->slice("(1),(0),::2");
   $this->{AxisLabelsObj}->set_labels([map sprintf("%.3f", $_), $xlabels->list, $ylabels->list]);
 }
 
