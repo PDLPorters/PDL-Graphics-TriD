@@ -223,23 +223,6 @@ package # hide from PAUSE
 use base qw(PDL::Graphics::TriD::AxesBase);
 use fields qw(LatticeObj Names Center AxisLinesObj);
 use PDL;
-sub normalise_scale { # Normalize the smallest differences away.
-  my ($this) = @_;
-  my ($mins, $maxes) = $this->SUPER::normalise_scale;
-  my @dist = ($maxes - $mins)->list;
-  ($mins, $maxes) = map $_->unpdl, $mins, $maxes;
-# Normalize longitude and latitude bounds
-  my $little_ind = $dist[1] > $dist[0] ? 0 :
-    ($dist[0] > $dist[1] && $dist[0]<90) ? 1 :
-    $dist[0] > $dist[1] ? 1 : undef;
-  if (defined $little_ind) {
-    my $bigval = ($dist[0] > $dist[1] && $dist[0]>=90) ? 90 : $dist[1-$little_ind];
-    my $diffval = ($bigval - $dist[$little_ind]) / 2;
-    $mins->[$little_ind] -= $diffval;
-    $maxes->[$little_ind] += $diffval;
-  }
-  ($mins, $maxes);
-}
 sub add_lattice_axis {
   my ($this) = @_;
   my $ndiv = $this->{NDiv};

@@ -40,7 +40,7 @@ $cyl->init_scale;
 $cyl->add_scale(my $points3 = float('-80 -80 800; 80 50 900'), $inds);
 $cyl->finish_scale;
 is_pdl $cyl->transform($points2->zeroes, $points3, $inds), float('
-  0.413176 -0.388889 0.101756; 0.821394  1.055555 0.050878
+  0.413176 -0.115385 0.101756; 0.821394 0.884615 0.050878
 ');
 
 my $pol = PDL::Graphics::TriD::PolarStereoAxes->new;
