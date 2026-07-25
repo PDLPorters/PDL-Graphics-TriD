@@ -231,7 +231,7 @@ sub add_lattice_axis {
   $verts->slice("2") .= 1012.5;
   $verts->slice($_)->inplace->axislinvals($_+1,$this->{Bounds}->slice($_)->list) for 0,1;
   my $tverts = $this->transform($verts->zeroes,$verts,[0,1,2]);
-  $this->delete_object($this->{LatticeObj}) if $this->{LatticeObj};
+  $this->delete_object($_) for grep $_, @$this{qw(LatticeObj AxisLinesObj AxisLabelsObj)};
   $this->add_object($this->{LatticeObj} = PDL::Graphics::TriD::Lattice->new($tverts, {Shading=>0}));
   my $starts = $tverts->slice(",::2,(0)");
   $starts = $starts->glue(1,$tverts->slice(",(0),::2"));
@@ -240,7 +240,6 @@ sub add_lattice_axis {
     yvals(PDL::float(), $ndiv+1, 2)->flat,
     0.1,
   );
-  $this->delete_object($_) for grep $_, @$this{qw(AxisLinesObj AxisLabelsObj)};
   $this->add_object($this->{AxisLinesObj} = PDL::Graphics::TriD::Lines->new($line_points));
   $this->add_object($this->{AxisLabelsObj} = $labels_obj);
   my $xlabels = $verts->slice("(0),::2,(0)");
