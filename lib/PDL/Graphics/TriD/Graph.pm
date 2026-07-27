@@ -87,7 +87,7 @@ sub scalethings {
 sub get_points {
   my ($this,$name,$data) = @_;
   my $d = $data->get_points;
-  my @ddims = $d->dims; shift @ddims;
+  my (undef, @ddims) = $d->dims;
   my $p = PDL->zeroes(PDL::float(),3,@ddims);
   for (@{$this->{DataBind}{$name}}) {
     my ($axisname, $indices) = @$_;
