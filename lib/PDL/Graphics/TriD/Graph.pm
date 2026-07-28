@@ -92,7 +92,7 @@ sub get_points {
   for (@{$this->{DataBind}{$name}}) {
     my ($axisname, $indices) = @$_;
     my $axis = $this->{Axis}{$axisname} // die "Axis not defined: $axisname";
-# Transform can return the same or a different ndarray.
+# transform can return the same or a different ndarray.
     $p = $axis->transform($p,$d,$indices);
   }
   $p;
@@ -131,7 +131,7 @@ sub changed {}
 package # hide from PAUSE
   PDL::Graphics::TriD::AxesBase;
 use base qw(PDL::Graphics::TriD::Object);
-use fields qw(NDiv AxisLabelsObj Bounds);
+use fields qw(NDiv AxisLabelsObj Bounds TransformFinal);
 sub new {
   my $this = $_[0]->SUPER::new(@_[1..$#_]);
   $this->{NDiv} = $this->{Options}{NDiv};
@@ -166,7 +166,6 @@ sub get_valid_options { +{
 package # hide from PAUSE
   PDL::Graphics::TriD::EuclidAxes;
 use base qw(PDL::Graphics::TriD::AxesBase);
-use fields qw(Transform);
 use PDL;
 use PDL::Transform;
 
@@ -206,7 +205,7 @@ sub add_scale {
 sub finish_scale {
   my ($this) = @_;
   my ($min, $max) = $this->normalise_scale;
-  $this->{Transform} = t_linear(pre => -$min, s => 1/($max - $min));
+  $this->{TransformFinal} = t_linear(pre => -$min, s => 1/($max - $min));
   my $axisvals = ylinvals(PDL::float(),$min,$max,3,$this->{NDiv}+1);
   $this->{AxisLabelsObj}->set_labels([map sprintf("%.3f", $_), $axisvals->t->list]);
 }
@@ -214,7 +213,7 @@ sub finish_scale {
 sub transform {
   my ($this,$point,$data,$inds) = @_;
   PDL::barf "no \$inds given" if !defined $inds;
-  $point->slice("0:$#$inds") += $this->{Transform}->apply($data->dice_axis(0, $inds));
+  $point->slice("0:$#$inds") += $this->{TransformFinal}->apply($data->dice_axis(0, $inds));
   $point;
 }
 
