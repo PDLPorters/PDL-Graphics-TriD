@@ -150,7 +150,7 @@ sub re_minmax {
   my ($this, $data, $already) = @_;
   my $to_minmax = $data->clump(1..$data->ndims-1); # xyz,...
   $to_minmax = PDL::glue(1, $to_minmax, $already); # include old min/max
-  $to_minmax->transpose->minmaxover; # each min, max is xyz
+  ($to_minmax->transpose->minmaxover)[0,1]; # each min, max is xyz
 }
 sub gen_stalk_labels {
   my ($this, $starts, $dimnot, $stalk_scale) = @_;

@@ -7,7 +7,8 @@ use Test::PDL;
 
 my $euclid = PDL::Graphics::TriD::EuclidAxes->new;
 $euclid->init_scale;
-$euclid->add_scale(my $points = float('0 0 0; 2 1 1'), my $inds = [0..2]);
+$euclid->add_scale(my $points = float('0 0 0; 1 1 1; 1 1 1; 2 1 1'), my $inds = [0..2]);
+$euclid->add_scale($points, $inds);
 $euclid->finish_scale;
 is_deeply $euclid->{AxisLabelsObj}{Strings}, [qw(
   0.000 0.500 1.000 1.500 2.000
@@ -21,7 +22,7 @@ is_pdl $euclid->{AxisLabelsObj}{Points}, float('
   -0.1 -0.1 0; -0.1 -0.1 0.25; -0.1 -0.1 0.5; -0.1 -0.1 0.75; -0.1 -0.1 1
 ');
 is_pdl $euclid->transform($points->zeroes, $points, $inds), float('
-  0 0 0; 1 1 1
+  0 0 0; 0.5 1 1; 0.5 1 1; 1 1 1
 ');
 
 my $cyl = PDL::Graphics::TriD::CylindricalEquidistantAxes->new;
