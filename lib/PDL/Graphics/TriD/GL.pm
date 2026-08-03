@@ -152,7 +152,7 @@ fs_out_flat => "  $FRAG_OUT = in_diffuse;\n",
 vs_in => "  vec3 the_position = position;\n",
 vs_in_offset_decl => "$VS_IN vec3 offset;\n",
 vs_do_offset => "  the_position += offset;\n",
-vs_do_toffset => "  gl_Position /= gl_Position.w;\n  gl_Position.xy += toffset * 2.5 / uScreenSize;\n",
+vs_do_toffset => "  gl_Position /= gl_Position.w;\n  gl_Position.xy += toffset * 1.8 / uScreenSize;\n",
 vs_out => "  gl_Position = uMVP * vec4(the_position, 1);\n",
 vs_out_light => <<'EOF',
   vNormal = normalize(uNormalMatrix * normal);

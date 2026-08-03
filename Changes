@@ -7,6 +7,7 @@
 - compatibility break: requires OpenGL 3.3 (from 2010)
 - now uses OpenGL::Modern
 - `demo 3dgal` Mandelbrot entries now native complex
+- text font now 18-point Helvetica
 
 2.102 2025-04-11
 - fix scrolling out with mousewheel/double-touch-scroll in GLUT
