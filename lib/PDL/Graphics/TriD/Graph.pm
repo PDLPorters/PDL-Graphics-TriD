@@ -200,7 +200,8 @@ sub init_scale {
 sub add_scale {
   my ($this,$data,$inds) = @_;
   PDL::barf "no \$inds given" if !defined $inds;
-  $this->{BoundsOut} = $this->{BoundsIn} = PDL->pdl($this->re_minmax($data->dice_axis(0, $inds), $this->{BoundsIn})); # xyz,minmax
+  $data = $data->dice_axis(0, $inds);
+  $this->{BoundsOut} = $this->{BoundsIn} = PDL->pdl($this->re_minmax($data, $this->{BoundsIn})); # xyz,minmax
 }
 
 sub finish_scale {
@@ -274,7 +275,8 @@ sub init_scale {
 sub add_scale {
   my ($this,$data,$inds) = @_;
   barf "no \$inds given" if !defined $inds;
-  my ($mins, $maxes) = $this->re_minmax($data->dice_axis(0, $inds), $this->{BoundsIn}); # each is xyz
+  $data = $data->dice_axis(0, $inds);
+  my ($mins, $maxes) = $this->re_minmax($data, $this->{BoundsIn}); # each is xyz
   if ($maxes->slice(1) >= 90 or $mins->slice(1) <= -90) {
     barf "Error in Latitude ", $maxes->slice(1), " ", $mins->slice(1);
   }
@@ -333,7 +335,8 @@ sub init_scale {
 sub add_scale {
   my ($this,$data,$inds) = @_;
   barf "no \$inds given" if !defined $inds;
-  my ($mins, $maxes) = $this->re_minmax($data->dice_axis(0, $inds), $this->{BoundsIn}); # each is xyz
+  $data = $data->dice_axis(0, $inds);
+  my ($mins, $maxes) = $this->re_minmax($data, $this->{BoundsIn}); # each is xyz
   if ($maxes->slice(1) >= 90 or $mins->slice(1) <= -90) {
     barf "Error in Latitude ", $maxes->slice(1), " ", $mins->slice(1);
   }
