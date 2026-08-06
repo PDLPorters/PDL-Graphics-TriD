@@ -131,7 +131,7 @@ sub changed {}
 package # hide from PAUSE
   PDL::Graphics::TriD::AxesBase;
 use base qw(PDL::Graphics::TriD::Object);
-use fields qw(NDiv AxisLabelsObj BoundsIn BoundsOut TransformFinal);
+use fields qw(NDiv AxisLabelsObj BoundsIn BoundsOut TransformNorm TransformFinal);
 use PDL;
 sub new {
   my $this = $_[0]->SUPER::new(@_[1..$#_]);
@@ -207,7 +207,7 @@ sub add_scale {
 sub finish_scale {
   my ($this) = @_;
   my ($min, $max) = $this->normalise_scale;
-  $this->{TransformFinal} = t_linear(pre => -$min, s => 1/($max - $min));
+  $this->{TransformNorm} = $this->{TransformFinal} = t_linear(pre => -$min, s => 1/($max - $min));
   my $axisvals = ylinvals(PDL::float(),$min,$max,3,$this->{NDiv}+1);
   $this->{AxisLabelsObj}->set_labels([map sprintf("%.3f", $_), $axisvals->t->list]);
 }
