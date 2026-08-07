@@ -231,6 +231,7 @@ sub add_lattice_axis {
   my $verts = zeroes(PDL::float(),3,(2*$ndiv+1) x 2);
   $verts->slice("2") .= 1012.5;
   $verts->slice($_)->inplace->axislinvals($_+1,$this->{BoundsIn}->slice($_)->list) for 0,1;
+  $this->add_scale($verts, [0..2]);
   my $tverts = $this->transform($verts->zeroes,$verts,[0,1,2]);
   $this->delete_object($_) for grep $_, @$this{qw(LatticeObj AxisLinesObj AxisLabelsObj)};
   $this->add_object($this->{LatticeObj} = PDL::Graphics::TriD::Lattice->new($tverts, {Shading=>0}));
