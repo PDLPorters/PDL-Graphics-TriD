@@ -131,7 +131,7 @@ sub changed {}
 package # hide from PAUSE
   PDL::Graphics::TriD::AxesBase;
 use base qw(PDL::Graphics::TriD::Object);
-use fields qw(NDiv AxisLabelsObj BoundsIn BoundsOut TransformNorm TransformFinal);
+use fields qw(NDiv AxisLabelsObj BoundsIn BoundsOut TransformRaw TransformNorm TransformFinal);
 use PDL;
 sub new {
   my $this = $_[0]->SUPER::new(@_[1..$#_]);
@@ -249,14 +249,14 @@ sub add_lattice_axis {
   $this->{AxisLabelsObj}->set_labels([map sprintf("%.3f", $_), $xlabels->list, $ylabels->list]);
 }
 
-# Is actually a Sinusoidal projection despite name
 # x & y in degrees, z = value
 # to try:
-# make && perl -Mblib -MPDL -MPDL::Graphics::TriD -e '$PDL::Graphics::TriD::Graph::default_axis_class = "PDL::Graphics::TriD::CylindricalEquidistantAxes"; spheres3d pdl("-80 -80 800; 80 80 900")'
+# make && perl -Mblib -MPDL -MPDL::Graphics::TriD -e '$PDL::Graphics::TriD::Graph::default_axis_class = "PDL::Graphics::TriD::SinusoidalAxes"; spheres3d pdl("-80 -80 800; 80 80 900")'
 package # hide from PAUSE
-  PDL::Graphics::TriD::CylindricalEquidistantAxes;
+  PDL::Graphics::TriD::SinusoidalAxes;
 use base qw(PDL::Graphics::TriD::FaceAxes);
 use PDL::Core qw(barf float);
+use PDL::Transform::Cartography;
 use PDL::Constants qw(DEGRAD);
 use constant DEG2RAD => 1/DEGRAD;
 
@@ -264,6 +264,7 @@ sub new {
   my ($type) = @_;
   my $self = $type->SUPER::new;
   $self->{Names} = [qw(LON LAT Pressure)];
+  $self->{TransformRaw} = t_sinusoidal();
   $self;
 }
 
@@ -283,7 +284,10 @@ sub add_scale {
   }
   $this->{BoundsIn} = PDL->pdl($mins, $maxes); # xyz,minmax
 # Should make the projection center an option
-  $this->{Center} = float([($maxes + $mins)->slice("(0)")/2, 0]);
+  ($mins, $maxes) = $this->re_minmax($this->{TransformRaw}->apply($data), $this->{BoundsOut});
+  $this->{BoundsOut} = PDL->pdl($mins, $maxes);
+  $this->{TransformNorm} = t_linear(pre => -$mins, s => 1/($maxes - $mins));
+  $this->{TransformFinal} = $this->{TransformNorm} x $this->{TransformRaw};
 }
 
 sub finish_scale {
@@ -296,15 +300,9 @@ sub transform {
   my ($this,$point,$data,$inds) = @_;
   barf "no \$inds given" if !defined $inds;
   barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
-  my $range2 = $this->{BoundsIn}->t->diff2->t->slice('0:1');
   my $pressure_max = $this->{BoundsIn}->slice('2,0');
   $data = $data->dice_axis(0, $inds);
-  my $data01_ctr = ($data->slice("0:1")-$this->{Center}) / $range2;
-  $point->slice("(0)") +=
-    0.5+$data01_ctr->slice("(0)")
-	*cos($data->slice("(1)")*DEG2RAD);
-  $point->slice("(1)") +=
-    0.5+$data01_ctr->slice("(1)");
+  $point += $this->{TransformFinal}->apply($data);
   $point->slice("(2)") .=
     log($data->slice("(2)")/1012.5)/log($pressure_max/1012.5);
   $point;

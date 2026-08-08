@@ -222,6 +222,7 @@ release3d();
 
 [actnw => q|
 # Show the world!
+use PDL::Transform;
 use PDL::Transform::Cartography;
 eval { # this is in case no NetPBM, i.e. can't load Earth images
   $radius = earth_shape();

@@ -25,14 +25,14 @@ is_pdl $euclid->transform($points->zeroes, $points, $inds), float('
   0 0 0; 0.5 1 1; 0.5 1 1; 1 1 1
 ');
 
-my $cyl = PDL::Graphics::TriD::CylindricalEquidistantAxes->new;
+my $cyl = PDL::Graphics::TriD::SinusoidalAxes->new;
 $cyl->init_scale;
 $cyl->add_scale(my $points2 = float('-80 -80 800; 80 80 900'), $inds);
 $cyl->finish_scale;
 is_pdl $cyl->{AxisLabelsObj}{Points}, float('
   0.413176 -0.1 -0.1; 0.456588 -0.1 -0.1; 0.5 -0.1 -0.1; 0.543412 -0.1 -0.1; 0.586824 -0.1 -0.1;
   0.313176 0 -0.1; 0.0169778 0.25 -0.1; -0.1 0.5 -0.1; 0.0169778 0.75 -0.1; 0.313176 1 -0.1
-');
+'), {atol=>1e-4};
 is_pdl $cyl->transform($points2->zeroes, $points2, $inds), float('
   0.413176 0 0.101756; 0.586824 1 0.050878
 ');
@@ -41,7 +41,7 @@ $cyl->init_scale;
 $cyl->add_scale(my $points3 = float('-80 -80 800; 80 50 900'), $inds);
 $cyl->finish_scale;
 is_pdl $cyl->transform($points2->zeroes, $points3, $inds), float('
-  0.413176 -0.115385 0.101756; 0.821394 0.884615 0.050878
+  0.413155 0 0.101756; 0.82147 1 0.050878
 ');
 
 my $pol = PDL::Graphics::TriD::PolarStereoAxes->new;
