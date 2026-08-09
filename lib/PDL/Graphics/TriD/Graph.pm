@@ -257,8 +257,6 @@ package # hide from PAUSE
 use base qw(PDL::Graphics::TriD::FaceAxes);
 use PDL::Core qw(barf float);
 use PDL::Transform::Cartography;
-use PDL::Constants qw(DEGRAD);
-use constant DEG2RAD => 1/DEGRAD;
 
 sub new {
   my ($type) = @_;
