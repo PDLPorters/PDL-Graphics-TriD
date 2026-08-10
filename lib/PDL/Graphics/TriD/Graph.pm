@@ -281,7 +281,6 @@ sub add_scale {
     barf "Error in Latitude ", $maxes->slice(1), " ", $mins->slice(1);
   }
   $this->{BoundsIn} = PDL->pdl($mins, $maxes); # xyz,minmax
-# Should make the projection center an option
   ($mins, $maxes) = $this->re_minmax($this->{TransformRaw}->apply($data), $this->{BoundsOut});
   $this->{BoundsOut} = PDL->pdl($mins, $maxes);
   $this->{TransformNorm} = t_linear(pre => -$mins, s => 1/($maxes - $mins));
@@ -350,7 +349,6 @@ sub finish_scale {
 sub transform {
   my ($this,$point,$data,$inds) = @_;
   barf "no \$inds given" if !defined $inds;
-  my $i = 0;
   barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
   $data = $data->dice_axis(0, $inds);
   my $range2 = $this->{BoundsIn}->t->diff2->t->slice('0:1');
