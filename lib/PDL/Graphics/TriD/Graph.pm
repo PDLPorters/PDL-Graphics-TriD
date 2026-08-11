@@ -305,20 +305,20 @@ sub transform {
   $point;
 }
 
-# Despite name (which is like the UN map), is actually Spherical or Orthographic-style projection
 # try this:
-# make && perl -Mblib -MPDL -MPDL::Graphics::TriD -e '$PDL::Graphics::TriD::Graph::default_axis_class = "PDL::Graphics::TriD::PolarStereoAxes"; spheres3d pdl("-80 -80 800; 80 80 900")'
+# make && perl -Mblib -MPDL -MPDL::Graphics::TriD -e '$PDL::Graphics::TriD::Graph::default_axis_class = "PDL::Graphics::TriD::PolarStereoAxes"; spheres3d pdl("-80 80 800; 80 80 900")'
 package # hide from PAUSE
   PDL::Graphics::TriD::PolarStereoAxes;
 use base qw(PDL::Graphics::TriD::FaceAxes);
 use PDL::Core qw(barf float);
-use PDL::Constants qw(DEGRAD);
-use constant DEG2RAD => 1/DEGRAD;
+use PDL::Transform;
+use PDL::Transform::Cartography;
 
 sub new {
   my ($type) = @_;
   my $self = $type->SUPER::new;
   $self->{Names} = [qw(LONGITUDE LATITUDE HEIGHT)];
+  $self->{TransformRaw} = t_stereographic(o=>[0,90]); # about North Pole
   $self;
 }
 
@@ -337,7 +337,10 @@ sub add_scale {
     barf "Error in Latitude ", $maxes->slice(1), " ", $mins->slice(1);
   }
   $this->{BoundsIn} = PDL->pdl($mins, $maxes); # xyz,minmax
-  $this->{Center} = (($maxes + $mins)/2)->slice("0:1");
+  ($mins, $maxes) = $this->re_minmax($this->{TransformRaw}->apply($data), $this->{BoundsOut});
+  $this->{BoundsOut} = PDL->pdl($mins, $maxes);
+  $this->{TransformNorm} = t_linear(pre => -$mins, s => 1/($maxes - $mins));
+  $this->{TransformFinal} = $this->{TransformNorm} x $this->{TransformRaw};
 }
 
 sub finish_scale {
@@ -351,21 +354,8 @@ sub transform {
   barf "no \$inds given" if !defined $inds;
   barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
   $data = $data->dice_axis(0, $inds);
-  my $range2 = $this->{BoundsIn}->t->diff2->t->slice('0:1');
   my $pressure_max = $this->{BoundsIn}->slice('2,0');
-  my $data01_ctr = ($data->slice("0:1")-$this->{Center}) / $range2;
-  $point->slice("(0)") +=
-    0.5+$data01_ctr->slice("(0)")
-	*cos($data->slice("(1)")*DEG2RAD);
-  $point->slice("(1)") +=
-    0.5+$data01_ctr->slice("(1)")
-	*cos($data->slice("(1)")*DEG2RAD);
-# Longitude transformation
-#  $point->slice("(0)") =
-#    ($this->{Center}[0]-$point->slice("(0)"))*cos($data->slice("(1)"));
-# Latitude transformation
-#  $point->slice("(1)") =
-#    ($this->{Center}[1]-$data->slice("(1)"))*cos($data->slice("(1)"));
+  $point += $this->{TransformFinal}->apply($data);
 # Vertical transformation
 #  -7.2*log($data->slice("(2)")/1012.5
   $point->slice("(2)") .=
