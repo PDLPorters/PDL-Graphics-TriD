@@ -222,8 +222,28 @@ sub transform {
 package # hide from PAUSE
   PDL::Graphics::TriD::FaceAxes;
 use base qw(PDL::Graphics::TriD::AxesBase);
-use fields qw(LatticeObj Names Center AxisLinesObj);
+use fields qw(LatticeObj Names AxisLinesObj);
 use PDL;
+use PDL::Transform;
+sub add_scale {
+  my ($this,$data,$inds) = @_;
+  barf "no \$inds given" if !defined $inds;
+  $data = $data->dice_axis(0, $inds);
+  my ($mins, $maxes) = $this->re_minmax($data, $this->{BoundsIn}); # each is xyz
+  if ($maxes->slice(1) >= 90 or $mins->slice(1) <= -90) {
+    barf "Error in Latitude ", $maxes->slice(1), " ", $mins->slice(1);
+  }
+  $this->{BoundsIn} = PDL->pdl($mins, $maxes); # xyz,minmax
+  ($mins, $maxes) = $this->re_minmax($this->{TransformRaw}->apply($data), $this->{BoundsOut});
+  $this->{BoundsOut} = PDL->pdl($mins, $maxes);
+  $this->{TransformNorm} = t_linear(pre => -$mins, s => 1/($maxes - $mins));
+  $this->{TransformFinal} = $this->{TransformNorm} x $this->{TransformRaw};
+}
+sub finish_scale {
+  my ($this) = @_;
+  $this->{BoundsIn} = PDL->pdl(PDL::float(), $this->normalise_scale);
+  $this->add_lattice_axis;
+}
 sub add_lattice_axis {
   my ($this) = @_;
   my $ndiv = $this->{NDiv};
@@ -272,27 +292,6 @@ sub init_scale {
   $this->{BoundsOut} = undef;
 }
 
-sub add_scale {
-  my ($this,$data,$inds) = @_;
-  barf "no \$inds given" if !defined $inds;
-  $data = $data->dice_axis(0, $inds);
-  my ($mins, $maxes) = $this->re_minmax($data, $this->{BoundsIn}); # each is xyz
-  if ($maxes->slice(1) >= 90 or $mins->slice(1) <= -90) {
-    barf "Error in Latitude ", $maxes->slice(1), " ", $mins->slice(1);
-  }
-  $this->{BoundsIn} = PDL->pdl($mins, $maxes); # xyz,minmax
-  ($mins, $maxes) = $this->re_minmax($this->{TransformRaw}->apply($data), $this->{BoundsOut});
-  $this->{BoundsOut} = PDL->pdl($mins, $maxes);
-  $this->{TransformNorm} = t_linear(pre => -$mins, s => 1/($maxes - $mins));
-  $this->{TransformFinal} = $this->{TransformNorm} x $this->{TransformRaw};
-}
-
-sub finish_scale {
-  my ($this) = @_;
-  $this->{BoundsIn} = PDL->pdl(PDL::float(), $this->normalise_scale);
-  $this->add_lattice_axis;
-}
-
 sub transform {
   my ($this,$point,$data,$inds) = @_;
   barf "no \$inds given" if !defined $inds;
@@ -311,7 +310,6 @@ package # hide from PAUSE
   PDL::Graphics::TriD::PolarStereoAxes;
 use base qw(PDL::Graphics::TriD::FaceAxes);
 use PDL::Core qw(barf float);
-use PDL::Transform;
 use PDL::Transform::Cartography;
 
 sub new {
@@ -326,27 +324,6 @@ sub init_scale {
   my ($this) = @_;
   $this->{BoundsIn} = PDL->pdl(PDL::float(), 'BAD BAD 100; BAD BAD 1012.5');
   $this->{BoundsOut} = undef;
-}
-
-sub add_scale {
-  my ($this,$data,$inds) = @_;
-  barf "no \$inds given" if !defined $inds;
-  $data = $data->dice_axis(0, $inds);
-  my ($mins, $maxes) = $this->re_minmax($data, $this->{BoundsIn}); # each is xyz
-  if ($maxes->slice(1) >= 90 or $mins->slice(1) <= -90) {
-    barf "Error in Latitude ", $maxes->slice(1), " ", $mins->slice(1);
-  }
-  $this->{BoundsIn} = PDL->pdl($mins, $maxes); # xyz,minmax
-  ($mins, $maxes) = $this->re_minmax($this->{TransformRaw}->apply($data), $this->{BoundsOut});
-  $this->{BoundsOut} = PDL->pdl($mins, $maxes);
-  $this->{TransformNorm} = t_linear(pre => -$mins, s => 1/($maxes - $mins));
-  $this->{TransformFinal} = $this->{TransformNorm} x $this->{TransformRaw};
-}
-
-sub finish_scale {
-  my ($this) = @_;
-  $this->{BoundsIn} = PDL->pdl(PDL::float(), $this->normalise_scale);
-  $this->add_lattice_axis;
 }
 
 sub transform {
