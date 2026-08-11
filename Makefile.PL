@@ -47,5 +47,9 @@ sub init_PM {
   $self->SUPER::init_PM;
   @pd_srcs = ::pdlpp_eumm_update_deep($self);
 }
-sub postamble { ::pdlpp_postamble(@pd_srcs) }
+sub postamble {
+  my $oneliner = PDL::Core::Dev::_oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(shift); }});
+  ::pdlpp_postamble(@pd_srcs) .
+    qq|\ninstall :: pure_install\n\t$oneliner \$(NAME)\n|;
+}
 }

@@ -8,6 +8,7 @@
 - now uses OpenGL::Modern
 - `demo 3dgal` Mandelbrot entries now native complex
 - text font now 18-point Helvetica
+- now adds TriD functions like line3d to PDL doc database
 
 2.102 2025-04-11
 - fix scrolling out with mousewheel/double-touch-scroll in GLUT
