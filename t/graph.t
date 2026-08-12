@@ -5,7 +5,7 @@ use PDL;
 use PDL::Graphics::TriD::Graph;
 use Test::PDL;
 
-my $euclid = PDL::Graphics::TriD::EuclidAxes->new;
+my $euclid = PDL::Graphics::TriD::Axes::Euclid->new;
 $euclid->init_scale;
 $euclid->add_scale(my $points = float('0 0 0; 1 1 1; 1 1 1; 2 1 1'), my $inds = [0..2]);
 $euclid->add_scale($points, $inds);
@@ -25,7 +25,7 @@ is_pdl $euclid->transform($points->zeroes, $points, $inds), float('
   0 0 0; 0.5 1 1; 0.5 1 1; 1 1 1
 ');
 
-my $cyl = PDL::Graphics::TriD::SinusoidalAxes->new;
+my $cyl = PDL::Graphics::TriD::Axes::Sinusoidal->new;
 $cyl->init_scale;
 $cyl->add_scale(my $points2 = float('-80 -80 800; 80 80 900'), $inds);
 $cyl->finish_scale;
@@ -44,7 +44,7 @@ is_pdl $cyl->transform($points2->zeroes, $points3, $inds), float('
   0.413155 0 0.101756; 0.82147 1 0.050878
 ');
 
-my $pol = PDL::Graphics::TriD::PolarStereoAxes->new;
+my $pol = PDL::Graphics::TriD::Axes::PolarStereo->new;
 $pol->init_scale;
 $pol->add_scale(my $points4 = float('-80 80 800; 80 50 900'), $inds);
 $pol->finish_scale;

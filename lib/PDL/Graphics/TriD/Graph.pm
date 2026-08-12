@@ -111,7 +111,7 @@ sub delete_data {
 }
 
 our $default_axis = 'Euclid3';
-our $default_axis_class = 'PDL::Graphics::TriD::EuclidAxes';
+our $default_axis_class = 'PDL::Graphics::TriD::Axes::Euclid';
 our $default_indices = [0,1,2];
 sub default_axes {
   my ($this) = @_;
@@ -129,7 +129,7 @@ sub set_default_axis {
 sub changed {}
 
 package # hide from PAUSE
-  PDL::Graphics::TriD::AxesBase;
+  PDL::Graphics::TriD::Axes::Base;
 use base qw(PDL::Graphics::TriD::Object);
 use fields qw(NDiv AxisLabelsObj BoundsIn BoundsOut TransformRaw TransformNorm TransformFinal);
 use PDL;
@@ -165,8 +165,8 @@ sub get_valid_options { +{
 }}
 
 package # hide from PAUSE
-  PDL::Graphics::TriD::EuclidAxes;
-use base qw(PDL::Graphics::TriD::AxesBase);
+  PDL::Graphics::TriD::Axes::Euclid;
+use base qw(PDL::Graphics::TriD::Axes::Base);
 use PDL;
 use PDL::Transform;
 
@@ -220,8 +220,8 @@ sub transform {
 }
 
 package # hide from PAUSE
-  PDL::Graphics::TriD::FaceAxes;
-use base qw(PDL::Graphics::TriD::AxesBase);
+  PDL::Graphics::TriD::Axes::Face;
+use base qw(PDL::Graphics::TriD::Axes::Base);
 use fields qw(LatticeObj Names AxisLinesObj);
 use PDL;
 use PDL::Transform;
@@ -271,10 +271,10 @@ sub add_lattice_axis {
 
 # x & y in degrees, z = value
 # to try:
-# make && perl -Mblib -MPDL -MPDL::Graphics::TriD -e '$PDL::Graphics::TriD::Graph::default_axis_class = "PDL::Graphics::TriD::SinusoidalAxes"; spheres3d pdl("-80 -80 800; 80 80 900")'
+# make && perl -Mblib -MPDL -MPDL::Graphics::TriD -e '$PDL::Graphics::TriD::Graph::default_axis_class = "PDL::Graphics::TriD::Axes::Sinusoidal"; spheres3d pdl("-80 -80 800; 80 80 900")'
 package # hide from PAUSE
-  PDL::Graphics::TriD::SinusoidalAxes;
-use base qw(PDL::Graphics::TriD::FaceAxes);
+  PDL::Graphics::TriD::Axes::Sinusoidal;
+use base qw(PDL::Graphics::TriD::Axes::Face);
 use PDL::Core qw(barf float);
 use PDL::Transform::Cartography;
 
@@ -305,10 +305,10 @@ sub transform {
 }
 
 # try this:
-# make && perl -Mblib -MPDL -MPDL::Graphics::TriD -e '$PDL::Graphics::TriD::Graph::default_axis_class = "PDL::Graphics::TriD::PolarStereoAxes"; spheres3d pdl("-80 80 800; 80 80 900")'
+# make && perl -Mblib -MPDL -MPDL::Graphics::TriD -e '$PDL::Graphics::TriD::Graph::default_axis_class = "PDL::Graphics::TriD::Axes::PolarStereo"; spheres3d pdl("-80 80 800; 80 80 900")'
 package # hide from PAUSE
-  PDL::Graphics::TriD::PolarStereoAxes;
-use base qw(PDL::Graphics::TriD::FaceAxes);
+  PDL::Graphics::TriD::Axes::PolarStereo;
+use base qw(PDL::Graphics::TriD::Axes::Face);
 use PDL::Core qw(barf float);
 use PDL::Transform::Cartography;
 
