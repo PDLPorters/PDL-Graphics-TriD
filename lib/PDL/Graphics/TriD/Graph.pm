@@ -244,8 +244,6 @@ sub add_scale {
   $this->{BoundsIn} = PDL->pdl($mins, $maxes); # xyz,minmax
   ($mins, $maxes) = $this->re_minmax($this->{TransformRaw}->apply($data), $this->{BoundsOut});
   $this->{BoundsOut} = PDL->pdl($mins, $maxes);
-  $this->{TransformNorm} = t_linear(pre => -$mins, s => 1/($maxes - $mins));
-  $this->{TransformFinal} = $this->{TransformNorm} x $this->{TransformRaw};
   ($mins, $maxes); # for BoundsOut
 }
 sub finish_scale {
@@ -256,7 +254,9 @@ sub finish_scale {
   my $verts = zeroes(PDL::float(),3,(2*$ndiv+1) x 2);
   $verts->slice("2") .= $mins_in->slice('2');
   $verts->slice($_)->inplace->axislinvals($_+1,$this->{BoundsIn}->slice($_)->list) for 0,1;
-  $this->add_scale($verts, [0..2]);
+  my ($mins_out, $maxes_out) = $this->add_scale($verts, [0..2]);
+  $this->{TransformNorm} = t_linear(pre => -$mins_out, s => 1/($maxes_out - $mins_out));
+  $this->{TransformFinal} = $this->{TransformNorm} x $this->{TransformRaw};
   my $tverts = $this->transform($verts->zeroes,$verts,[0,1,2]);
   $this->delete_object($_) for grep $_, @$this{qw(LatticeObj AxisLinesObj AxisLabelsObj)};
   $this->add_object($this->{LatticeObj} = PDL::Graphics::TriD::Lattice->new($tverts, {Shading=>0}));
