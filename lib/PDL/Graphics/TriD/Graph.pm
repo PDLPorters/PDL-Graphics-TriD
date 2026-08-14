@@ -150,6 +150,7 @@ sub init_scale {
   my ($this) = @_;
   $this->{BoundsOut} = $this->{BoundsIn} = undef;
 }
+sub validate_scale {}
 sub normalise_scale { # Normalize the smallest differences away.
   my ($this) = @_;
   my ($min, $max) = $this->{BoundsIn}->dog;
@@ -207,7 +208,9 @@ sub add_scale {
   my ($this,$data,$inds) = @_;
   PDL::barf "no \$inds given" if !defined $inds;
   $data = $data->dice_axis(0, $inds);
-  $this->{BoundsOut} = $this->{BoundsIn} = PDL->pdl($this->re_minmax($data, $this->{BoundsIn})); # xyz,minmax
+  my ($mins, $maxes) = $this->re_minmax($data, $this->{BoundsIn}); # each is xyz
+  $this->validate_scale($mins, $maxes);
+  $this->{BoundsOut} = $this->{BoundsIn} = PDL->pdl($mins, $maxes); # xyz,minmax
 }
 
 sub finish_scale {
@@ -224,14 +227,18 @@ use base qw(PDL::Graphics::TriD::Axes::Base);
 use fields qw(LatticeObj AxisLinesObj);
 use PDL;
 use PDL::Transform;
+sub validate_scale {
+  my ($this, $mins, $maxes) = @_;
+  if ($maxes->slice(1) >= 90 or $mins->slice(1) <= -90) {
+    barf "Error in Latitude ", $maxes->slice(1), " ", $mins->slice(1);
+  }
+}
 sub add_scale {
   my ($this,$data,$inds) = @_;
   barf "no \$inds given" if !defined $inds;
   $data = $data->dice_axis(0, $inds);
   my ($mins, $maxes) = $this->re_minmax($data, $this->{BoundsIn}); # each is xyz
-  if ($maxes->slice(1) >= 90 or $mins->slice(1) <= -90) {
-    barf "Error in Latitude ", $maxes->slice(1), " ", $mins->slice(1);
-  }
+  $this->validate_scale($mins, $maxes);
   $this->{BoundsIn} = PDL->pdl($mins, $maxes); # xyz,minmax
   ($mins, $maxes) = $this->re_minmax($this->{TransformRaw}->apply($data), $this->{BoundsOut});
   $this->{BoundsOut} = PDL->pdl($mins, $maxes);
