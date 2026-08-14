@@ -138,6 +138,9 @@ sub new {
   $this->{NDiv} = $this->{Options}{NDiv};
   $this;
 }
+sub get_valid_options { +{
+  NDiv => 4,
+}}
 sub init_scale {
   my ($this) = @_;
   $this->{BoundsOut} = $this->{BoundsIn} = undef;
@@ -164,9 +167,6 @@ sub gen_stalk_labels {
   my $labels_obj = PDL::Graphics::TriD::Labels->new($ends, [('') x $ends->dim(1)]);
   ($line_points, $labels_obj);
 }
-sub get_valid_options { +{
-  NDiv => 4,
-}}
 
 package # hide from PAUSE
   PDL::Graphics::TriD::Axes::Euclid;
