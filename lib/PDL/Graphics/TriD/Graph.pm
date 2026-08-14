@@ -133,9 +133,10 @@ package # hide from PAUSE
 use base qw(PDL::Graphics::TriD::Object);
 use fields qw(NDiv Names AxisLabelsObj BoundsIn BoundsOut TransformRaw TransformNorm TransformFinal);
 use PDL;
+my @COPY_FIELDS = qw(NDiv Names);
 sub new {
   my $this = $_[0]->SUPER::new(@_[1..$#_]);
-  @$this{qw(NDiv Names)} = @{ $this->{Options} }{qw(NDiv Names)};
+  @$this{@COPY_FIELDS} = @{ $this->{Options} }{@COPY_FIELDS};
   $this;
 }
 sub get_valid_options { +{
