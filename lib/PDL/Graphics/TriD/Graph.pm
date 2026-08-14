@@ -212,6 +212,7 @@ sub add_scale {
   my ($mins, $maxes) = $this->re_minmax($data, $this->{BoundsIn}); # each is xyz
   $this->validate_scale($mins, $maxes);
   $this->{BoundsOut} = $this->{BoundsIn} = PDL->pdl($mins, $maxes); # xyz,minmax
+  ($mins, $maxes); # for BoundsOut
 }
 
 sub finish_scale {
@@ -245,6 +246,7 @@ sub add_scale {
   $this->{BoundsOut} = PDL->pdl($mins, $maxes);
   $this->{TransformNorm} = t_linear(pre => -$mins, s => 1/($maxes - $mins));
   $this->{TransformFinal} = $this->{TransformNorm} x $this->{TransformRaw};
+  ($mins, $maxes); # for BoundsOut
 }
 sub finish_scale {
   my ($this) = @_;
