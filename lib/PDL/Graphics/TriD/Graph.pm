@@ -72,7 +72,7 @@ sub set_axis {
 sub scalethings {
   my ($this) = @_;
   $this->bind_default($_) for keys %{$this->{UnBound}};
-  $_->init_scale() for values %{$this->{Axis}};
+  $_->init_scale for values %{$this->{Axis}};
   while (my ($series_name,$v) = each %{$this->{DataBind}}) {
     for my $bound (@$v) {
       my ($axis, $axes) = @$bound;
@@ -138,6 +138,10 @@ sub new {
   $this->{NDiv} = $this->{Options}{NDiv};
   $this;
 }
+sub init_scale {
+  my ($this) = @_;
+  $this->{BoundsOut} = $this->{BoundsIn} = undef;
+}
 sub normalise_scale { # Normalize the smallest differences away.
   my ($this) = @_;
   my ($min, $max) = $this->{BoundsIn}->dog;
@@ -190,11 +194,6 @@ sub new {
   $this->add_object(PDL::Graphics::TriD::Lines->new($points->glue(1, $line_points)));
   $this->add_object($this->{AxisLabelsObj} = $labels_obj);
   $this;
-}
-
-sub init_scale {
-  my ($this) = @_;
-  $this->{BoundsOut} = $this->{BoundsIn} = undef;
 }
 
 sub add_scale {
@@ -286,12 +285,6 @@ sub new {
   $self;
 }
 
-sub init_scale {
-  my ($this) = @_;
-  $this->{BoundsIn} = PDL->pdl(PDL::float(), 'BAD BAD 100; BAD BAD 1012.5');
-  $this->{BoundsOut} = undef;
-}
-
 sub transform {
   my ($this,$point,$data,$inds) = @_;
   barf "no \$inds given" if !defined $inds;
@@ -318,12 +311,6 @@ sub new {
   $self->{Names} = [qw(LONGITUDE LATITUDE HEIGHT)];
   $self->{TransformRaw} = t_stereographic(o=>[0,90]); # about North Pole
   $self;
-}
-
-sub init_scale {
-  my ($this) = @_;
-  $this->{BoundsIn} = PDL->pdl(PDL::float(), 'BAD BAD 100; BAD BAD 1012.5');
-  $this->{BoundsOut} = undef;
 }
 
 sub transform {

@@ -30,18 +30,18 @@ $cyl->init_scale;
 $cyl->add_scale(my $points2 = float('-80 -80 800; 80 80 900'), $inds);
 $cyl->finish_scale;
 is_pdl $cyl->{AxisLabelsObj}{Points}, float('
-  0.413176 -0.1 -0.1; 0.456588 -0.1 -0.1; 0.5 -0.1 -0.1; 0.543412 -0.1 -0.1; 0.586824 -0.1 -0.1;
-  0.313176 0 -0.1; 0.0169778 0.25 -0.1; -0.1 0.5 -0.1; 0.0169778 0.75 -0.1; 0.313176 1 -0.1
+  0.413176 -0.1 0.4; 0.456588 -0.1 0.4; 0.5 -0.1 0.4; 0.543412 -0.1 0.4; 0.586824 -0.1 0.4;
+  0.313176 0 0.4; 0.0169778 0.25 0.4; -0.1 0.5 0.4; 0.0169778 0.75 0.4; 0.313176 1 0.4
 '), {atol=>1e-4};
 is_pdl $cyl->transform($points2->zeroes, $points2, $inds), float('
-  0.413176 0 0.101756; 0.586824 1 0.050878
+  0.413176 0 1; 0.586824 1 0.5
 ');
 
 $cyl->init_scale;
 $cyl->add_scale(my $points3 = float('-80 -80 800; 80 50 900'), $inds);
 $cyl->finish_scale;
 is_pdl $cyl->transform($points2->zeroes, $points3, $inds), float('
-  0.413155 0 0.101756; 0.82147 1 0.050878
+  0.413155 0 1; 0.82147 1 0.5
 ');
 
 my $pol = PDL::Graphics::TriD::Axes::PolarStereo->new;
@@ -49,7 +49,7 @@ $pol->init_scale;
 $pol->add_scale(my $points4 = float('-80 80 800; 80 50 900'), $inds);
 $pol->finish_scale;
 is_pdl $pol->transform($points4->zeroes, $points4, $inds), float('
-  0.379813 1 0.101756; 1 0.862346 0.050878
+  0.379813 1 1; 1 0.862346 0.5
 ');
 
 done_testing;
