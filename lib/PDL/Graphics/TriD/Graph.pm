@@ -76,8 +76,9 @@ sub scalethings {
   while (my ($series_name,$v) = each %{$this->{DataBind}}) {
     for my $bound (@$v) {
       my ($axis, $axes) = @$bound;
+      my $axis_obj = $this->{Axis}{$axis};
       for my $data (values %{ $this->{Data}{$series_name} }) {
-        $this->{Axis}{$axis}->add_scale($data->get_points, $axes);
+        $axis_obj->add_scale($data->get_points, $axes);
       }
     }
   }
