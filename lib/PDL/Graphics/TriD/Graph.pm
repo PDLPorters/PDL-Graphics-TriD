@@ -131,15 +131,16 @@ sub changed {}
 package # hide from PAUSE
   PDL::Graphics::TriD::Axes::Base;
 use base qw(PDL::Graphics::TriD::Object);
-use fields qw(NDiv AxisLabelsObj BoundsIn BoundsOut TransformRaw TransformNorm TransformFinal);
+use fields qw(NDiv Names AxisLabelsObj BoundsIn BoundsOut TransformRaw TransformNorm TransformFinal);
 use PDL;
 sub new {
   my $this = $_[0]->SUPER::new(@_[1..$#_]);
-  $this->{NDiv} = $this->{Options}{NDiv};
+  @$this{qw(NDiv Names)} = @{ $this->{Options} }{qw(NDiv Names)};
   $this;
 }
 sub get_valid_options { +{
   NDiv => 4,
+  Names => $_[0]->axis_names,
 }}
 sub init_scale {
   my ($this) = @_;
@@ -179,11 +180,7 @@ package # hide from PAUSE
 use base qw(PDL::Graphics::TriD::Axes::Base);
 use PDL;
 use PDL::Transform;
-
-sub get_valid_options { +{
-  %{ $_[0]->SUPER::get_valid_options },
-  Names => [qw(X Y Z)],
-}}
+sub axis_names { [qw(X Y Z)] }
 
 sub new {
   my $this = $_[0]->SUPER::new(@_[1..$#_]);
@@ -196,7 +193,7 @@ sub new {
     0.1,
   );
   my $points = zeroes(PDL::float(),3,3)->append(my $id3 = identity(3))->splitdim(0,3)->clump(1,2);
-  $this->add_object(PDL::Graphics::TriD::Labels->new($id3, $options->{Names}));
+  $this->add_object(PDL::Graphics::TriD::Labels->new($id3, $this->{Names}));
   $this->add_object(PDL::Graphics::TriD::Lines->new($points->glue(1, $line_points)));
   $this->add_object($this->{AxisLabelsObj} = $labels_obj);
   $this;
@@ -220,7 +217,7 @@ sub finish_scale {
 package # hide from PAUSE
   PDL::Graphics::TriD::Axes::Face;
 use base qw(PDL::Graphics::TriD::Axes::Base);
-use fields qw(LatticeObj Names AxisLinesObj);
+use fields qw(LatticeObj AxisLinesObj);
 use PDL;
 use PDL::Transform;
 sub add_scale {
@@ -274,10 +271,10 @@ package # hide from PAUSE
   PDL::Graphics::TriD::Axes::Sinusoidal;
 use base qw(PDL::Graphics::TriD::Axes::Face);
 use PDL::Transform::Cartography;
+sub axis_names { [qw(LON LAT Pressure)] }
 sub new {
   my ($type) = @_;
   my $self = $type->SUPER::new;
-  $self->{Names} = [qw(LON LAT Pressure)];
   $self->{TransformRaw} = t_sinusoidal();
   $self;
 }
@@ -288,10 +285,10 @@ package # hide from PAUSE
   PDL::Graphics::TriD::Axes::PolarStereo;
 use base qw(PDL::Graphics::TriD::Axes::Face);
 use PDL::Transform::Cartography;
+sub axis_names { [qw(LONGITUDE LATITUDE HEIGHT)] }
 sub new {
   my ($type) = @_;
   my $self = $type->SUPER::new;
-  $self->{Names} = [qw(LONGITUDE LATITUDE HEIGHT)];
   $self->{TransformRaw} = t_stereographic(o=>[0,90]); # about North Pole
   $self;
 }
