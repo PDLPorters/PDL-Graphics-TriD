@@ -167,6 +167,12 @@ sub gen_stalk_labels {
   my $labels_obj = PDL::Graphics::TriD::Labels->new($ends, [('') x $ends->dim(1)]);
   ($line_points, $labels_obj);
 }
+sub transform {
+  my ($this,$point,$data,$inds) = @_;
+  PDL::barf "no \$inds given" if !defined $inds;
+  $point->slice("0:$#$inds") += $this->{TransformFinal}->apply($data->dice_axis(0, $inds));
+  $point;
+}
 
 package # hide from PAUSE
   PDL::Graphics::TriD::Axes::Euclid;
@@ -211,13 +217,6 @@ sub finish_scale {
   $this->{AxisLabelsObj}->set_labels([map sprintf("%.3f", $_), $axisvals->t->list]);
 }
 
-sub transform {
-  my ($this,$point,$data,$inds) = @_;
-  PDL::barf "no \$inds given" if !defined $inds;
-  $point->slice("0:$#$inds") += $this->{TransformFinal}->apply($data->dice_axis(0, $inds));
-  $point;
-}
-
 package # hide from PAUSE
   PDL::Graphics::TriD::Axes::Face;
 use base qw(PDL::Graphics::TriD::Axes::Base);
@@ -248,7 +247,7 @@ sub add_lattice_axis {
   my $ndiv = $this->{NDiv};
   # can be changed to topo heights?
   my $verts = zeroes(PDL::float(),3,(2*$ndiv+1) x 2);
-  $verts->slice("2") .= $maxes_in->slice('2');
+  $verts->slice("2") .= $mins_in->slice('2');
   $verts->slice($_)->inplace->axislinvals($_+1,$this->{BoundsIn}->slice($_)->list) for 0,1;
   $this->add_scale($verts, [0..2]);
   my $tverts = $this->transform($verts->zeroes,$verts,[0,1,2]);
@@ -274,9 +273,7 @@ sub add_lattice_axis {
 package # hide from PAUSE
   PDL::Graphics::TriD::Axes::Sinusoidal;
 use base qw(PDL::Graphics::TriD::Axes::Face);
-use PDL::Core qw(barf float);
 use PDL::Transform::Cartography;
-
 sub new {
   my ($type) = @_;
   my $self = $type->SUPER::new;
@@ -285,46 +282,18 @@ sub new {
   $self;
 }
 
-sub transform {
-  my ($this,$point,$data,$inds) = @_;
-  barf "no \$inds given" if !defined $inds;
-  barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
-  my $pressure_max = $this->{BoundsIn}->slice('2,0');
-  $data = $data->dice_axis(0, $inds);
-  $point += $this->{TransformFinal}->apply($data);
-  $point->slice("(2)") .=
-    log($data->slice("(2)")/1012.5)/log($pressure_max/1012.5);
-  $point;
-}
-
 # try this:
 # make && perl -Mblib -MPDL -MPDL::Graphics::TriD -e '$PDL::Graphics::TriD::Graph::default_axis_class = "PDL::Graphics::TriD::Axes::PolarStereo"; spheres3d pdl("-80 80 800; 80 80 900")'
 package # hide from PAUSE
   PDL::Graphics::TriD::Axes::PolarStereo;
 use base qw(PDL::Graphics::TriD::Axes::Face);
-use PDL::Core qw(barf float);
 use PDL::Transform::Cartography;
-
 sub new {
   my ($type) = @_;
   my $self = $type->SUPER::new;
   $self->{Names} = [qw(LONGITUDE LATITUDE HEIGHT)];
   $self->{TransformRaw} = t_stereographic(o=>[0,90]); # about North Pole
   $self;
-}
-
-sub transform {
-  my ($this,$point,$data,$inds) = @_;
-  barf "no \$inds given" if !defined $inds;
-  barf "Wrong number of arguments to transform $this\n" if @$inds != 3;
-  $data = $data->dice_axis(0, $inds);
-  my $pressure_max = $this->{BoundsIn}->slice('2,0');
-  $point += $this->{TransformFinal}->apply($data);
-# Vertical transformation
-#  -7.2*log($data->slice("(2)")/1012.5
-  $point->slice("(2)") .=
-    log($data->slice("(2)")/1012.5)/log($pressure_max/1012.5);
-  $point;
 }
 
 1;
