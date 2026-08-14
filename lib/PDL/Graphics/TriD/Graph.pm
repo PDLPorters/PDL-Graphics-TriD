@@ -241,15 +241,15 @@ sub add_scale {
 }
 sub finish_scale {
   my ($this) = @_;
-  $this->{BoundsIn} = PDL->pdl(PDL::float(), $this->normalise_scale);
-  $this->add_lattice_axis;
+  $this->{BoundsIn} = PDL->pdl(PDL::float(), my @bounds = $this->normalise_scale);
+  $this->add_lattice_axis(@bounds);
 }
 sub add_lattice_axis {
-  my ($this) = @_;
+  my ($this, $mins_in, $maxes_in) = @_;
   my $ndiv = $this->{NDiv};
   # can be changed to topo heights?
   my $verts = zeroes(PDL::float(),3,(2*$ndiv+1) x 2);
-  $verts->slice("2") .= 1012.5;
+  $verts->slice("2") .= $maxes_in->slice('2');
   $verts->slice($_)->inplace->axislinvals($_+1,$this->{BoundsIn}->slice($_)->list) for 0,1;
   $this->add_scale($verts, [0..2]);
   my $tverts = $this->transform($verts->zeroes,$verts,[0,1,2]);
