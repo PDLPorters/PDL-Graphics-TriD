@@ -234,6 +234,7 @@ use base qw(PDL::Graphics::TriD::Axes::Base);
 use fields qw(LatticeObj AxisLinesObj);
 use PDL;
 use PDL::Transform;
+sub axis_names { [qw(LONGITUDE LATITUDE HEIGHT)] }
 sub validate_scale {
   my ($this, $mins, $maxes) = @_;
   if ($maxes->slice(1) >= 90 or $mins->slice(1) <= -90) {
@@ -287,7 +288,6 @@ package # hide from PAUSE
   PDL::Graphics::TriD::Axes::PolarStereo;
 use base qw(PDL::Graphics::TriD::Axes::Face);
 use PDL::Transform::Cartography;
-sub axis_names { [qw(LONGITUDE LATITUDE HEIGHT)] }
 sub transform_raw { t_stereographic(o=>[0,90]) } # about North Pole
 
 1;
