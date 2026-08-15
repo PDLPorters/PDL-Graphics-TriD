@@ -92,10 +92,11 @@ my ($VS_IN, $VS_OUT, $FS_IN, $FS_OUT) = ('in', 'smooth out', 'smooth in', 'out')
 my $FRAG_OUT = 'fragColour';
 my $TEXFUNC = 'texture';
 sub _passthrough {
-  my ($name, $size) = @_;
-  ("vs_in_${name}_decl" => "$VS_IN vec$size $name;\n",
-    "vs_out_${name}_decl" => "$VS_OUT vec$size v".ucfirst($name).";\n",
-    "fs_in_${name}_decl" => "$FS_IN vec$size v".ucfirst($name).";\n",
+  my ($name, $size, $type) = @_;
+  $type //= '';
+  ("vs_in_${name}_decl" => "$VS_IN ${type}vec$size $name;\n",
+    "vs_out_${name}_decl" => "$VS_OUT ${type}vec$size v".ucfirst($name).";\n",
+    "fs_in_${name}_decl" => "$FS_IN ${type}vec$size v".ucfirst($name).";\n",
     "vs_out_$name" => "  v".ucfirst($name)." = $name;\n")
 }
 my %SHADERBITS = (
