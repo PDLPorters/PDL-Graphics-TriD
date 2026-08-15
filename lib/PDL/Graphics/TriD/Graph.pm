@@ -231,7 +231,7 @@ sub finish_scale {
 package # hide from PAUSE
   PDL::Graphics::TriD::Axes::Face;
 use base qw(PDL::Graphics::TriD::Axes::Base);
-use fields qw(LatticeObj AxisLinesObj);
+use fields qw(LatticeObj AxisLinesObj AxisNamesObj);
 use PDL;
 use PDL::Transform;
 sub axis_names { [qw(LONGITUDE LATITUDE HEIGHT)] }
@@ -253,7 +253,7 @@ sub finish_scale {
   $this->{TransformNorm} = t_linear(pre => -$mins_out, s => 1/($maxes_out - $mins_out));
   $this->{TransformFinal} = $this->{TransformNorm} x $this->{TransformRaw};
   my $tverts = $this->transform($verts->zeroes,$verts,[0,1,2]);
-  $this->delete_object($_) for grep $_, @$this{qw(LatticeObj AxisLinesObj AxisLabelsObj)};
+  $this->delete_object($_) for grep $_, @$this{qw(LatticeObj AxisLinesObj AxisLabelsObj AxisNamesObj)};
   $this->add_object($this->{LatticeObj} = PDL::Graphics::TriD::Lattice->new($tverts, {Shading=>0}));
   my $starts = $tverts->slice(",::2,(0)");
   $starts = $starts->glue(1,$tverts->slice(",(0),::2"));
@@ -266,6 +266,10 @@ sub finish_scale {
   $line_points = $line_points->glue(1, float('0 0 0; 0 0 1')); # Z axis line
   $this->add_object($this->{AxisLinesObj} = PDL::Graphics::TriD::Lines->new($line_points));
   $this->add_object($this->{AxisLabelsObj} = $labels_obj);
+  my $name_points = $tverts->slice(",(-1),0"); # X
+  $name_points = $name_points->glue(1,$tverts->slice(",0,(-1)")); # Y
+  $name_points = $name_points->glue(1,float('[0 0 1]')); # Z
+  $this->add_object($this->{AxisNamesObj} = PDL::Graphics::TriD::Labels->new($name_points, $this->{Names}));
   my $xlabels = $verts->slice("(0),::2,(0)");
   my $ylabels = $verts->slice("(1),(0),::2");
   my $zlabels = xlinvals(PDL::float(),$this->{BoundsIn}->slice(2)->list,$ndiv+1);
@@ -279,7 +283,6 @@ package # hide from PAUSE
   PDL::Graphics::TriD::Axes::Sinusoidal;
 use base qw(PDL::Graphics::TriD::Axes::Face);
 use PDL::Transform::Cartography;
-sub axis_names { [qw(LON LAT Pressure)] }
 sub transform_raw { t_sinusoidal() }
 
 # try this:
