@@ -487,6 +487,7 @@ sub _font_setup {
   $texcoords->slice('(1),0::2') .= 1;          # v of top, v bot=already 0
   $fref->{vert_template} = PDL->new(PDL::float, [0,1], [0,0], [1,1], [1,0])
     * PDL::float(1, $fref->{heightpix});
+  $fref->{z1} = PDL::float('[0]');
 }
 my $vertex_shader = join '', @SHADERBITS{qw(version
   vs_in_position_decl vs_in_toffset_decl
@@ -513,7 +514,7 @@ sub togl_setup {
     my $l = $codes[$_];
     PDL::barf "Codepoint $_ >= $numchars" for grep $_ >= $numchars, @$l;
     push @v1, ($_) x @$l;
-    $v2 = PDL::glue(0,$v2,$FONT{widthflt}->dice_axis(0,$l)->cumusumover);
+    $v2 = PDL::glue(0,$v2, $FONT{z1}->append($FONT{widthflt}->dice_axis(0,[@$l[0..$#$l-1]])->cumusumover));
   }
   my $v = $points->dice_axis(1, \@v1)->dummy(1,4);
   my $toffset =
