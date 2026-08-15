@@ -152,6 +152,21 @@ sub init_scale {
   $this->{BoundsOut} = $this->{BoundsIn} = undef;
 }
 sub validate_scale {}
+sub add_scale {
+  my ($this,$data,$inds) = @_;
+  barf "no \$inds given" if !defined $inds;
+  $data = $data->dice_axis(0, $inds);
+  my ($mins, $maxes) = $this->re_minmax($data, $this->{BoundsIn}); # each is xyz
+  $this->validate_scale($mins, $maxes);
+  $this->{BoundsIn} = PDL->pdl($mins, $maxes); # xyz,minmax
+  if ($this->{TransformRaw}) {
+    ($mins, $maxes) = $this->re_minmax($this->{TransformRaw}->apply($data), $this->{BoundsOut});
+    $this->{BoundsOut} = PDL->pdl($mins, $maxes);
+  } else {
+    $this->{BoundsOut} = $this->{BoundsIn};
+  }
+  ($mins, $maxes); # for BoundsOut
+}
 sub normalise_scale { # Normalize the smallest differences away.
   my ($this) = @_;
   my ($min, $max) = $this->{BoundsIn}->dog;
@@ -205,16 +220,6 @@ sub new {
   $this;
 }
 
-sub add_scale {
-  my ($this,$data,$inds) = @_;
-  PDL::barf "no \$inds given" if !defined $inds;
-  $data = $data->dice_axis(0, $inds);
-  my ($mins, $maxes) = $this->re_minmax($data, $this->{BoundsIn}); # each is xyz
-  $this->validate_scale($mins, $maxes);
-  $this->{BoundsOut} = $this->{BoundsIn} = PDL->pdl($mins, $maxes); # xyz,minmax
-  ($mins, $maxes); # for BoundsOut
-}
-
 sub finish_scale {
   my ($this) = @_;
   my ($min, $max) = $this->normalise_scale;
@@ -234,17 +239,6 @@ sub validate_scale {
   if ($maxes->slice(1) >= 90 or $mins->slice(1) <= -90) {
     barf "Error in Latitude ", $maxes->slice(1), " ", $mins->slice(1);
   }
-}
-sub add_scale {
-  my ($this,$data,$inds) = @_;
-  barf "no \$inds given" if !defined $inds;
-  $data = $data->dice_axis(0, $inds);
-  my ($mins, $maxes) = $this->re_minmax($data, $this->{BoundsIn}); # each is xyz
-  $this->validate_scale($mins, $maxes);
-  $this->{BoundsIn} = PDL->pdl($mins, $maxes); # xyz,minmax
-  ($mins, $maxes) = $this->re_minmax($this->{TransformRaw}->apply($data), $this->{BoundsOut});
-  $this->{BoundsOut} = PDL->pdl($mins, $maxes);
-  ($mins, $maxes); # for BoundsOut
 }
 sub finish_scale {
   my ($this) = @_;
