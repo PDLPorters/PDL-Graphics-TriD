@@ -256,16 +256,19 @@ sub finish_scale {
   $this->add_object($this->{LatticeObj} = PDL::Graphics::TriD::Lattice->new($tverts, {Shading=>0}));
   my $starts = $tverts->slice(",::2,(0)");
   $starts = $starts->glue(1,$tverts->slice(",(0),::2"));
+  $starts = $starts->glue(1,zeroes(PDL::float(),2)->append(ylinvals(PDL::float(),0,1,1,$ndiv+1)));
   my ($line_points, $labels_obj) = $this->gen_stalk_labels(
     $starts,
-    yvals(PDL::float(), $ndiv+1, 2)->flat,
+    yvals(PDL::float(), $ndiv+1, 3)->flat,
     0.1,
   );
+  $line_points = $line_points->glue(1, float('0 0 0; 0 0 1')); # Z axis line
   $this->add_object($this->{AxisLinesObj} = PDL::Graphics::TriD::Lines->new($line_points));
   $this->add_object($this->{AxisLabelsObj} = $labels_obj);
   my $xlabels = $verts->slice("(0),::2,(0)");
   my $ylabels = $verts->slice("(1),(0),::2");
-  $this->{AxisLabelsObj}->set_labels([map sprintf("%.3f", $_), $xlabels->list, $ylabels->list]);
+  my $zlabels = xlinvals(PDL::float(),$this->{BoundsIn}->slice(2)->list,$ndiv+1);
+  $labels_obj->set_labels([map sprintf("%.3f", $_), map $_->list, $xlabels, $ylabels, $zlabels]);
 }
 
 # x & y in degrees, z = value
