@@ -508,12 +508,12 @@ sub togl_setup {
   $points //= $this->{Points}; # as Labels is used in Graph
   my $numchars = $FONT{numchars};
   my @codes = map [map ord, split //], @{ $this->{Strings} };
-  my ($v2, @v1) = PDL->null;
+  my @v1 = map +($_) x @{$codes[$_]}, 0..$#codes;
+  my $v2 = PDL->null;
   my @v3 = map @$_, @codes;
   for (0..$#codes) {
     my $l = $codes[$_];
     PDL::barf "Codepoint $_ >= $numchars" for grep $_ >= $numchars, @$l;
-    push @v1, ($_) x @$l;
     $v2 = PDL::glue(0,$v2, $FONT{z1}->append($FONT{widthflt}->dice_axis(0,[@$l[0..$#$l-1]])->cumusumover));
   }
   my $v = $points->dice_axis(1, \@v1)->dummy(1,4);
