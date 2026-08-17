@@ -13,10 +13,10 @@ WriteMakefile (
   VERSION_FROM => 'lib/PDL/Graphics/TriD.pm',
   CONFIGURE_REQUIRES => {
     'ExtUtils::MakeMaker' => '7.72',
-    'PDL' => '2.104',
+    'PDL' => '2.105',
   },
   PREREQ_PM => {
-    'PDL' => '2.104', # inplace norm
+    'PDL' => '2.105', # pdldoc_add
     'OpenGL::Modern' => '0.0403',
     'OpenGL::GLFW' => '0.0402',
   },
@@ -47,9 +47,5 @@ sub init_PM {
   $self->SUPER::init_PM;
   @pd_srcs = ::pdlpp_eumm_update_deep($self);
 }
-sub postamble {
-  my $oneliner = PDL::Core::Dev::_oneliner(qq{exit if \$ENV{DESTDIR}; use PDL::Doc; eval { PDL::Doc::add_module(shift); }});
-  ::pdlpp_postamble(@pd_srcs) .
-    qq|\ninstall :: pure_install\n\t$oneliner \$(NAME)\n|;
-}
+sub postamble { ::pdlpp_postamble(@pd_srcs) . ::pdldoc_add() }
 }
