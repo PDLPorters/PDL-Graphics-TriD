@@ -191,20 +191,8 @@ sub refresh{
   unshift(@{$self->{WorkQue}}, [\&{$dcall},$self->{GLwin}]);
 }
 
-=head2 AUTOLOAD
-
-=for ref 
-
-Tries to find a subroutine in PDL::Graphics::TriD when it is
-not found in this package.  
-
-=cut
-
-#
 #  This AUTOLOAD allows the PDL::Graphics::TriD::Tk object to act as the PDL::Graphics::TriD
 #  object which it contains.  It seems slow and may not be a good idea.
-#
-
 sub AUTOLOAD {
   my ($self,@args)=@_;
   use vars qw($AUTOLOAD);
@@ -217,7 +205,6 @@ sub AUTOLOAD {
     return($self->{GLwin}->$sub(@args));
   }
 }
-
 
 
 
